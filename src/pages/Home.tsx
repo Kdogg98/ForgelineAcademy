@@ -122,23 +122,47 @@ export function Home({
   }, [courses]);
 
   const featuredFree = useMemo(
-    () => courses.filter((c) => c.tier === 'free').slice(0, 8),
-    [courses],
-  );
-  const mostPopular = useMemo(
-    () =>
-      [...courses]
-        .sort((a, b) => (progressMap[b.id] ?? 0) - (progressMap[a.id] ?? 0))
-        .slice(0, 8),
-    [courses, progressMap],
-  );
-  const recentlyAdded = useMemo(
-    () => [...courses].reverse().slice(0, 8),
-    [courses],
+    () => [...byStage.mechanical.slice(0, 4), ...byStage.electrical.slice(0, 4)],
+    [byStage],
   );
   const startPath = useMemo(
-    () => [...byStage.mechanical, ...byStage.electrical].slice(0, 8),
+    () => [...byStage.mechanical.slice(4, 8), ...byStage.electrical.slice(4, 8)],
     [byStage],
+  );
+  const mostPopular = useMemo(() => {
+    const used = new Set<string>();
+    const pick = (list: Course[], idx: number) => {
+      const c = list[idx];
+      if (!c || used.has(c.id)) return null;
+      used.add(c.id);
+      return c;
+    };
+    const mixed = [
+      pick(byStage.electrical, 1),
+      pick(byStage.ie, 0),
+      pick(byStage.mechanical, 2),
+      pick(byStage.engineering, 0),
+      pick(byStage.electrical, 3),
+      pick(byStage.ie, 1),
+      pick(byStage.mechanical, 5),
+      pick(byStage.engineering, 1),
+    ].filter((c): c is Course => Boolean(c));
+    if (mixed.length < 8) {
+      for (const c of courses) {
+        if (used.has(c.id)) continue;
+        mixed.push(c);
+        used.add(c.id);
+        if (mixed.length >= 8) break;
+      }
+    }
+    return mixed;
+  }, [byStage, courses]);
+  const recentlyAdded = useMemo(
+    () =>
+      [...courses]
+        .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || '') || b.sort_order - a.sort_order)
+        .slice(0, 8),
+    [courses],
   );
 
   function openCourse(id: string) {
@@ -459,7 +483,7 @@ export function Home({
               <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-steel-400 animate-fade-in">
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-4 h-4 text-rok-400" />
-                  <span>{courses.length || '60+'} structured courses</span>
+                  <span>{courses.length || 78} structured courses</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Target className="w-4 h-4 text-rok-400" />
@@ -620,6 +644,7 @@ export function Home({
               );
             })}
           </div>
+          <h3 className="font-display text-xl sm:text-2xl font-bold text-white mb-4 text-center">What maintenance teams tell us</h3>
           <div className="grid sm:grid-cols-3 gap-4">
             {[
               { quote: "The on-site motor control training gave our team the confidence to troubleshoot VFD issues without calling a contractor every time.", role: 'Maintenance Supervisor' },

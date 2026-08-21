@@ -64,18 +64,14 @@ export function PromoManager() {
         .select('code, referrals_count, free_months_earned, user_id')
         .order('referrals_count', { ascending: false });
       if (refData && refData.length > 0) {
-        const enriched = await Promise.all(
-          (refData as unknown as { code: string; referrals_count: number; free_months_earned: number; user_id: string }[]).map(
-            async (r) => {
-              const { data: prof } = await supabase
-                .rpc('list_users_for_admin')
-                .then(({ data }) => ({ data }));
-              const users = (data as unknown as { id: string; email: string }[]) ?? [];
-              const email = users.find((u) => u.id === r.user_id)?.email ?? null;
-              return { ...r, user_email: email } as ReferralRow;
-            },
-          ),
-        );
+        const { data: prof } = await supabase.rpc('list_users_for_admin');
+        const users = (prof as unknown as { id: string; email: string }[]) ?? [];
+        const enriched = (
+          refData as unknown as { code: string; referrals_count: number; free_months_earned: number; user_id: string }[]
+        ).map((r) => {
+          const email = users.find((u) => u.id === r.user_id)?.email ?? null;
+          return { ...r, user_email: email } as ReferralRow;
+        });
         setReferrals(enriched);
       }
     } catch (e) {

@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { useCourses, fetchAllProgress, fetchCertificates } from '@/lib/data';
 import { supabase } from '@/lib/supabase';
+import { trackPageView } from '@/lib/analytics';
+import { pathToRoute, routeToPath } from '@/lib/routing';
 import type { UserProgress, Certificate } from '@/lib/types';
 import { Nav, type Route } from '@/components/Nav';
 import { Footer } from '@/components/Footer';
@@ -23,7 +25,7 @@ import { SkillAssessment } from '@/pages/SkillAssessment';
 function AppContent() {
   const { user, loading: authLoading } = useAuth();
   const { courses, loading: coursesLoading } = useCourses();
-  const [route, setRoute] = useState<Route>({ name: 'home' });
+  const [route, setRoute] = useState<Route>(() => pathToRoute(window.location.pathname, window.location.search));
   const [progress, setProgress] = useState<UserProgress[]>([]);
   const [certs, setCerts] = useState<Certificate[]>([]);
   const [progressTick, setProgressTick] = useState(0);
@@ -48,8 +50,21 @@ function AppContent() {
     void loadUserData();
   }, [loadUserData, progressTick]);
 
+  useEffect(() => {
+    trackPageView(route.name);
+  }, [route.name]);
+
+  useEffect(() => {
+    const onPop = () => setRoute(pathToRoute(window.location.pathname, window.location.search));
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
   function navigate(r: Route) {
     setRoute(r);
+    const next = routeToPath(r);
+    const cur = `${window.location.pathname}${window.location.search}`;
+    if (cur !== next) window.history.pushState(null, '', next);
     if (r.name === 'paths' && (r.focusPath || r.showWelcome)) {
       setShowWelcome(true);
     }
@@ -144,14 +159,15 @@ function AppContent() {
         {route.name === 'course' && (
           <CourseDetail
             courseId={route.courseId}
+            preloadedCourse={courses.find((c) => c.id === route.courseId) ?? null}
             onNavigate={navigate}
             onProgressChanged={onProgressChanged}
           />
         )}
         {route.name === 'dashboard' && (
-          <Dashboard courses={courses} onNavigate={navigate} />
+          <Dashboard courses={courses} onNavigate={navigate} progressMap={courseProgressMap} certs={certs} />
         )}
-        {route.name === 'certificates' && <Certificates onNavigate={navigate} />}
+        {route.name === 'certificates' && <Certificates onNavigate={navigate} certificates={certs} />}
         {route.name === 'auth' && <Auth onNavigate={navigate} initialMode={route.mode} initialPath={route.path} />}
         {route.name === 'pricing' && <Pricing onNavigate={navigate} />}
         {route.name === 'admin' && <Admin onNavigate={navigate} />}

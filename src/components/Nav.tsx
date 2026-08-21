@@ -42,6 +42,7 @@ export function Nav({ route, onNavigate }: NavProps) {
   const [searchValue, setSearchValue] = useState('');
 
   const { user, isPremium, isAdmin, signOut, company, isCompanyAdmin } = useAuth();
+  const showCompanyChip = Boolean(company && !/^test$/i.test((company.name || '').trim()));
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -75,7 +76,7 @@ export function Nav({ route, onNavigate }: NavProps) {
               <button onClick={() => onNavigate({ name: 'home' })} aria-label="Home">
                 <Logo />
               </button>
-              {company?.logo_url && (
+              {showCompanyChip && company?.logo_url && (
                 <>
                   <div className="hidden sm:block w-px h-8 bg-steel-700/60" />
                   <div className="hidden sm:flex items-center gap-2 max-w-[140px]">
@@ -92,7 +93,7 @@ export function Nav({ route, onNavigate }: NavProps) {
                 {NAV_LINKS.map((link) => (
                   <button
                     key={link.label}
-                    onClick={() => onNavigate(link.route)}
+                    onClick={() => { setUserMenu(false); onNavigate(link.route); }}
                     className={`px-3.5 py-2 rounded-md text-sm font-medium transition-colors ${
                       isActive(link.route)
                         ? 'text-white bg-navy-700/80'
@@ -152,7 +153,7 @@ export function Nav({ route, onNavigate }: NavProps) {
                   </button>
                   {userMenu && (
                     <>
-                      <div className="fixed inset-0 z-40" onClick={() => setUserMenu(false)} />
+                      <div className="fixed inset-x-0 top-16 bottom-0 z-40" onClick={() => setUserMenu(false)} />
                       <div className="absolute right-0 mt-2 w-56 card border-steel-600 shadow-xl z-50 py-1.5 animate-fade-in">
                         <div className="px-3 py-2 border-b border-steel-700/60">
                           <p className="text-xs text-steel-400 truncate">{user.email}</p>

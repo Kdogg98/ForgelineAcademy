@@ -24,6 +24,7 @@ import { getEmbedUrl } from '@/lib/video';
 import {
   fetchCourse,
   fetchLessons,
+  fetchLessonContent,
   fetchProgress,
   upsertProgress,
   issueCertificate,
@@ -38,6 +39,7 @@ import type { Route } from '@/components/Nav';
 
 interface CourseDetailProps {
   courseId: string;
+  preloadedCourse?: Course | null;
   onNavigate: (r: Route) => void;
   onProgressChanged: () => void;
 }
@@ -48,9 +50,9 @@ interface ModuleGroup {
   lessons: LessonWithModule[];
 }
 
-export function CourseDetail({ courseId, onNavigate, onProgressChanged }: CourseDetailProps) {
+export function CourseDetail({ courseId, preloadedCourse, onNavigate, onProgressChanged }: CourseDetailProps) {
   const { user, isPremium, isAdmin, company } = useAuth();
-  const [course, setCourse] = useState<Course | null>(null);
+  const [course, setCourse] = useState<Course | null>(preloadedCourse ?? null);
   const [lessons, setLessons] = useState<LessonWithModule[]>([]);
   const [progress, setProgress] = useState<UserProgress[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,6 +79,10 @@ export function CourseDetail({ courseId, onNavigate, onProgressChanged }: Course
   );
 
   useEffect(() => {
+    if (preloadedCourse && preloadedCourse.id === courseId) setCourse(preloadedCourse);
+  }, [preloadedCourse, courseId]);
+
+  useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError(null);
@@ -85,16 +91,20 @@ export function CourseDetail({ courseId, onNavigate, onProgressChanged }: Course
     setQuizAnswers({});
     (async () => {
       try {
-        const [c, ls] = await Promise.all([fetchCourse(courseId), fetchLessons(courseId)]);
+        const [c, ls] = await Promise.all([
+          preloadedCourse?.id === courseId ? Promise.resolve(preloadedCourse) : fetchCourse(courseId),
+          fetchLessons(courseId),
+        ]);
         if (cancelled) return;
         setCourse(c);
         setLessons(ls);
-        if (user) {
+        if (user?.id) {
           const p = await fetchProgress(courseId);
           if (cancelled) return;
           setProgress(p);
+        } else {
+          setProgress([]);
         }
-        // Open first module by default
         if (ls.length > 0) {
           setOpenModules(new Set([ls[0].module_id]));
         }
@@ -107,7 +117,25 @@ export function CourseDetail({ courseId, onNavigate, onProgressChanged }: Course
     return () => {
       cancelled = true;
     };
-  }, [courseId, user]);
+  }, [courseId, user?.id, preloadedCourse]);
+
+  useEffect(() => {
+    if (!activeLesson?.id || activeLesson.content) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const content = await fetchLessonContent(activeLesson.id);
+        if (cancelled || content == null) return;
+        setLessons((ls) => ls.map((l) => (l.id === activeLesson.id ? { ...l, content } : l)));
+        setActiveLesson((cur) => (cur && cur.id === activeLesson.id ? { ...cur, content } : cur));
+      } catch {
+        // lesson body is optional; keep the shell
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeLesson?.id, activeLesson?.content]);
 
   const progressMap = useMemo(() => {
     const m: Record<string, UserProgress> = {};
@@ -283,7 +311,7 @@ export function CourseDetail({ courseId, onNavigate, onProgressChanged }: Course
     }
   }
 
-  if (loading) {
+  if (loading && !course) {
     return (
       <div className="pt-16 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
@@ -355,22 +383,33 @@ export function CourseDetail({ courseId, onNavigate, onProgressChanged }: Course
             {user && !locked && (
               <div className="lg:w-72 shrink-0">
                 <div className="card p-5">
-                  <div className="text-xs text-steel-400 mb-2">Your progress</div>
-                  <div className="flex items-center gap-3 mb-3">
-                    <ProgressBar value={courseProgress} />
-                    <span className="text-lg font-bold text-white tabular-nums">
-                      {courseProgress}%
-                    </span>
-                  </div>
-                  <div className="text-xs text-steel-400">
-                    {lessons.filter((l) => progressMap[l.id]?.completed).length} of{' '}
-                    {lessons.length} lessons complete
-                  </div>
-                  {courseProgress === 100 && (
-                    <div className="mt-3 flex items-center gap-2 text-sm text-premium-400 font-semibold">
-                      <Award className="w-4 h-4" />
-                      Certificate earned
-                    </div>
+                  {courseProgress === 0 ? (
+                    <>
+                      <div className="text-xs text-steel-400 mb-2">Not started</div>
+                      <div className="text-xs text-steel-400">
+                        {lessons.length} lessons · start the first one
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-xs text-steel-400 mb-2">Your progress</div>
+                      <div className="flex items-center gap-3 mb-3">
+                        <ProgressBar value={courseProgress} />
+                        <span className="text-lg font-bold text-white tabular-nums">
+                          {courseProgress}%
+                        </span>
+                      </div>
+                      <div className="text-xs text-steel-400">
+                        {lessons.filter((l) => progressMap[l.id]?.completed).length} of{' '}
+                        {lessons.length} lessons complete
+                      </div>
+                      {courseProgress === 100 && (
+                        <div className="mt-3 flex items-center gap-2 text-sm text-premium-400 font-semibold">
+                          <Award className="w-4 h-4" />
+                          Certificate earned
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>

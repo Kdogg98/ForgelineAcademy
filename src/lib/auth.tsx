@@ -128,6 +128,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         is_premium: false,
         full_name: fullName || null,
       });
+      try {
+        await supabase.rpc('get_or_create_referral_code', { p_user_id: data.user.id });
+      } catch {
+        // ignore — signup still succeeds
+      }
       await supabase.rpc('claim_admin_if_first');
       await loadProfile(data.user.id);
     }

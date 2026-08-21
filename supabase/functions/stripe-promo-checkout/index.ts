@@ -86,13 +86,14 @@ Deno.serve(async (req) => {
         p_user_id: user.id,
       });
 
-      const result = validation as unknown as {
+      const rows = Array.isArray(validation) ? validation : validation ? [validation] : [];
+      const result = rows[0] as {
         code_type: string;
         valid: boolean;
         referrer_id: string | null;
         stripe_coupon_id: string | null;
         message: string;
-      } | null;
+      } | undefined;
 
       if (!result?.valid) {
         return corsResponse({ error: result?.message ?? 'Invalid code' }, 400);

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Wrench,
   Zap,
@@ -16,10 +16,8 @@ import {
   Pencil,
   Loader2,
 } from 'lucide-react';
-import type { Course, Stage, UserProgress, Certificate } from '@/lib/types';
+import type { Course, Stage, Certificate } from '@/lib/types';
 import { STAGES, STAGE_LABEL } from '@/lib/types';
-import { fetchAllProgress, fetchCertificates } from '@/lib/data';
-import { supabase } from '@/lib/supabase';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { TierBadge } from '@/components/ui/Badge';
 import { useAuth } from '@/lib/auth';
@@ -28,6 +26,8 @@ import type { Route } from '@/components/Nav';
 interface DashboardProps {
   courses: Course[];
   onNavigate: (r: Route) => void;
+  progressMap: Record<string, number>;
+  certs: Certificate[];
 }
 
 const STAGE_ICON: Record<Stage, typeof Wrench> = {
@@ -37,64 +37,14 @@ const STAGE_ICON: Record<Stage, typeof Wrench> = {
   engineering: Cpu,
 };
 
-export function Dashboard({ courses, onNavigate }: DashboardProps) {
+export function Dashboard({ courses, onNavigate, progressMap, certs }: DashboardProps) {
   const { user, isPremium, isAdmin, fullName, updateFullName } = useAuth();
-  const [progress, setProgress] = useState<UserProgress[]>([]);
-  const [certs, setCerts] = useState<Certificate[]>([]);
-  const [loading, setLoading] = useState(true);
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState('');
   const [savingName, setSavingName] = useState(false);
 
-  useEffect(() => {
-    if (!user) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const [p, c] = await Promise.all([fetchAllProgress(), fetchCertificates()]);
-        if (cancelled) return;
-        setProgress(p);
-        setCerts(c);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [user]);
+  const courseProgressMap = progressMap;
 
-  const [lessonCounts, setLessonCounts] = useState<Record<string, number>>({});
-
-  useEffect(() => {
-    if (courses.length === 0) return;
-    let cancelled = false;
-    (async () => {
-      const { data } = await supabase
-        .from('lessons')
-        .select('module_id, modules!inner(course_id)');
-      if (cancelled || !data) return;
-      const counts: Record<string, number> = {};
-      for (const row of data as unknown as { modules: { course_id: string } }[]) {
-        const cid = row.modules.course_id;
-        counts[cid] = (counts[cid] ?? 0) + 1;
-      }
-      setLessonCounts(counts);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [courses]);
-
-  const courseProgressMap = useMemo(() => {
-    const m: Record<string, number> = {};
-    for (const c of courses) {
-      const total = lessonCounts[c.id] ?? 0;
-      const completed = progress.filter((p) => p.course_id === c.id && p.completed).length;
-      m[c.id] = total > 0 ? Math.round((completed / total) * 100) : 0;
-    }
-    return m;
-  }, [courses, progress, lessonCounts]);
 
   const stageProgress = useMemo(() => {
     const m: Record<Stage, number> = { mechanical: 0, electrical: 0, ie: 0, engineering: 0 };
@@ -155,18 +105,6 @@ export function Dashboard({ courses, onNavigate }: DashboardProps) {
           <button onClick={() => onNavigate({ name: 'auth' })} className="btn-primary">
             Sign in / Create account
           </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="pt-16 min-h-screen">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6">
-          <div className="skeleton h-32 w-full rounded-xl" />
-          <div className="skeleton h-48 w-full rounded-xl" />
-          <div className="skeleton h-48 w-full rounded-xl" />
         </div>
       </div>
     );

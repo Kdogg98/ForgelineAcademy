@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Hexagon, ShieldCheck, Factory, GraduationCap, Zap, X, Mail, Phone, MapPin } from 'lucide-react';
 import { SITE_CONFIG } from '@/lib/siteConfig';
+import { useAuth } from '@/lib/auth';
 import type { Route } from '@/components/Nav';
 
 export function Footer({ onNavigate }: { onNavigate: (r: Route) => void }) {
+  const { user } = useAuth();
   const [showNexus, setShowNexus] = useState(false);
 
   useEffect(() => {
@@ -39,10 +41,12 @@ export function Footer({ onNavigate }: { onNavigate: (r: Route) => void }) {
                   <Mail className="w-3.5 h-3.5 text-rok-400" />
                   <a href={`mailto:${SITE_CONFIG.supportEmail}`} className="hover:text-rok-400 transition-colors">{SITE_CONFIG.supportEmail}</a>
                 </div>
+                {SITE_CONFIG.phone ? (
                 <div className="flex items-center gap-1.5">
                   <Phone className="w-3.5 h-3.5 text-rok-400" />
                   <span>{SITE_CONFIG.phone}</span>
                 </div>
+                ) : null}
                 <div className="flex items-start gap-1.5 max-w-sm">
                   <MapPin className="w-3.5 h-3.5 text-rok-400 shrink-0 mt-0.5" />
                   <span>{SITE_CONFIG.serviceArea}</span>
@@ -83,6 +87,11 @@ export function Footer({ onNavigate }: { onNavigate: (r: Route) => void }) {
                   </button>
                 </li>
                 <li>
+                  <a href="/plants" className="text-steel-400 hover:text-rok-400 transition-colors">
+                    For Plants
+                  </a>
+                </li>
+                <li>
                   <button onClick={() => onNavigate({ name: 'dashboard' })} className="text-steel-400 hover:text-rok-400 transition-colors">
                     My Learning
                   </button>
@@ -104,12 +113,18 @@ export function Footer({ onNavigate }: { onNavigate: (r: Route) => void }) {
                   </button>
                 </li>
                 <li>
+                  {user ? (
+                  <button onClick={() => onNavigate({ name: 'dashboard' })} className="text-steel-400 hover:text-rok-400 transition-colors">
+                    My Learning
+                  </button>
+                  ) : (
                   <button onClick={() => onNavigate({ name: 'auth' })} className="text-steel-400 hover:text-rok-400 transition-colors">
                     Sign in / Create account
                   </button>
+                  )}
                 </li>
-                <li className="text-steel-500 text-xs pt-1">Free: Mechanical &amp; Electrical</li>
-                <li className="text-steel-500 text-xs">Premium: I&amp;E &amp; Engineering</li>
+                <li className="text-steel-500 text-xs pt-1">Free: 44 courses (Mechanical + Electrical)</li>
+                <li className="text-steel-500 text-xs">Premium: 78 total, including I&amp;E (18) and Engineering (16)</li>
               </ul>
             </div>
 

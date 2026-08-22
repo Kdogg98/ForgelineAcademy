@@ -1,0 +1,102 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-navy-900 text-steel-100 font-sans antialiased;
+    background-image: radial-gradient(ellipse at top, rgba(22, 41, 74, 0.55) 0%, rgba(10, 22, 40, 0) 55%);
+    background-attachment: fixed;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display tracking-tight;
+  }
+  ::selection {
+    @apply bg-rok-500/30 text-white;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-rok-400/50 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply btn bg-rok-500 text-white hover:bg-rok-400 shadow-rok;
+  }
+  .btn-secondary {
+    @apply btn bg-navy-700 text-steel-100 border border-steel-700 hover:bg-navy-600 hover:border-steel-500;
+  }
+  .btn-ghost {
+    @apply btn text-steel-300 hover:text-white hover:bg-navy-700;
+  }
+  .btn-premium {
+    @apply btn bg-gradient-to-r from-premium-500 to-premium-600 text-navy-900 hover:from-premium-400 hover:to-premium-500 shadow-lg shadow-premium-500/20;
+  }
+  .btn-outline-rok {
+    @apply btn border-2 border-rok-500 text-rok-400 hover:bg-rok-500 hover:text-white;
+  }
+  .card {
+    @apply bg-navy-800/80 border border-steel-700/60 rounded-xl backdrop-blur-sm;
+  }
+  .card-hover {
+    @apply transition-all duration-300 hover:border-rok-500/40 hover:bg-navy-700/80 hover:shadow-card-lift hover:-translate-y-1;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide;
+  }
+  .badge-free {
+    @apply badge bg-success-500/15 text-success-400 border border-success-500/30;
+  }
+  .badge-premium {
+    @apply badge bg-premium-500/15 text-premium-400 border border-premium-500/30;
+  }
+  .badge-beginner {
+    @apply badge bg-steel-700/50 text-steel-300 border border-steel-600/50;
+  }
+  .badge-intermediate {
+    @apply badge bg-accent-500/15 text-accent-300 border border-accent-500/30;
+  }
+  .badge-advanced {
+    @apply badge bg-error-500/15 text-error-400 border border-error-500/30;
+  }
+  .input {
+    @apply w-full rounded-md bg-navy-950/60 border border-steel-700 px-4 py-2.5 text-steel-100 placeholder-steel-500 focus:outline-none focus:border-rok-500 focus:ring-1 focus:ring-rok-500 transition-colors;
+  }
+  .section-title {
+    @apply font-display text-xl font-semibold text-white;
+  }
+  .rok-bar {
+    @apply h-1 w-16 bg-gradient-to-r from-rok-500 to-crimson-500 rounded-full;
+  }
+  .promo-bar {
+    @apply bg-gradient-to-r from-rok-600 via-crimson-500 to-rok-600 text-white text-sm;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, rgba(30, 42, 61, 0.4) 25%, rgba(42, 58, 82, 0.6) 50%, rgba(30, 42, 61, 0.4) 75%);
+  background-size: 200% 100%;
+  @apply animate-shimmer rounded;
+}
+
+.geometric-overlay {
+  background-image:
+    linear-gradient(135deg, transparent 40%, rgba(236, 104, 43, 0.12) 40%, rgba(236, 104, 43, 0.12) 60%, transparent 60%),
+    linear-gradient(225deg, transparent 40%, rgba(205, 23, 63, 0.08) 40%, rgba(205, 23, 63, 0.08) 55%, transparent 55%);
+}

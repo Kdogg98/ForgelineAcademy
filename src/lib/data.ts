@@ -29,48 +29,52 @@ export async function fetchCourse(id: string): Promise<Course | null> {
 }
 
 export async function fetchLessons(courseId: string): Promise<LessonWithModule[]> {
+  const { data: modules, error: modErr } = await supabase
+    .from('modules')
+    .select('id, title, sort_order')
+    .eq('course_id', courseId)
+    .order('sort_order', { ascending: true });
+  if (modErr) throw modErr;
+  const mods = modules ?? [];
+  if (mods.length === 0) return [];
+  const ids = mods.map((m) => m.id);
   const { data, error } = await supabase
     .from('lessons')
-    .select('id, module_id, title, content, estimated_minutes, has_video, has_pdf, quiz, pass_threshold, sort_order, video_url, video_filename, video_uploaded_at, modules!inner(title, sort_order, course_id)')
-    .eq('modules.course_id', courseId)
-    .order('sort_order', { ascending: true, foreignTable: 'modules' })
+    .select('id, module_id, title, estimated_minutes, has_video, has_pdf, quiz, pass_threshold, sort_order, video_url, video_filename, video_uploaded_at')
+    .in('module_id', ids)
     .order('sort_order', { ascending: true });
   if (error) throw error;
-  return (data ?? []).map((row) => {
-    const r = row as unknown as {
-      id: string;
-      module_id: string;
-      title: string;
-      content: string | null;
-      estimated_minutes: number;
-      has_video: boolean;
-      has_pdf: boolean;
-      quiz: QuizQuestion[];
-      pass_threshold: number;
-      sort_order: number;
-      video_url: string | null;
-      video_filename: string | null;
-      video_uploaded_at: string | null;
-      modules: { title: string; sort_order: number };
-    };
+  const byId = new Map(mods.map((m) => [m.id, m]));
+  return (data ?? []).map((r) => {
+    const mod = byId.get(r.module_id);
     return {
       id: r.id,
       module_id: r.module_id,
       title: r.title,
-      content: r.content,
+      content: null,
       estimated_minutes: r.estimated_minutes,
       has_video: r.has_video,
       has_pdf: r.has_pdf,
-      quiz: r.quiz ?? [],
+      quiz: (r.quiz as QuizQuestion[] | null) ?? [],
       pass_threshold: r.pass_threshold,
       sort_order: r.sort_order,
       video_url: r.video_url,
       video_filename: r.video_filename,
       video_uploaded_at: r.video_uploaded_at,
-      module_title: r.modules.title,
-      module_sort_order: r.modules.sort_order,
+      module_title: mod?.title ?? '',
+      module_sort_order: mod?.sort_order ?? 0,
     };
   });
+}
+
+export async function fetchLessonContent(lessonId: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('lessons')
+    .select('content')
+    .eq('id', lessonId)
+    .maybeSingle();
+  if (error) throw error;
+  return (data?.content as string | null) ?? null;
 }
 
 export async function fetchProgress(courseId: string): Promise<UserProgress[]> {

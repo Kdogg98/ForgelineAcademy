@@ -53,13 +53,6 @@ const STAGE_COLOR: Record<Stage, string> = {
   engineering: 'from-crimson-500/20 to-crimson-600/5 border-crimson-500/30',
 };
 
-const STAGE_FALLBACK: Record<Stage, number> = {
-  mechanical: 22,
-  electrical: 22,
-  ie: 18,
-  engineering: 16,
-};
-
 const LEVEL_META: Record<string, { label: string; color: string; icon: typeof Award }> = {
   novice: { label: 'Novice', color: 'text-emerald-300', icon: Sparkles },
   intermediate: { label: 'Intermediate', color: 'text-sky-300', icon: Zap },
@@ -129,23 +122,47 @@ export function Home({
   }, [courses]);
 
   const featuredFree = useMemo(
-    () => courses.filter((c) => c.tier === 'free').slice(0, 8),
-    [courses],
-  );
-  const mostPopular = useMemo(
-    () =>
-      [...courses]
-        .sort((a, b) => (progressMap[b.id] ?? 0) - (progressMap[a.id] ?? 0))
-        .slice(0, 8),
-    [courses, progressMap],
-  );
-  const recentlyAdded = useMemo(
-    () => [...courses].reverse().slice(0, 8),
-    [courses],
+    () => [...byStage.mechanical.slice(0, 4), ...byStage.electrical.slice(0, 4)],
+    [byStage],
   );
   const startPath = useMemo(
-    () => [...byStage.mechanical, ...byStage.electrical].slice(0, 8),
+    () => [...byStage.mechanical.slice(4, 8), ...byStage.electrical.slice(4, 8)],
     [byStage],
+  );
+  const mostPopular = useMemo(() => {
+    const used = new Set<string>();
+    const pick = (list: Course[], idx: number) => {
+      const c = list[idx];
+      if (!c || used.has(c.id)) return null;
+      used.add(c.id);
+      return c;
+    };
+    const mixed = [
+      pick(byStage.electrical, 1),
+      pick(byStage.ie, 0),
+      pick(byStage.mechanical, 2),
+      pick(byStage.engineering, 0),
+      pick(byStage.electrical, 3),
+      pick(byStage.ie, 1),
+      pick(byStage.mechanical, 5),
+      pick(byStage.engineering, 1),
+    ].filter((c): c is Course => Boolean(c));
+    if (mixed.length < 8) {
+      for (const c of courses) {
+        if (used.has(c.id)) continue;
+        mixed.push(c);
+        used.add(c.id);
+        if (mixed.length >= 8) break;
+      }
+    }
+    return mixed;
+  }, [byStage, courses]);
+  const recentlyAdded = useMemo(
+    () =>
+      [...courses]
+        .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || '') || b.sort_order - a.sort_order)
+        .slice(0, 8),
+    [courses],
   );
 
   function openCourse(id: string) {
@@ -466,7 +483,7 @@ export function Home({
               <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-steel-400 animate-fade-in">
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-4 h-4 text-rok-400" />
-                  <span>78 structured courses</span>
+                  <span>{courses.length || 78} structured courses</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Target className="w-4 h-4 text-rok-400" />
@@ -498,7 +515,13 @@ export function Home({
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {STAGES.map((stage, idx) => {
               const Icon = STAGE_ICON[stage.key];
-              const count = byStage[stage.key]?.length ?? 0;
+              const STAGE_COURSE_FALLBACK: Record<Stage, number> = {
+                mechanical: 22,
+                electrical: 22,
+                ie: 18,
+                engineering: 16,
+              };
+              const count = byStage[stage.key]?.length || STAGE_COURSE_FALLBACK[stage.key];
               return (
                 <button
                   key={stage.key}
@@ -526,7 +549,7 @@ export function Home({
                       </span>
                     )}
                     <span className="text-xs text-steel-500">
-                      {count || STAGE_FALLBACK[stage.key]} courses
+                      {count} course{count !== 1 ? 's' : ''}
                     </span>
                   </div>
                 </button>
@@ -627,7 +650,6 @@ export function Home({
               );
             })}
           </div>
-
         </section>
 
         {/* On-site & Troubleshooting section */}

@@ -18,6 +18,7 @@ import {
   Wrench,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
+import { track } from '@/lib/analytics';
 import { supabase } from '@/lib/supabase';
 import type { Route } from '@/components/Nav';
 
@@ -48,28 +49,57 @@ export function Pricing({ onNavigate }: PricingProps) {
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const [referralCount, setReferralCount] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [referralLoading, setReferralLoading] = useState(false);
+  const [referralError, setReferralError] = useState<string | null>(null);
+  const [referralReload, setReferralReload] = useState(0);
 
   const REFERRALS_NEEDED = 3;
 
   useEffect(() => {
     if (!user) {
       setReferralCode(null);
+      setReferralLoading(false);
+      setReferralError(null);
       return;
     }
     let cancelled = false;
+    setReferralLoading(true);
+    setReferralError(null);
     (async () => {
-      const { data } = await supabase.rpc('get_or_create_referral_code', { p_user_id: user.id });
-      if (cancelled || !data) return;
-      setReferralCode(data as string);
-      const { data: rc } = await supabase
-        .from('referral_codes')
-        .select('referrals_count')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      if (!cancelled && rc) setReferralCount((rc as { referrals_count: number }).referrals_count);
+      try {
+        const { data: existing } = await supabase
+          .from('referral_codes')
+          .select('code, referrals_count')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (cancelled) return;
+        if (existing?.code) {
+          setReferralCode(existing.code as string);
+          setReferralCount((existing as { referrals_count: number }).referrals_count ?? 0);
+          return;
+        }
+        const { data, error } = await supabase.rpc('get_or_create_referral_code', { p_user_id: user.id });
+        if (cancelled) return;
+        const code = typeof data === 'string' ? data : null;
+        if (error || !code) {
+          setReferralError(error?.message || 'Could not load your referral code.');
+          return;
+        }
+        setReferralCode(code);
+        const { data: rc } = await supabase
+          .from('referral_codes')
+          .select('referrals_count')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (!cancelled && rc) setReferralCount((rc as { referrals_count: number }).referrals_count);
+      } catch (e) {
+        if (!cancelled) setReferralError(e instanceof Error ? e.message : 'Could not load your referral code.');
+      } finally {
+        if (!cancelled) setReferralLoading(false);
+      }
     })();
     return () => { cancelled = true; };
-  }, [user]);
+  }, [user, referralReload]);
 
   useEffect(() => {
     if (!user) {
@@ -106,9 +136,10 @@ export function Pricing({ onNavigate }: PricingProps) {
         p_user_id: user.id,
       });
       if (rpcErr) throw rpcErr;
-      const result = data as unknown as { valid: boolean; message: string };
-      setPromoValid(result.valid);
-      setPromoMessage(result.message);
+      const rows = Array.isArray(data) ? data : data ? [data] : [];
+      const result = rows[0] as { valid?: boolean; message?: string; code_type?: string } | undefined;
+      setPromoValid(Boolean(result?.valid));
+      setPromoMessage(result?.message ?? 'Validation failed');
     } catch (e) {
       setPromoValid(false);
       setPromoMessage(e instanceof Error ? e.message : 'Validation failed');
@@ -133,8 +164,8 @@ export function Pricing({ onNavigate }: PricingProps) {
       const { data, error: fnError } = await supabase.functions.invoke('stripe-promo-checkout', {
         body: {
           price_id: STRIPE_PRICE_ID,
-          success_url: `${origin}/#pricing`,
-          cancel_url: `${origin}/#pricing`,
+          success_url: `${origin}/upgrade`,
+          cancel_url: `${origin}/upgrade`,
           mode: 'subscription',
           promo_code: promoCode.trim() || undefined,
         },
@@ -142,6 +173,7 @@ export function Pricing({ onNavigate }: PricingProps) {
 
       if (fnError) throw fnError;
       if (data?.url) {
+        track('premium_checkout');
         window.location.href = data.url;
       } else {
         throw new Error('No checkout URL returned');
@@ -158,7 +190,7 @@ export function Pricing({ onNavigate }: PricingProps) {
     try {
       const origin = window.location.origin;
       const { data, error: fnError } = await supabase.functions.invoke('stripe-portal', {
-        body: { return_url: `${origin}/#pricing` },
+        body: { return_url: `${origin}/upgrade` },
       });
 
       if (fnError) throw fnError;
@@ -216,7 +248,7 @@ export function Pricing({ onNavigate }: PricingProps) {
             </div>
             <ul className="space-y-3 mb-8 flex-1">
               {[
-                '22 courses across Mechanical and Electrical stages',
+                '44 free courses: 22 Mechanical and 22 Electrical',
                 'Full in-depth lesson content and PDF notes',
                 'Knowledge checks with 80% pass requirement',
                 'Progress tracking across devices',
@@ -228,7 +260,7 @@ export function Pricing({ onNavigate }: PricingProps) {
                   {f}
                 </li>
               ))}
-              {['I&E Instrumentation courses', 'Engineering / Advanced Controls', 'AI Course Tutor'].map((f) => (
+              {['18 I&E Instrumentation courses', '16 Engineering / Advanced Controls courses', 'AI Course Tutor'].map((f) => (
                 <li key={f} className="flex items-start gap-2.5 text-sm text-steel-600">
                   <X className="w-4 h-4 shrink-0 mt-0.5" />
                   {f}
@@ -285,10 +317,11 @@ export function Pricing({ onNavigate }: PricingProps) {
             <ul className="space-y-3 mb-8 flex-1">
               {[
                 'Everything in Free, plus:',
+                'All 78 courses across four stages',
                 'AI Course Tutor — ask questions about any lesson and get instant, plant-floor answers from an AI industrial specialist',
                 'Custom Courses — get personalized training built specifically for you and your plant',
-                'I&E Instrumentation: HART, control valves, DCS, Fieldbus, loop tuning',
-                'Engineering: PLC best practices, network design, reliability engineering',
+                'I&E Instrumentation (18 courses): HART, control valves, DCS, Fieldbus, loop tuning',
+                'Engineering (16 courses): PLC best practices, network design, reliability engineering',
                 'Advanced Motion & Safety Systems (SIL, IEC 62061)',
                 'Predictive maintenance strategy & Weibull analysis',
                 'Priority certificate verification',
@@ -459,9 +492,22 @@ export function Pricing({ onNavigate }: PricingProps) {
                   </div>
                 </div>
               </div>
-            ) : (
+            ) : referralLoading ? (
               <div className="flex items-center gap-2 text-sm text-steel-500">
                 <Loader2 className="w-4 h-4 animate-spin" /> Loading your referral code...
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-sm text-steel-400">
+                  {referralError || 'Your referral code is not available yet.'}
+                </p>
+                <button
+                  type="button"
+                  className="btn-secondary text-sm"
+                  onClick={() => setReferralReload((n) => n + 1)}
+                >
+                  Try again
+                </button>
               </div>
             )}
           </div>

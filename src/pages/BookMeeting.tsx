@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Calendar, Clock, Video, CheckCircle2, Loader2, X, ArrowRight } from 'lucide-react';
+import { Calendar, Clock, Video, CheckCircle2, Loader2, X, ArrowRight, Mail } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { SITE_CONFIG } from '@/lib/siteConfig';
+import { track } from '@/lib/analytics';
 import type { AvailabilitySlot } from '@/lib/types';
 import type { Route } from '@/components/Nav';
 
@@ -17,6 +19,7 @@ export function BookMeeting({ onNavigate }: BookMeetingProps) {
   const [topic, setTopic] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [bookedSlot, setBookedSlot] = useState<AvailabilitySlot | null>(null);
+  const [fallbackSent, setFallbackSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadSlots = useCallback(async () => {
@@ -76,6 +79,45 @@ export function BookMeeting({ onNavigate }: BookMeetingProps) {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  async function handleFallbackSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim() || !email.trim()) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const { error: insertErr } = await supabase.from('service_requests').insert({
+        name: name.trim(),
+        email: email.trim(),
+        service_type: 'onsite_training',
+        message: topic.trim() || 'Requested a meeting; no calendar slots were available.',
+      });
+      if (insertErr) throw insertErr;
+      track('plant_lead');
+      setFallbackSent(true);
+      supabase.functions.invoke('notify', {
+        body: {
+          type: 'service_request',
+          name: name.trim(),
+          email: email.trim(),
+          service_type: 'onsite_training',
+          message: topic.trim() || 'Requested a meeting; no calendar slots were available.',
+        },
+      }).catch(() => {});
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to send request. Use the email link below.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  function fallbackMailto(): string {
+    const subject = encodeURIComponent('Meeting / on-site training request');
+    const body = encodeURIComponent(
+      `Name: ${name.trim() || '(add your name)'}\nEmail: ${email.trim() || '(add your email)'}\nTopic: ${topic.trim() || '(what you need)'}`,
+    );
+    return `mailto:${SITE_CONFIG.supportEmail}?subject=${subject}&body=${body}`;
   }
 
   function formatDate(iso: string): string {
@@ -159,12 +201,74 @@ export function BookMeeting({ onNavigate }: BookMeetingProps) {
             <Loader2 className="w-8 h-8 text-rok-500 animate-spin" />
           </div>
         ) : Object.keys(grouped).length === 0 ? (
-          <div className="card p-12 text-center">
+          <div className="card p-8 max-w-xl mx-auto">
             <Calendar className="w-12 h-12 text-steel-600 mx-auto mb-4" />
-            <h2 className="text-lg font-semibold text-white mb-2">No times available right now</h2>
-            <p className="text-steel-400">
-              New time slots are added regularly. Please check back soon.
+            <h2 className="text-lg font-semibold text-white mb-2 text-center">No times available right now</h2>
+            <p className="text-steel-400 text-center mb-6">
+              Leave your details and we will follow up on training, troubleshooting, or a meeting. Plants should never be left without a next step.
             </p>
+            {fallbackSent ? (
+              <div className="text-center py-4">
+                <div className="w-14 h-14 rounded-full bg-success-500/15 flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle2 className="w-7 h-7 text-success-400" />
+                </div>
+                <h3 className="font-display text-xl font-bold text-white mb-2">Request received</h3>
+                <p className="text-sm text-steel-400 mb-4">
+                  We will follow up shortly. If you need to add anything, email is always open.
+                </p>
+                <a href={fallbackMailto()} className="btn-secondary inline-flex items-center gap-2">
+                  <Mail className="w-4 h-4" /> Email {SITE_CONFIG.supportEmail}
+                </a>
+              </div>
+            ) : (
+              <form onSubmit={handleFallbackSubmit} className="space-y-4 text-left">
+                <div>
+                  <label className="block text-xs font-medium text-steel-300 mb-1.5">Full Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="input"
+                    placeholder="Your name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-steel-300 mb-1.5">Email</label>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="input"
+                    placeholder="you@plant.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-steel-300 mb-1.5">Topic</label>
+                  <textarea
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
+                    rows={3}
+                    className="input resize-none"
+                    placeholder="On-site training, VFD issue, crew skill gap..."
+                  />
+                </div>
+                <button type="submit" disabled={submitting} className="btn-primary w-full">
+                  {submitting ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Sending...</>
+                  ) : (
+                    <>Send request</>
+                  )}
+                </button>
+                <p className="text-xs text-steel-500 text-center">
+                  Prefer email?{' '}
+                  <a href={fallbackMailto()} className="text-rok-400 hover:text-rok-300">
+                    {SITE_CONFIG.supportEmail}
+                  </a>
+                </p>
+              </form>
+            )}
           </div>
         ) : (
           <div className="grid gap-6 lg:grid-cols-[1fr_400px]">

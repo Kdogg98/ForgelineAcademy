@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { SITE_CONFIG } from '@/lib/siteConfig';
+import { track } from '@/lib/analytics';
 import type { Route } from '@/components/Nav';
 
 interface ServicesProps {
@@ -52,6 +53,7 @@ export function Services({ onNavigate }: ServicesProps) {
       });
       if (insertErr) throw insertErr;
       setSubmitted(true);
+      track('plant_lead', { service_type: form.service_type });
       setForm({ name: '', company: '', email: '', phone: '', service_type: 'both', message: '' });
       // Fire-and-forget notification (don't block success on email failure)
       supabase.functions.invoke('notify', {
@@ -229,7 +231,6 @@ export function Services({ onNavigate }: ServicesProps) {
               );
             })}
           </div>
-
         </div>
 
         {/* Request form */}
@@ -317,7 +318,7 @@ export function Services({ onNavigate }: ServicesProps) {
                         value={form.phone}
                         onChange={(e) => setForm({ ...form, phone: e.target.value })}
                         className="input"
-                        placeholder="(555) 123-4567"
+                        placeholder="Plant or cell number"
                       />
                     </div>
                   </div>
@@ -391,10 +392,12 @@ export function Services({ onNavigate }: ServicesProps) {
                 <Mail className="w-4 h-4 text-rok-400" />
                 <a href={`mailto:${SITE_CONFIG.supportEmail}`} className="hover:text-rok-400 transition-colors">{SITE_CONFIG.supportEmail}</a>
               </div>
+              {SITE_CONFIG.phone ? (
               <div className="flex items-center gap-2 text-steel-300">
                 <Phone className="w-4 h-4 text-rok-400" />
                 <span>{SITE_CONFIG.phone}</span>
               </div>
+              ) : null}
             </div>
             <div className="flex items-start gap-2 text-steel-400 text-sm">
               <MapPin className="w-4 h-4 text-rok-400 shrink-0 mt-0.5" />

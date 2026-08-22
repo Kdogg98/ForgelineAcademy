@@ -1,34 +1,16 @@
-import { useEffect, useState } from 'react';
 import { Award, Download, Hexagon, AlertCircle, Shield, Building2 } from 'lucide-react';
 import type { Certificate } from '@/lib/types';
-import { fetchCertificates } from '@/lib/data';
 import { useAuth } from '@/lib/auth';
 import type { Route } from '@/components/Nav';
 
 interface CertificatesProps {
   onNavigate: (r: Route) => void;
+  certificates: Certificate[];
 }
 
-export function Certificates({ onNavigate }: CertificatesProps) {
+export function Certificates({ onNavigate, certificates }: CertificatesProps) {
   const { user, fullName, company } = useAuth();
-  const [certs, setCerts] = useState<Certificate[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!user) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const c = await fetchCertificates();
-        if (!cancelled) setCerts(c);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [user]);
+  const certs = certificates;
 
   if (!user) {
     return (
@@ -42,17 +24,6 @@ export function Certificates({ onNavigate }: CertificatesProps) {
           <button onClick={() => onNavigate({ name: 'auth' })} className="btn-primary">
             Sign in / Create account
           </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="pt-16 min-h-screen">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-4">
-          <div className="skeleton h-48 w-full rounded-xl" />
-          <div className="skeleton h-48 w-full rounded-xl" />
         </div>
       </div>
     );

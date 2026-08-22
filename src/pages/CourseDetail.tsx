@@ -17,6 +17,7 @@ import {
   Loader2,
   Eye,
   Timer,
+  Wrench,
 } from 'lucide-react';
 import type { Course, LessonWithModule, UserProgress, QuizLockState, EngagementState } from '@/lib/types';
 import { STAGE_LABEL } from '@/lib/types';
@@ -378,6 +379,17 @@ export function CourseDetail({ courseId, preloadedCourse, onNavigate, onProgress
               <p className="text-steel-300 leading-relaxed max-w-3xl">
                 {course.description}
               </p>
+
+              <div className="mt-5">
+                <button
+                  type="button"
+                  onClick={() => onNavigate({ name: 'games', courseId })}
+                  className="btn-primary"
+                >
+                  <Wrench className="w-4 h-4" />
+                  Shop-floor games
+                </button>
+              </div>
             </div>
 
             {user && !locked && (

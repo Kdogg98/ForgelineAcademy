@@ -10,6 +10,8 @@ export function routeToPath(r: Route): string {
       return '/catalog';
     case 'course':
       return `/course/${encodeURIComponent(r.courseId)}`;
+    case 'games':
+      return `/course/${encodeURIComponent(r.courseId)}/games`;
     case 'dashboard':
       return '/dashboard';
     case 'certificates':
@@ -57,6 +59,8 @@ export function pathToRoute(pathname: string, search = ''): Route {
   if (p === '/book') return { name: 'book' };
   if (p === '/request') return { name: 'services' };
   if (p === '/assessment') return { name: 'assessment' };
+  const games = p.match(/^\/course\/([^/]+)\/games$/);
+  if (games) return { name: 'games', courseId: decodeURIComponent(games[1]) };
   const course = p.match(/^\/course\/([^/]+)$/);
   if (course) return { name: 'course', courseId: decodeURIComponent(course[1]) };
   const legal = p.match(/^\/legal\/(privacy|terms|disclaimer)$/);

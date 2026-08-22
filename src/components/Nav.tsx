@@ -8,6 +8,7 @@ export type Route =
   | { name: 'paths'; focusPath?: 'electrical' | 'mechanical'; showWelcome?: boolean }
   | { name: 'catalog' }
   | { name: 'course'; courseId: string }
+  | { name: 'games'; courseId: string }
   | { name: 'dashboard' }
   | { name: 'certificates' }
   | { name: 'pricing' }

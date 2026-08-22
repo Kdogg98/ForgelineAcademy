@@ -11,6 +11,7 @@ import { Home } from '@/pages/Home';
 import { Catalog } from '@/pages/Catalog';
 import { Paths } from '@/pages/Paths';
 import { CourseDetail } from '@/pages/CourseDetail';
+import { CourseGames } from '@/pages/CourseGames';
 import { Dashboard } from '@/pages/Dashboard';
 import { Certificates } from '@/pages/Certificates';
 import { Auth } from '@/pages/Auth';
@@ -163,6 +164,9 @@ function AppContent() {
             onNavigate={navigate}
             onProgressChanged={onProgressChanged}
           />
+        )}
+        {route.name === 'games' && (
+          <CourseGames courseId={route.courseId} onNavigate={navigate} />
         )}
         {route.name === 'dashboard' && (
           <Dashboard courses={courses} onNavigate={navigate} progressMap={courseProgressMap} certs={certs} />

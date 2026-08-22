@@ -22,8 +22,8 @@ export const GAME_SET: GameBlueprint[] = [
     title: 'Spall or Smear: Failure Mode ID',
     shortTitle: 'Spall or Smear',
     level: 'foundational',
-    summary: 'Matching and identification of failure photos and descriptions (spalling, brinelling, smearing, false brinell, lubricant starve, corrosion).',
-    implemented: false,
+    summary: 'Matching and identification of failure evidence (spalling, brinelling, smearing, false brinell, lubricant starve, corrosion).',
+    implemented: true,
   },
   {
     id: 'g3-grease-or-oil',

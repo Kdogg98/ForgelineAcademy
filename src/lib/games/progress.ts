@@ -66,3 +66,13 @@ export function loadCourseGameProgress(
 }
 
 export { DEFAULT_PASS_THRESHOLD };
+
+export function previousGamePassed(
+  gameNumber: number,
+  gameSet: { number: number; gameKey: string }[],
+  progress: CourseGameProgress,
+): boolean {
+  if (gameNumber <= 1) return true;
+  const prev = gameSet.find((g) => g.number === gameNumber - 1);
+  return Boolean(prev && progress[prev.gameKey]?.passed);
+}

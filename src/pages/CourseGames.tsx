@@ -3,9 +3,10 @@ import { ArrowLeft, Lock, Play, CheckCircle2 } from 'lucide-react';
 import type { Route } from '@/components/Nav';
 import { useAuth } from '@/lib/auth';
 import { COURSE_ID, COURSE_TITLE, GAME_SET } from '@/lib/games/bearingsLubricationAlignment';
-import { loadCourseGameProgress } from '@/lib/games/progress';
-import type { GameResult } from '@/lib/games/types';
+import { loadCourseGameProgress, previousGamePassed } from '@/lib/games/progress';
+import type { GameId, GameResult } from '@/lib/games/types';
 import { BearingTypeBoard } from '@/components/games/bearings/BearingTypeBoard';
+import { FailureModeBoard } from '@/components/games/bearings/FailureModeBoard';
 
 interface CourseGamesProps {
   courseId: string;
@@ -15,8 +16,9 @@ interface CourseGamesProps {
 export function CourseGames({ courseId, onNavigate }: CourseGamesProps) {
   const { user } = useAuth();
   const userId = user?.id ?? null;
-  const [activeGame, setActiveGame] = useState<string | null>(null);
+  const [activeGame, setActiveGame] = useState<GameId | null>('g1-crib-call');
   const [progressTick, setProgressTick] = useState(0);
+  const [offerNext, setOfferNext] = useState<{ from: GameId; to: GameId; title: string } | null>(null);
 
   const playable = courseId === COURSE_ID;
   const progress = useMemo(
@@ -24,10 +26,19 @@ export function CourseGames({ courseId, onNavigate }: CourseGamesProps) {
     [courseId, userId, progressTick],
   );
 
-  const g1Passed = Boolean(progress['g1-crib-call']?.passed);
-
-  function handleComplete(_result: GameResult) {
+  function handleComplete(result: GameResult) {
     setProgressTick((n) => n + 1);
+    if (!result.passed) return;
+    const current = GAME_SET.find((g) => g.gameKey === result.gameKey);
+    const nxt = current ? GAME_SET.find((g) => g.number === current.number + 1) : undefined;
+    if (nxt) {
+      setOfferNext({ from: current!.id, to: nxt.id, title: nxt.title });
+    }
+  }
+
+  function launch(id: GameId) {
+    setOfferNext(null);
+    setActiveGame(id);
   }
 
   return (
@@ -51,27 +62,43 @@ export function CourseGames({ courseId, onNavigate }: CourseGamesProps) {
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-steel-300">
             {playable
-              ? 'Ten crib-to-coupling drills for this course. Game 1 is live. Games 2 through 10 unlock after you confirm Game 1.'
-              : 'Playable games are online for Bearings, Lubrication & Alignment Fundamentals. This course can open the floor, but Game 1 is not cut in yet.'}
+              ? 'Ten crib-to-coupling drills. Pass a game to unlock the next. A locked score will not take another attempt.'
+              : 'Playable games are online for Bearings, Lubrication and Alignment Fundamentals.'}
           </p>
         </div>
       </div>
 
       <div className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6">
+        {offerNext && (
+          <div className="card border-rok-500/40 bg-navy-950/80 p-5">
+            <h2 className="font-display text-lg font-semibold text-white">Game locked in the book</h2>
+            <p className="mt-2 text-sm text-steel-300">
+              Open {offerNext.title}?
+            </p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button type="button" className="btn-primary" onClick={() => launch(offerNext.to)}>
+                Go to Game {GAME_SET.find((g) => g.id === offerNext.to)?.number}
+              </button>
+              <button type="button" className="btn-secondary" onClick={() => setOfferNext(null)}>
+                Stay here
+              </button>
+            </div>
+          </div>
+        )}
+
         {playable && activeGame === 'g1-crib-call' && (
-          <BearingTypeBoard
-            courseId={courseId}
-            userId={userId}
-            onComplete={handleComplete}
-          />
+          <BearingTypeBoard courseId={courseId} userId={userId} onComplete={handleComplete} />
+        )}
+        {playable && activeGame === 'g2-spall-or-smear' && (
+          <FailureModeBoard courseId={courseId} userId={userId} onComplete={handleComplete} />
         )}
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {GAME_SET.map((game) => {
             const saved = progress[game.gameKey];
-            const isG1 = game.id === 'g1-crib-call';
-            const locked = !playable || !isG1;
-            const open = playable && isG1 && activeGame === game.id;
+            const unlocked = playable && previousGamePassed(game.number, GAME_SET, progress);
+            const open = playable && activeGame === game.id;
+            const canLaunch = unlocked && game.implemented;
             return (
               <div
                 key={game.id}
@@ -82,13 +109,11 @@ export function CourseGames({ courseId, onNavigate }: CourseGamesProps) {
                     <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-steel-500">
                       G{game.number} · {game.level}
                     </div>
-                    <h2 className="mt-1 font-display text-lg font-semibold text-white">
-                      {game.title}
-                    </h2>
+                    <h2 className="mt-1 font-display text-lg font-semibold text-white">{game.title}</h2>
                   </div>
                   {saved?.passed ? (
                     <CheckCircle2 className="h-5 w-5 shrink-0 text-success-400" />
-                  ) : locked ? (
+                  ) : !unlocked ? (
                     <Lock className="h-5 w-5 shrink-0 text-steel-500" />
                   ) : null}
                 </div>
@@ -99,18 +124,20 @@ export function CourseGames({ courseId, onNavigate }: CourseGamesProps) {
                   </p>
                 )}
                 <div className="mt-4">
-                  {playable && isG1 ? (
+                  {canLaunch ? (
                     <button
                       type="button"
                       onClick={() => setActiveGame(open ? null : game.id)}
                       className="btn-primary"
                     >
                       <Play className="h-4 w-4" />
-                      {open ? 'Hide board' : g1Passed ? 'Replay Game 1' : 'Launch Game 1'}
+                      {open ? 'Hide board' : saved?.passed ? `Replay Game ${game.number}` : `Launch Game ${game.number}`}
                     </button>
                   ) : (
                     <div className="rounded-md border border-steel-700 bg-navy-950/50 px-3 py-2 text-sm text-steel-400">
-                      Next after you confirm Game 1
+                      {!unlocked
+                        ? `Pass Game ${game.number - 1} to unlock`
+                        : 'Board not cut in yet'}
                     </div>
                   )}
                 </div>

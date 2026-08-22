@@ -150,6 +150,7 @@ export function BearingTypeBoard({ courseId, userId, onComplete }: BearingTypeBo
   );
 
   function applyAssignment(machineId: string, bearingId: BearingId) {
+    if (result?.passed) return;
     const machine = MACHINES.find((m) => m.id === machineId);
     if (!machine) return;
     const ok = bearingId === machine.correct;
@@ -165,6 +166,7 @@ export function BearingTypeBoard({ courseId, userId, onComplete }: BearingTypeBo
   }
 
   function resetCard(machineId: string) {
+    if (result?.passed) return;
     setAssignments((prev) => ({ ...prev, [machineId]: null }));
     setCardTone((prev) => ({ ...prev, [machineId]: null }));
     setFeedback({ tone: 'info', message: 'Card cleared. Pull another family from the crib.' });
@@ -173,6 +175,7 @@ export function BearingTypeBoard({ courseId, userId, onComplete }: BearingTypeBo
   }
 
   function resetBoard() {
+    if (result?.passed) return;
     setAssignments(Object.fromEntries(MACHINES.map((m) => [m.id, null])));
     setCardTone({});
     setPicked(null);
@@ -195,6 +198,7 @@ export function BearingTypeBoard({ courseId, userId, onComplete }: BearingTypeBo
   }
 
   function submitAll() {
+    if (result?.passed) return;
     if (assignedCount < MACHINES.length) {
       setFeedback({
         tone: 'info',
@@ -235,9 +239,9 @@ export function BearingTypeBoard({ courseId, userId, onComplete }: BearingTypeBo
       feedback={feedback}
       whyThisMatters={submitted ? WHY_MATTERS : undefined}
       onComplete={submitAll}
-      completeDisabled={assignedCount < MACHINES.length}
-      completeLabel="Submit crib call"
-      onReset={resetBoard}
+      completeDisabled={assignedCount < MACHINES.length || Boolean(result?.passed)}
+      completeLabel={result?.passed ? 'Crib call locked' : 'Submit crib call'}
+      onReset={result?.passed ? undefined : resetBoard}
     >
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <section className="lg:col-span-4">

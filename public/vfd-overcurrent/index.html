@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VFD Overcurrent Troubleshooting — ForgeLine Academy</title>
+  <meta name="description" content="How plant electricians separate a VFD overcurrent trip from a ground fault. Accel time, mechanical bind, motor FLA, and parameterization for this motor — not reset-and-hope." />
+  <link rel="canonical" href="https://forgelineacademy.com/vfd-overcurrent" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://forgelineacademy.com/vfd-overcurrent" />
+  <meta property="og:title" content="VFD Overcurrent Troubleshooting — ForgeLine Academy" />
+  <meta property="og:description" content="How plant electricians separate a VFD overcurrent trip from a ground fault. Accel time, mechanical bind, motor FLA, and parameterization for this motor — not reset-and-hope." />
+  <meta property="og:image" content="https://forgelineacademy.com/og.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://forgelineacademy.com/og.png" />
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "ForgeLine Academy", "url": "https://forgelineacademy.com", "telephone": "+1 580 421 5714", "email": "support@forgelineacademy.com"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Course", "name": "VFD Fundamentals & Parameterization", "description": "How plant electricians separate a VFD overcurrent trip from a ground fault. Accel time, mechanical bind, motor FLA, and parameterization for this motor — not reset-and-hope.", "url": "https://forgelineacademy.com/vfd-overcurrent", "isAccessibleForFree": true, "provider": {"@type": "Organization", "name": "ForgeLine Academy", "url": "https://forgelineacademy.com", "telephone": "+1 580 421 5714", "email": "support@forgelineacademy.com"}}</script>
+  <style>
+:root{--navy:#0b1220;--navy2:#111827;--steel:#94a3b8;--white:#f8fafc;--rok:#ec682b;--border:rgba(148,163,184,.25)}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--navy);color:var(--white);line-height:1.6}
+a{color:var(--rok);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:880px;margin:0 auto;padding:28px 20px 64px}
+.brand{font-weight:800;letter-spacing:.02em}.brand span{display:block;font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--steel)}
+.nav{display:flex;gap:14px;flex-wrap:wrap;margin:18px 0 28px;font-size:14px}
+.nav a{color:var(--steel)}.nav a:hover{color:var(--white)}
+h1{font-size:clamp(1.75rem,4vw,2.4rem);line-height:1.15;margin:0 0 12px}
+h2{font-size:1.2rem;margin:0 0 8px}
+.lead{color:var(--steel);font-size:1.05rem;margin:0 0 22px;max-width:68ch}
+.card{background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:20px;margin:14px 0}
+.card p,.card li{color:var(--steel);font-size:.98rem}
+ul{padding-left:1.15rem;margin:8px 0 0}
+.cta{display:inline-flex;align-items:center;gap:8px;background:var(--rok);color:#fff!important;font-weight:700;padding:12px 18px;border-radius:10px;text-decoration:none!important;margin:6px 8px 6px 0}
+.cta.secondary{background:transparent;border:1px solid var(--rok);color:var(--rok)!important}
+.note{font-size:13px;color:var(--steel);margin-top:28px}
+footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--border);font-size:13px;color:var(--steel)}
+.meta{font-size:13px;color:var(--steel);margin-bottom:10px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+
+    <div class="brand">ForgeLine Academy<span>Industrial training</span></div>
+    <nav class="nav" aria-label="Primary">
+      <a href="/">Home</a>
+      <a href="/catalog">Catalog</a>
+      <a href="/paths">Paths</a>
+      <a href="/paths/mechanical">Mechanical path</a>
+      <a href="/paths/electrical">Electrical path</a>
+      <a href="/vfd-ground-fault">VFD ground fault</a>
+      <a href="/vfd-overcurrent">VFD overcurrent</a>
+      <a href="/motor-megger">Motor megger</a>
+      <a href="/control-valve-troubleshooting">Control valves</a>
+      <a href="/4-20ma-loop-troubleshooting">4-20 mA loops</a>
+      <a href="/on-site-training">On-site training</a>
+    </nav>
+
+    <h1>VFD overcurrent trips: bind, ramp, and motor data</h1>
+
+    <p class="lead">Overcurrent on a VFD is usually bind, a ramp that is too proud, or motor data that does not match the nameplate. It is not a ground fault, and resetting it until the feeder opens is how plants lose a shift.</p>
+    <div>
+      <a class="cta" href="/courses/vfd-fundamentals-parameterization">VFD Fundamentals course</a>
+      <a class="cta secondary" href="/vfd-ground-fault">Ground fault landing</a>
+      <a class="cta secondary" href="/paths/electrical">Electrical path</a>
+    </div>
+    <div class="card">
+      <h2>OC is a current limit, not a mystery</h2>
+      <p>When a drive says overcurrent it is telling you phase current exceeded a threshold. That threshold might be a percentage of motor FLA you entered, a factory default that assumed a different motor, or a stall / short-ramp condition. A bound pump, a seized fan, a conveyor that is buried, or a coupling that is not turning will all look like “the VFD failed.” The millwright owns the bind. The electrician owns the measurement. Both belong on the job.</p>
+      <p>Accel and decel that were copied from the last identical-looking spare are a common self-inflicted OC. So is autotune skipped because “it ran on the bench.” Parameterize this motor. Enter FLA, voltage, frequency, and the real acceleration the process can stand. If current still spikes at a consistent speed, look at mechanical resonance, belt slap, or a valve that slams shut and turns the pump into a brick.</p>
+      <p>Do not confuse OC with ground fault. Residual current and phase current are different. If the last three trips flip between OC and GF, you likely have a mechanical problem and a damaged cable, not one failed inverter module. Read <a href="/vfd-ground-fault">VFD ground fault</a> next, then the free fundamentals course.</p>
+    </div>
+    <div class="card">
+      <h2>Sequence that holds up on nights</h2>
+      <ul>
+        <li>As-found fault, current, speed, and whether the load is turning.</li>
+        <li>Hand-rotate or millwright check for bind before you lengthen accel forever.</li>
+        <li>Nameplate vs parameter motor data. Wrong FLA makes honest current look like a fault.</li>
+        <li>Supply voltage and single-phasing. Garbage in still looks like OC on some platforms.</li>
+        <li>Then cable and insulation — because a developing GF can ride along with OC.</li>
+      </ul>
+      <p>ForgeLine Academy’s Electrical path is 22 free courses, part of 44 free in a 78-course catalog. VFD Fundamentals &amp; Parameterization is the plant-floor start for OC vs GF. Installation &amp; Commissioning covers the cable and EMC that keep showing up as “random trips.” Motor starters and overloads still exist on across-the-line equipment; do not treat every motor as if it had a drive.</p>
+    </div>
+    <div class="card">
+      <h2>Catalog and contact</h2>
+      <p>ForgeLine Academy currently lists 78 industrial maintenance courses. 44 of those are free (Mechanical and Electrical). Premium unlocks I&amp;E (18) and Engineering (16). That is the whole catalog — not a 22-course teaser and not a four-hour overview of the plant. Call <a href="tel:+15804215714">+1 580 421 5714</a> or email <a href="mailto:support@forgelineacademy.com">support@forgelineacademy.com</a> for plant cohorts and on-site classes.</p>
+    </div>
+<div class="card"><h2>Related plant-floor pages</h2><ul>
+      <li><a href="/courses/vfd-fundamentals-parameterization">VFD Fundamentals &amp; Parameterization</a></li>
+      <li><a href="/vfd-ground-fault">VFD ground fault</a></li>
+      <li><a href="/courses/industrial-motor-control-circuits">Industrial Motor Control Circuits</a></li>
+      <li><a href="/paths/electrical">Electrical path</a></li>
+    </ul></div>
+
+    <p class="note">Training is educational. It does not replace your site&apos;s lockout/tagout, permits, PPE, or required licenses. Certificates of completion go in the file. They are not a license.</p>
+    <footer>
+      <div>&copy; 2026 ForgeLine Academy &middot; <a href="mailto:support@forgelineacademy.com">support@forgelineacademy.com</a> &middot; <a href="tel:+15804215714">+1 580 421 5714</a></div>
+      <div>Based in Oklahoma. Travel available nationwide for on-site training and plant support.</div>
+    </footer>
+
+  </div>
+</body>
+</html>

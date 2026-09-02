@@ -1,0 +1,17 @@
+# Static robots.txt and sitemap.xml are served from /public (do not self-rewrite; that 500s on some edges).
+
+/pricing              /pricing/index.html          200
+/pricing/             /pricing/index.html          200
+/on-site-training     /on-site-training/index.html 200
+/on-site-training/    /on-site-training/index.html 200
+/vfd-troubleshooting  /vfd-troubleshooting/index.html 200
+/vfd-troubleshooting/ /vfd-troubleshooting/index.html 200
+/motor-control-training /motor-control-training/index.html 200
+/motor-control-training/ /motor-control-training/index.html 200
+/ie-technician        /ie-technician/index.html    200
+/ie-technician/       /ie-technician/index.html    200
+/plants               /plants/index.html           200
+/plants/              /plants/index.html           200
+/services             /services/index.html         200
+/services/            /services/index.html         200
+/*                    /index.html                  200

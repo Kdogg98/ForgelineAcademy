@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Control Valve Troubleshooting — ForgeLine Academy</title>
+  <meta name="description" content="Plant-floor control valve diagnostics: air to the positioner, bench set, stiction, signature, and why a 4-20 mA command is not proof the valve moved. I&amp;E training from ForgeLine Academy." />
+  <link rel="canonical" href="https://forgelineacademy.com/control-valve-troubleshooting" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://forgelineacademy.com/control-valve-troubleshooting" />
+  <meta property="og:title" content="Control Valve Troubleshooting — ForgeLine Academy" />
+  <meta property="og:description" content="Plant-floor control valve diagnostics: air to the positioner, bench set, stiction, signature, and why a 4-20 mA command is not proof the valve moved. I&amp;E training from ForgeLine Academy." />
+  <meta property="og:image" content="https://forgelineacademy.com/og.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://forgelineacademy.com/og.png" />
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "ForgeLine Academy", "url": "https://forgelineacademy.com", "telephone": "+1 580 421 5714", "email": "support@forgelineacademy.com"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Course", "name": "Control Valve Calibration & Diagnostics", "description": "Plant-floor control valve diagnostics: air to the positioner, bench set, stiction, signature, and why a 4-20 mA command is not proof the valve moved. I&E training from ForgeLine Academy.", "url": "https://forgelineacademy.com/control-valve-troubleshooting", "isAccessibleForFree": true, "provider": {"@type": "Organization", "name": "ForgeLine Academy", "url": "https://forgelineacademy.com", "telephone": "+1 580 421 5714", "email": "support@forgelineacademy.com"}}</script>
+  <style>
+:root{--navy:#0b1220;--navy2:#111827;--steel:#94a3b8;--white:#f8fafc;--rok:#ec682b;--border:rgba(148,163,184,.25)}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--navy);color:var(--white);line-height:1.6}
+a{color:var(--rok);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:880px;margin:0 auto;padding:28px 20px 64px}
+.brand{font-weight:800;letter-spacing:.02em}.brand span{display:block;font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--steel)}
+.nav{display:flex;gap:14px;flex-wrap:wrap;margin:18px 0 28px;font-size:14px}
+.nav a{color:var(--steel)}.nav a:hover{color:var(--white)}
+h1{font-size:clamp(1.75rem,4vw,2.4rem);line-height:1.15;margin:0 0 12px}
+h2{font-size:1.2rem;margin:0 0 8px}
+.lead{color:var(--steel);font-size:1.05rem;margin:0 0 22px;max-width:68ch}
+.card{background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:20px;margin:14px 0}
+.card p,.card li{color:var(--steel);font-size:.98rem}
+ul{padding-left:1.15rem;margin:8px 0 0}
+.cta{display:inline-flex;align-items:center;gap:8px;background:var(--rok);color:#fff!important;font-weight:700;padding:12px 18px;border-radius:10px;text-decoration:none!important;margin:6px 8px 6px 0}
+.cta.secondary{background:transparent;border:1px solid var(--rok);color:var(--rok)!important}
+.note{font-size:13px;color:var(--steel);margin-top:28px}
+footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--border);font-size:13px;color:var(--steel)}
+.meta{font-size:13px;color:var(--steel);margin-bottom:10px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+
+    <div class="brand">ForgeLine Academy<span>Industrial training</span></div>
+    <nav class="nav" aria-label="Primary">
+      <a href="/">Home</a>
+      <a href="/catalog">Catalog</a>
+      <a href="/paths">Paths</a>
+      <a href="/paths/mechanical">Mechanical path</a>
+      <a href="/paths/electrical">Electrical path</a>
+      <a href="/vfd-ground-fault">VFD ground fault</a>
+      <a href="/vfd-overcurrent">VFD overcurrent</a>
+      <a href="/motor-megger">Motor megger</a>
+      <a href="/control-valve-troubleshooting">Control valves</a>
+      <a href="/4-20ma-loop-troubleshooting">4-20 mA loops</a>
+      <a href="/on-site-training">On-site training</a>
+    </nav>
+
+    <h1>Control valve troubleshooting when the valve will not stroke</h1>
+
+    <p class="lead">If the valve will not stroke, the graphic is not evidence. Prove air, prove the 4-20 mA command, prove the stem moved. Then talk about bench set, signature, stiction, and a positioner that has been “calibrated” without as-found data.</p>
+    <div>
+      <a class="cta" href="/courses/control-valve-calibration-and-diagnostics">Control Valve Calibration course</a>
+      <a class="cta secondary" href="/4-20ma-loop-troubleshooting">4-20 mA loops</a>
+      <a class="cta secondary" href="/catalog">Catalog</a>
+    </div>
+    <div class="card">
+      <h2>Field sequence when the valve will not stroke</h2>
+      <p>Start in the field, not in the DCS. Instrument air at the positioner, not at the header two rooms away. A 3–15 psi or 6–30 psi signal that never arrives is still the most common “bad valve.” Next, the analog command at the terminals. If the loop is sitting at 3.8 mA fail-low, the valve may be doing exactly what it was told. Walk that loop — see 4-20 mA troubleshooting — before you rebuild an actuator.</p>
+      <p>Once air and command are honest, watch the stem. A positioner that claims 48% with a stem that has not moved is stiction, a seized packing, a bent stem, or a feedback problem. Signature tests and HART diagnostics help after the obvious. Bench set on the bench does not prove the valve in service with process load and a sticky packing gland.</p>
+      <p>Control Valve Calibration &amp; Diagnostics is a premium I&amp;E course in a catalog of 78, with 44 free Mechanical and Electrical courses below it. Smart positioners and digital feedback are a separate course. Neither one is a substitute for proving air. We do not invent plant testimonials; the procedure either works on your rack or you call and we walk it with your techs.</p>
+    </div>
+    <div class="card">
+      <h2>What techs actually miss</h2>
+      <ul>
+        <li>Equalizing a DP transmitter on the same skid and thinking the valve problem is “the loop.”</li>
+        <li>A bypassed interlock that lets the faceplate look in-range while the stem is pinned.</li>
+        <li>Wrong cam, wrong tubing, or a positioner mounted for the opposite fail action.</li>
+        <li>Calibration with no as-found / as-left, so the next outage cannot trend hysteresis.</li>
+      </ul>
+      <p>I&amp;E is premium. The free Electrical and Mechanical paths still matter: a bound actuator is mechanical; a dead 24 V supply is electrical. Use the landings and the catalog together.</p>
+    </div>
+    <div class="card">
+      <h2>Catalog and contact</h2>
+      <p>ForgeLine Academy currently lists 78 industrial maintenance courses. 44 of those are free (Mechanical and Electrical). Premium unlocks I&amp;E (18) and Engineering (16). That is the whole catalog — not a 22-course teaser and not a four-hour overview of the plant. Call <a href="tel:+15804215714">+1 580 421 5714</a> or email <a href="mailto:support@forgelineacademy.com">support@forgelineacademy.com</a> for plant cohorts and on-site classes.</p>
+    </div>
+<div class="card"><h2>Related plant-floor pages</h2><ul>
+      <li><a href="/courses/control-valve-calibration-and-diagnostics">Control Valve Calibration &amp; Diagnostics</a></li>
+      <li><a href="/courses/smart-valve-positioners-and-digital-feedback">Smart Valve Positioners</a></li>
+      <li><a href="/4-20ma-loop-troubleshooting">4-20 mA loop troubleshooting</a></li>
+      <li><a href="/catalog">Course catalog</a></li>
+    </ul></div>
+
+    <p class="note">Training is educational. It does not replace your site&apos;s lockout/tagout, permits, PPE, or required licenses. Certificates of completion go in the file. They are not a license.</p>
+    <footer>
+      <div>&copy; 2026 ForgeLine Academy &middot; <a href="mailto:support@forgelineacademy.com">support@forgelineacademy.com</a> &middot; <a href="tel:+15804215714">+1 580 421 5714</a></div>
+      <div>Based in Oklahoma. Travel available nationwide for on-site training and plant support.</div>
+    </footer>
+
+  </div>
+</body>
+</html>

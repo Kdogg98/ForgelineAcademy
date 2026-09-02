@@ -6,6 +6,8 @@ export function routeToPath(r: Route): string {
     case 'home':
       return '/';
     case 'paths':
+      if (r.focusPath === 'mechanical') return '/paths/mechanical';
+      if (r.focusPath === 'electrical') return '/paths/electrical';
       return '/paths';
     case 'catalog':
       return '/catalog';
@@ -52,6 +54,8 @@ export function pathToRoute(pathname: string, search = ''): Route {
   }
   if (p === '/privacy') return { name: 'legal', doc: 'privacy' };
   if (p === '/terms') return { name: 'legal', doc: 'terms' };
+  if (p === '/paths/mechanical') return { name: 'paths', focusPath: 'mechanical' };
+  if (p === '/paths/electrical') return { name: 'paths', focusPath: 'electrical' };
   if (p === '/paths') return { name: 'paths' };
   if (p === '/dashboard') return { name: 'dashboard' };
   if (p === '/certificates') return { name: 'certificates' };

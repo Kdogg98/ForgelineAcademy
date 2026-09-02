@@ -1,4 +1,6 @@
 # Static robots.txt and sitemap.xml are served from /public (do not self-rewrite; that 500s on some edges).
+# Specific static HTML must win before the SPA splat. On Netlify/Bolt, files usually win if they exist;
+# explicit 200s keep crawlers off the homepage shell.
 
 /pricing              /pricing/index.html          200
 /pricing/             /pricing/index.html          200
@@ -14,4 +16,23 @@
 /plants/              /plants/index.html           200
 /services             /services/index.html         200
 /services/            /services/index.html         200
+
+/vfd-ground-fault     /vfd-ground-fault/index.html 200
+/vfd-ground-fault/    /vfd-ground-fault/index.html 200
+/vfd-overcurrent      /vfd-overcurrent/index.html 200
+/vfd-overcurrent/     /vfd-overcurrent/index.html 200
+/motor-megger         /motor-megger/index.html 200
+/motor-megger/        /motor-megger/index.html 200
+/control-valve-troubleshooting /control-valve-troubleshooting/index.html 200
+/control-valve-troubleshooting/ /control-valve-troubleshooting/index.html 200
+/4-20ma-loop-troubleshooting /4-20ma-loop-troubleshooting/index.html 200
+/4-20ma-loop-troubleshooting/ /4-20ma-loop-troubleshooting/index.html 200
+/paths/mechanical     /paths/mechanical/index.html 200
+/paths/mechanical/    /paths/mechanical/index.html 200
+/paths/electrical     /paths/electrical/index.html 200
+/paths/electrical/    /paths/electrical/index.html 200
+
+/courses/:slug        /courses/:slug/index.html 200
+/courses/:slug/       /courses/:slug/index.html 200
+
 /*                    /index.html                  200

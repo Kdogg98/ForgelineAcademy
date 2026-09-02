@@ -5,6 +5,7 @@ import { STAGES } from '@/lib/types';
 import { CourseCard } from '@/components/CourseCard';
 import { useAuth } from '@/lib/auth';
 import type { Route } from '@/components/Nav';
+import { PlantFloorLinks } from '@/components/PlantFloorLinks';
 
 interface CatalogProps {
   courses: Course[];
@@ -75,6 +76,9 @@ export function Catalog({
             {courses.length || 78} courses across the four-stage ladder. Mechanical 22 free
             · Electrical 22 free · I&amp;E 18 · Engineering 16.
           </p>
+          <div className="mt-6 max-w-3xl">
+            <PlantFloorLinks />
+          </div>
         </div>
       </div>
 

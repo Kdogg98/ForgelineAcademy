@@ -3,6 +3,7 @@ import { Hexagon, ShieldCheck, Factory, GraduationCap, Zap, X, Mail, Phone, MapP
 import { SITE_CONFIG } from '@/lib/siteConfig';
 import { useAuth } from '@/lib/auth';
 import type { Route } from '@/components/Nav';
+import { PlantFloorLinks } from '@/components/PlantFloorLinks';
 
 export function Footer({ onNavigate }: { onNavigate: (r: Route) => void }) {
   const { user } = useAuth();
@@ -102,6 +103,8 @@ export function Footer({ onNavigate }: { onNavigate: (r: Route) => void }) {
                   </button>
                 </li>
               </ul>
+              <h4 className="text-sm font-semibold text-white mb-3 mt-6">Plant-floor topics</h4>
+              <PlantFloorLinks compact />
             </div>
 
             <div>

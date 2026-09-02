@@ -18,6 +18,7 @@ import { TierBadge, DifficultyBadge } from '@/components/ui/Badge';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { useAuth } from '@/lib/auth';
 import type { Route } from '@/components/Nav';
+import { PlantFloorLinks } from '@/components/PlantFloorLinks';
 
 interface PathsProps {
   courses: Course[];
@@ -95,6 +96,9 @@ export function Paths({ courses, progressMap, onNavigate, focusPath, showWelcome
             One structured career ladder. Each stage builds on the last — move from
             mechanical fundamentals through to advanced engineering at your own pace.
           </p>
+          <div className="mt-6 max-w-3xl">
+            <PlantFloorLinks />
+          </div>
         </div>
       </div>
 

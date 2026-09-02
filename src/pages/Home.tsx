@@ -31,6 +31,7 @@ import {
   type RetakeEligibility,
 } from '@/lib/assessment';
 import type { Route } from '@/components/Nav';
+import { PlantFloorLinks } from '@/components/PlantFloorLinks';
 
 interface HomeProps {
   courses: Course[];
@@ -577,6 +578,9 @@ export function Home({
               View Full Learning Paths
               <ArrowRight className="w-4 h-4" />
             </button>
+          </div>
+          <div className="mt-10 max-w-3xl mx-auto">
+            <PlantFloorLinks />
           </div>
         </section>
 

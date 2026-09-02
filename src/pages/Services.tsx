@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Wrench,
   Stethoscope,
@@ -36,6 +36,18 @@ export function Services({ onNavigate }: ServicesProps) {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const seats = new URLSearchParams(window.location.search).get('seats');
+    if (seats === '5' || seats === '10') {
+      const price = seats === '5' ? '$129/mo' : '$229/mo';
+      setForm((f) => ({
+        ...f,
+        service_type: 'onsite_training',
+        message: `Plant ${seats}-seat request. ${price} for ${seats} Premium seats.`,
+      }));
+    }
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

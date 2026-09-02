@@ -524,6 +524,55 @@ export function Pricing({ onNavigate }: PricingProps) {
           </div>
         )}
 
+
+        {/* Plant seats */}
+        <div className="mt-10">
+          <h2 className="font-display text-2xl font-bold text-white mb-2">Plant seats</h2>
+          <p className="text-sm text-steel-400 mb-5">
+            Shared Premium access for a plant crew. Request seats and we will set up your company.
+          </p>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="card p-6 flex flex-col border-rok-500/30">
+              <h3 className="font-display text-lg font-bold text-white">Plant 5-seat</h3>
+              <p className="mt-2">
+                <span className="font-display text-3xl font-bold text-white">$129</span>
+                <span className="text-steel-400 text-sm ml-1">/mo</span>
+              </p>
+              <p className="text-sm text-steel-400 mt-2 mb-5">Five Premium seats for one plant.</p>
+              <button
+                type="button"
+                onClick={() => {
+                  window.history.pushState({}, '', '/request?seats=5');
+                  onNavigate({ name: 'services' });
+                }}
+                className="btn-primary w-full mt-auto"
+              >
+                Request seats
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="card p-6 flex flex-col border-rok-500/30">
+              <h3 className="font-display text-lg font-bold text-white">Plant 10-seat</h3>
+              <p className="mt-2">
+                <span className="font-display text-3xl font-bold text-white">$229</span>
+                <span className="text-steel-400 text-sm ml-1">/mo</span>
+              </p>
+              <p className="text-sm text-steel-400 mt-2 mb-5">Ten Premium seats for one plant.</p>
+              <button
+                type="button"
+                onClick={() => {
+                  window.history.pushState({}, '', '/request?seats=10');
+                  onNavigate({ name: 'services' });
+                }}
+                className="btn-primary w-full mt-auto"
+              >
+                Request seats
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* On-site & Troubleshooting strip */}
         <div className="mt-6 rounded-xl border border-rok-500/20 bg-gradient-to-br from-navy-800/60 to-navy-950/40 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3">

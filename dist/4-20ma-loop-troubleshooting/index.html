@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4-20 mA Loop Troubleshooting — ForgeLine Academy</title>
+  <meta name="description" content="How I&amp;E techs walk a 4-20 mA loop: supply, loop resistance, fail-low at 3.8 mA, HART vs analog, and why a DCS reading is not the same as a meter in series." />
+  <link rel="canonical" href="https://forgelineacademy.com/4-20ma-loop-troubleshooting" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://forgelineacademy.com/4-20ma-loop-troubleshooting" />
+  <meta property="og:title" content="4-20 mA Loop Troubleshooting — ForgeLine Academy" />
+  <meta property="og:description" content="How I&amp;E techs walk a 4-20 mA loop: supply, loop resistance, fail-low at 3.8 mA, HART vs analog, and why a DCS reading is not the same as a meter in series." />
+  <meta property="og:image" content="https://forgelineacademy.com/og.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://forgelineacademy.com/og.png" />
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "ForgeLine Academy", "url": "https://forgelineacademy.com", "telephone": "+1 580 421 5714", "email": "support@forgelineacademy.com"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Course", "name": "HART Transmitters & Smart Instrumentation", "description": "How I&E techs walk a 4-20 mA loop: supply, loop resistance, fail-low at 3.8 mA, HART vs analog, and why a DCS reading is not the same as a meter in series.", "url": "https://forgelineacademy.com/4-20ma-loop-troubleshooting", "isAccessibleForFree": true, "provider": {"@type": "Organization", "name": "ForgeLine Academy", "url": "https://forgelineacademy.com", "telephone": "+1 580 421 5714", "email": "support@forgelineacademy.com"}}</script>
+  <style>
+:root{--navy:#0b1220;--navy2:#111827;--steel:#94a3b8;--white:#f8fafc;--rok:#ec682b;--border:rgba(148,163,184,.25)}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--navy);color:var(--white);line-height:1.6}
+a{color:var(--rok);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:880px;margin:0 auto;padding:28px 20px 64px}
+.brand{font-weight:800;letter-spacing:.02em}.brand span{display:block;font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--steel)}
+.nav{display:flex;gap:14px;flex-wrap:wrap;margin:18px 0 28px;font-size:14px}
+.nav a{color:var(--steel)}.nav a:hover{color:var(--white)}
+h1{font-size:clamp(1.75rem,4vw,2.4rem);line-height:1.15;margin:0 0 12px}
+h2{font-size:1.2rem;margin:0 0 8px}
+.lead{color:var(--steel);font-size:1.05rem;margin:0 0 22px;max-width:68ch}
+.card{background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:20px;margin:14px 0}
+.card p,.card li{color:var(--steel);font-size:.98rem}
+ul{padding-left:1.15rem;margin:8px 0 0}
+.cta{display:inline-flex;align-items:center;gap:8px;background:var(--rok);color:#fff!important;font-weight:700;padding:12px 18px;border-radius:10px;text-decoration:none!important;margin:6px 8px 6px 0}
+.cta.secondary{background:transparent;border:1px solid var(--rok);color:var(--rok)!important}
+.note{font-size:13px;color:var(--steel);margin-top:28px}
+footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--border);font-size:13px;color:var(--steel)}
+.meta{font-size:13px;color:var(--steel);margin-bottom:10px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+
+    <div class="brand">ForgeLine Academy<span>Industrial training</span></div>
+    <nav class="nav" aria-label="Primary">
+      <a href="/">Home</a>
+      <a href="/catalog">Catalog</a>
+      <a href="/paths">Paths</a>
+      <a href="/paths/mechanical">Mechanical path</a>
+      <a href="/paths/electrical">Electrical path</a>
+      <a href="/vfd-ground-fault">VFD ground fault</a>
+      <a href="/vfd-overcurrent">VFD overcurrent</a>
+      <a href="/motor-megger">Motor megger</a>
+      <a href="/control-valve-troubleshooting">Control valves</a>
+      <a href="/4-20ma-loop-troubleshooting">4-20 mA loops</a>
+      <a href="/on-site-training">On-site training</a>
+    </nav>
+
+    <h1>4-20 mA loop troubleshooting: 3.8 mA fail-low and a dead transmitter</h1>
+
+    <p class="lead">A DCS point at 52% is not a measurement until a meter in the loop agrees. 3.8 mA fail-low, a missing 24 V supply, reversed polarity, and a HART communicator that is talking past a broken analog still get written up as “bad transmitter.”</p>
+    <div>
+      <a class="cta" href="/courses/hart-transmitters-and-smart-instrumentation">HART Transmitters course</a>
+      <a class="cta secondary" href="/control-valve-troubleshooting">Control valves</a>
+      <a class="cta secondary" href="/ie-technician">I&amp;E technician</a>
+    </div>
+    <div class="card">
+      <h2>Walk the loop</h2>
+      <p>Put a meter in series. Confirm loop current, not just a graphic. Measure supply at the transmitter, not only at the cabinet. Add up loop resistance: barriers, long runs, indicators, and a HART resistor that someone shorted. If current is sitting at 3.8 mA, look at fail-safe configuration before you pull the sensor. If current is 0 mA, you have an open, a dead supply, or a transmitter that is off. If current is pegged, look at a shorted pair or a transmitter that has been forced.</p>
+      <p>HART rides on the analog. A communicator can look healthy while the analog into the DCS is wrong — or the analog can be right while the digital diagnostics are screaming. Pressure, temperature, flow, and level transmitters all share this loop physics. Impulse lines, thermowells, and primary elements are process problems that mimic electronics. The I&amp;E courses in the catalog separate those on purpose: HART and smart instrumentation, pressure transmitters, temperature, flow, and level each get their own treatment.</p>
+      <p>This landing is for searchers who typed “4-20 mA loop troubleshooting” and would otherwise land on a JavaScript shell. The interactive lessons are in the premium I&amp;E courses. Mechanical millwrights still own plugged taps. Electricians still own the 24 V and the grounding. The loop is a three-craft job whether the org chart says so or not.</p>
+    </div>
+    <div class="card">
+      <h2>Checks that belong in the book</h2>
+      <ul>
+        <li>Supply voltage under load at the transmitter.</li>
+        <li>Series current vs DCS engineering units.</li>
+        <li>Polarity and shield at one end only, per your spec.</li>
+        <li>Fail-low / fail-high configuration vs the actual 3.8 or 20.5 mA.</li>
+        <li>HART vs analog disagreement before you condemn the sensor.</li>
+      </ul>
+      <p>ForgeLine Academy currently lists 78 industrial maintenance courses. 44 of those are free (Mechanical and Electrical). Premium unlocks I&amp;E (18) and Engineering (16). That is the whole catalog — not a 22-course teaser and not a four-hour overview of the plant. Call <a href="tel:+15804215714">+1 580 421 5714</a> or email <a href="mailto:support@forgelineacademy.com">support@forgelineacademy.com</a> for plant cohorts and on-site classes.</p>
+    </div>
+<div class="card"><h2>Related plant-floor pages</h2><ul>
+      <li><a href="/courses/hart-transmitters-and-smart-instrumentation">HART Transmitters &amp; Smart Instrumentation</a></li>
+      <li><a href="/courses/pressure-measurement-and-transmitters">Pressure Measurement &amp; Transmitters</a></li>
+      <li><a href="/control-valve-troubleshooting">Control valve troubleshooting</a></li>
+      <li><a href="/ie-technician">I&amp;E technician training</a></li>
+    </ul></div>
+
+    <p class="note">Training is educational. It does not replace your site&apos;s lockout/tagout, permits, PPE, or required licenses. Certificates of completion go in the file. They are not a license.</p>
+    <footer>
+      <div>&copy; 2026 ForgeLine Academy &middot; <a href="mailto:support@forgelineacademy.com">support@forgelineacademy.com</a> &middot; <a href="tel:+15804215714">+1 580 421 5714</a></div>
+      <div>Based in Oklahoma. Travel available nationwide for on-site training and plant support.</div>
+    </footer>
+
+  </div>
+</body>
+</html>

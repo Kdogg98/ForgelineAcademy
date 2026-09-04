@@ -44,18 +44,22 @@ export function Services({ onNavigate }: ServicesProps) {
     const params = new URLSearchParams(window.location.search);
     const seats = params.get('seats');
     const intent = params.get('intent');
-    // Online seats live on /upgrade only — never treat /request as a seat path
     if (seats === '5' || seats === '10') {
-      window.location.replace(`/upgrade?seats=${seats}`);
-      return;
-    }
-    if (intent === 'onsite') {
+      const price = seats === '5' ? '$129/mo' : '$229/mo';
+      setSeatsMode(seats);
+      setOnsiteIntent(false);
+      setForm((f) => ({
+        ...f,
+        service_type: 'both',
+        message: `Request seats for company — ONLINE membership on ForgeLine (NOT on-site training). Plant ${seats}-seat at ${price} for ${seats} Premium seats. Kris adds the company and sets up /company.`,
+      }));
+    } else if (intent === 'onsite') {
       setSeatsMode(null);
       setOnsiteIntent(true);
       setForm((f) => ({
         ...f,
         service_type: 'onsite_training',
-        message: 'On-site training / plant visit quote request (not online seats).',
+        message: 'On-site training / plant visit quote (NOT online plant seats). Quoted by Kris.',
       }));
     }
   }, []);
@@ -106,11 +110,11 @@ export function Services({ onNavigate }: ServicesProps) {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-12 text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-rok-500/15 border border-rok-500/40 text-rok-300 text-xs font-semibold uppercase tracking-wider mb-4">
             <Wrench className="w-3.5 h-3.5" />
-            {seatsMode ? 'Online plant seats' : onsiteIntent ? 'On-site & plant visits' : 'On-Site & Plant Support'}
+            {seatsMode ? 'Online company seats' : onsiteIntent ? 'On-site & plant visits' : 'On-Site & Plant Support'}
           </div>
           <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-3">
             {seatsMode
-              ? 'Online company seats for your crew'
+              ? 'Request seats for your company'
               : onsiteIntent
                 ? 'On-site training and plant visits'
                 : 'More Than Online Training'}
@@ -297,7 +301,7 @@ export function Services({ onNavigate }: ServicesProps) {
                 </p>
                 {seatsMode && (
                   <div className="mb-4 p-3 rounded-lg bg-rok-500/10 border border-rok-500/30 text-sm text-rok-200">
-                    Online plant seats · {seatsMode === '5' ? '$129/mo · 5 seats' : '$229/mo · 10 seats'} · not on-site
+                    Company seat request · {seatsMode === '5' ? '$129/mo · 5 seats' : '$229/mo · 10 seats'} · online membership · not on-site
                   </div>
                 )}
 

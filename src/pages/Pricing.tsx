@@ -529,10 +529,15 @@ export function Pricing({ onNavigate }: PricingProps) {
 
                         {/* Plant seats — online company membership; request via /request?seats= */}
         <div id="online-seats" className="mt-10">
-          <h2 className="font-display text-2xl font-bold text-white mb-2">Online plant seats</h2>
-          <p className="text-sm text-steel-400 mb-2">
-            Company memberships so your crew trains online on ForgeLine. Not an on-site visit and not a plant trip.
-          </p>
+          <h2 className="font-display text-2xl font-bold text-white mb-2">Online plant seats.</h2>
+          <div className="mb-3 p-3 rounded-lg bg-accent-500/10 border border-accent-500/30">
+            <p className="text-sm font-semibold text-white">
+              Company memberships so your crew trains <span className="text-accent-300">ONLINE</span> on ForgeLine.
+            </p>
+            <p className="text-sm font-semibold text-warning-400 mt-1">
+              NOT an on-site visit or plant trip.
+            </p>
+          </div>
           <p className="text-xs text-steel-500 mb-5">
             Request seats for your company below. Kris adds the company and sets up your company page at /company.
           </p>

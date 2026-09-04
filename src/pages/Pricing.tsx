@@ -551,7 +551,11 @@ export function Pricing({ onNavigate }: PricingProps) {
                 <span className="font-display text-3xl font-bold text-white">$129</span>
                 <span className="text-steel-400 text-sm ml-1">/mo</span>
               </p>
-              <p className="text-sm text-steel-400 mt-2 mb-5">Five online Premium seats for your crew. Train on ForgeLine from the shop or home — no plant visit included.</p>
+              <ul className="mt-3 mb-5 space-y-1.5">
+                <li className="flex items-start gap-2 text-sm text-steel-300"><Check className="w-4 h-4 text-rok-400 shrink-0 mt-0.5" />Five online Premium seats for your crew</li>
+                <li className="flex items-start gap-2 text-sm text-steel-300"><Check className="w-4 h-4 text-rok-400 shrink-0 mt-0.5" />Train from the shop or home</li>
+                <li className="flex items-start gap-2 text-sm text-steel-500"><X className="w-4 h-4 shrink-0 mt-0.5" />No plant visit included</li>
+              </ul>
               <button
                 type="button"
                 onClick={() => { window.location.assign('/request?seats=5'); }}
@@ -568,7 +572,11 @@ export function Pricing({ onNavigate }: PricingProps) {
                 <span className="font-display text-3xl font-bold text-white">$229</span>
                 <span className="text-steel-400 text-sm ml-1">/mo</span>
               </p>
-              <p className="text-sm text-steel-400 mt-2 mb-5">Ten online Premium seats for your crew. Train on ForgeLine from the shop or home — no plant visit included.</p>
+              <ul className="mt-3 mb-5 space-y-1.5">
+                <li className="flex items-start gap-2 text-sm text-steel-300"><Check className="w-4 h-4 text-rok-400 shrink-0 mt-0.5" />Ten online Premium seats for your crew</li>
+                <li className="flex items-start gap-2 text-sm text-steel-300"><Check className="w-4 h-4 text-rok-400 shrink-0 mt-0.5" />Train from the shop or home</li>
+                <li className="flex items-start gap-2 text-sm text-steel-500"><X className="w-4 h-4 shrink-0 mt-0.5" />No plant visit included</li>
+              </ul>
               <button
                 type="button"
                 onClick={() => { window.location.assign('/request?seats=10'); }}

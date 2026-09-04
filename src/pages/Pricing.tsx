@@ -55,7 +55,23 @@ export function Pricing({ onNavigate }: PricingProps) {
   const [referralError, setReferralError] = useState<string | null>(null);
   const [referralReload, setReferralReload] = useState(0);
 
+  const [seatsPick, setSeatsPick] = useState<'5' | '10' | null>(null);
+  const [seatForm, setSeatForm] = useState({ name: '', company: '', email: '', phone: '' });
+  const [seatSubmitting, setSeatSubmitting] = useState(false);
+  const [SeatSubmitted, setSeatSubmitted] = useState(false);
+  const [seatError, setSeatError] = useState<string | null>(null);
+
   const REFERRALS_NEEDED = 3;
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const s = params.get('seats');
+    if (s === '5' || s === '10') {
+      setSeatsPick(s);
+      setSeatSubmitted(false);
+      setSeatError(null);
+    }
+  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -191,6 +207,42 @@ export function Pricing({ onNavigate }: PricingProps) {
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to start checkout');
       setLoading(false);
+    }
+  }
+
+  async function handleSeatSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!seatForm.name.trim() || !seatForm.email.trim()) return;
+    setSeatSubmitting(true);
+    setSeatError(null);
+    try {
+      const price = seatsPick === '5' ? '$129/mo' : '$229/mo';
+      const { error: insertErr } = await supabase.from('service_requests').insert({
+        name: seatForm.name.trim(),
+        company: seatForm.company.trim() || null,
+        email: seatForm.email.trim(),
+        phone: seatForm.phone.trim() || null,
+        service_type: 'both',
+        message: `ONLINE plant seats (company membership — NOT on-site visit). Plant ${seatsPick}-seat at ${price} for ${seatsPick} Premium seats. Kris adds the company and sets up /company.`,
+      });
+      if (insertErr) throw insertErr;
+      track('plant_lead', { service_type: 'both', seats: seatsPick });
+      supabase.functions.invoke('notify', {
+        body: {
+          type: 'service_request',
+          name: seatForm.name.trim(),
+          company: seatForm.company.trim() || null,
+          email: seatForm.email.trim(),
+          phone: seatForm.phone.trim() || null,
+          service_type: 'both',
+          message: `ONLINE plant seats — Plant ${seatsPick}-seat at ${price}`,
+        },
+      }).catch(() => {});
+      setSeatSubmitted(true);
+    } catch (e) {
+      setSeatError(e instanceof Error ? e.message : 'Failed to submit request');
+    } finally {
+      setSeatSubmitting(false);
     }
   }
 
@@ -547,7 +599,7 @@ export function Pricing({ onNavigate }: PricingProps) {
               <p className="text-sm text-steel-400 mt-2 mb-5">Five online Premium seats for your crew. Train on ForgeLine from the shop or home — no plant visit included.</p>
               <button
                 type="button"
-                onClick={() => { window.location.assign('/request?seats=5'); }}
+                onClick={() => { setSeatsPick('5'); setSeatSubmitted(false); setSeatError(null); }}
                 className="btn-primary w-full mt-auto"
               >
                 Request seats for company
@@ -564,7 +616,7 @@ export function Pricing({ onNavigate }: PricingProps) {
               <p className="text-sm text-steel-400 mt-2 mb-5">Ten online Premium seats for your crew. Train on ForgeLine from the shop or home — no plant visit included.</p>
               <button
                 type="button"
-                onClick={() => { window.location.assign('/request?seats=10'); }}
+                onClick={() => { setSeatsPick('10'); setSeatSubmitted(false); setSeatError(null); }}
                 className="btn-primary w-full mt-auto"
               >
                 Request seats for company
@@ -573,6 +625,81 @@ export function Pricing({ onNavigate }: PricingProps) {
             </div>
           </div>
         </div>
+
+        {seatsPick && (
+          <div className="mt-6 card p-7 max-w-2xl mx-auto">
+            {SeatSubmitted ? (
+              <div className="text-center py-8">
+                <div className="w-14 h-14 rounded-full bg-success-500/15 flex items-center justify-center mx-auto mb-4">
+                  <Check className="w-7 h-7 text-success-400" />
+                </div>
+                <h3 className="font-display text-xl font-bold text-white mb-2">Request received</h3>
+                <p className="text-sm text-steel-400 mb-6">
+                  Kris will follow up to set up your company and {seatsPick} online seats.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => { setSeatsPick(null); setSeatForm({ name: '', company: '', email: '', phone: '' }); setSeatSubmitted(false); }}
+                  className="btn-ghost text-sm"
+                >
+                  Close
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-display text-xl font-bold text-white">
+                    Request online plant seats ({seatsPick})
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setSeatsPick(null)}
+                    className="text-steel-500 hover:text-steel-300 text-sm"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                <div className="mb-4 p-3 rounded-lg bg-rok-500/10 border border-rok-500/30 text-sm text-rok-200">
+                  Online plant seats · {seatsPick === '5' ? '$129/mo · 5 seats' : '$229/mo · 10 seats'} · not on-site
+                </div>
+                <p className="text-sm text-steel-400 mb-5">
+                  Online company membership only. Your crew trains on ForgeLine. Kris sets up your company page. This is not an on-site visit.
+                </p>
+                {seatError && (
+                  <div className="mb-4 flex items-start gap-3 p-4 rounded-lg bg-error-500/10 border border-error-500/30">
+                    <AlertCircle className="w-5 h-5 text-error-400 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-error-300">{seatError}</p>
+                  </div>
+                )}
+                <form onSubmit={handleSeatSubmit} className="space-y-4">
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-steel-300 uppercase tracking-wider mb-1.5">Name *</label>
+                      <input type="text" value={seatForm.name} onChange={(e) => setSeatForm({ ...seatForm, name: e.target.value })} required className="input" placeholder="Your name" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-steel-300 uppercase tracking-wider mb-1.5">Company</label>
+                      <input type="text" value={seatForm.company} onChange={(e) => setSeatForm({ ...seatForm, company: e.target.value })} className="input" placeholder="Company name" />
+                    </div>
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-steel-300 uppercase tracking-wider mb-1.5">Email *</label>
+                      <input type="email" value={seatForm.email} onChange={(e) => setSeatForm({ ...seatForm, email: e.target.value })} required className="input" placeholder="you@company.com" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-steel-300 uppercase tracking-wider mb-1.5">Phone (optional)</label>
+                      <input type="tel" value={seatForm.phone} onChange={(e) => setSeatForm({ ...seatForm, phone: e.target.value })} className="input" placeholder="Plant or cell number" />
+                    </div>
+                  </div>
+                  <button type="submit" disabled={seatSubmitting || !seatForm.name.trim() || !seatForm.email.trim()} className="btn-primary w-full">
+                    {seatSubmitting ? (<><Loader2 className="w-4 h-4 animate-spin" /> Submitting...</>) : (<>Submit Request <ArrowRight className="w-4 h-4" /></>)}
+                  </button>
+                </form>
+              </>
+            )}
+          </div>
+        )}
 
         {/* On-site — separate intake on /request, no seat prices */}
         <div className="mt-6 rounded-xl border border-rok-500/20 bg-gradient-to-br from-navy-800/60 to-navy-950/40 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

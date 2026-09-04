@@ -561,7 +561,7 @@ export function Pricing({ onNavigate }: PricingProps) {
                 onClick={() => { window.location.assign('/request?seats=5'); }}
                 className="btn-primary w-full mt-auto"
               >
-                Request seats for company
+                Request online plant seats
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -582,7 +582,7 @@ export function Pricing({ onNavigate }: PricingProps) {
                 onClick={() => { window.location.assign('/request?seats=10'); }}
                 className="btn-primary w-full mt-auto"
               >
-                Request seats for company
+                Request online plant seats
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>

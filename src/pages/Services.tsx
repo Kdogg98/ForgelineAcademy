@@ -44,17 +44,12 @@ export function Services({ onNavigate }: ServicesProps) {
     const params = new URLSearchParams(window.location.search);
     const seats = params.get('seats');
     const intent = params.get('intent');
+    // Online seats live on /upgrade only — never treat /request as a seat path
     if (seats === '5' || seats === '10') {
-      const price = seats === '5' ? '$129/mo' : '$229/mo';
-      setSeatsMode(seats);
-      setOnsiteIntent(false);
-      setForm((f) => ({
-        ...f,
-        // DB only allows onsite_training|troubleshooting|both — message must carry online-seats intent
-        service_type: 'both',
-        message: `ONLINE plant seats (company membership on ForgeLine — NOT an on-site visit or plant trip). Plant ${seats}-seat at ${price} for ${seats} Premium seats. Kris sets up the company page.`,
-      }));
-    } else if (intent === 'onsite') {
+      window.location.replace(`/upgrade?seats=${seats}`);
+      return;
+    }
+    if (intent === 'onsite') {
       setSeatsMode(null);
       setOnsiteIntent(true);
       setForm((f) => ({

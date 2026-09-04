@@ -525,20 +525,24 @@ export function Pricing({ onNavigate }: PricingProps) {
         )}
 
 
-        {/* Plant seats */}
+        {/* Plant seats — online company memberships, not on-site visits */}
         <div className="mt-10">
-          <h2 className="font-display text-2xl font-bold text-white mb-2">Plant seats</h2>
-          <p className="text-sm text-steel-400 mb-5">
-            Shared Premium access for a plant crew. Request seats and we will set up your company.
+          <h2 className="font-display text-2xl font-bold text-white mb-2">Online plant seats</h2>
+          <p className="text-sm text-steel-400 mb-2">
+            Company memberships so your crew trains online on ForgeLine. Not an on-site visit and not a plant trip.
+          </p>
+          <p className="text-xs text-steel-500 mb-5">
+            After you request seats, Kris sets up your company page at /company so your team logs in under your plant.
           </p>
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="card p-6 flex flex-col border-rok-500/30">
+              <p className="text-xs font-semibold uppercase tracking-wider text-rok-300 mb-2">Online · company seats</p>
               <h3 className="font-display text-lg font-bold text-white">Plant 5-seat</h3>
               <p className="mt-2">
                 <span className="font-display text-3xl font-bold text-white">$129</span>
                 <span className="text-steel-400 text-sm ml-1">/mo</span>
               </p>
-              <p className="text-sm text-steel-400 mt-2 mb-5">Five Premium seats for one plant.</p>
+              <p className="text-sm text-steel-400 mt-2 mb-5">Five online Premium seats for your crew. Train on ForgeLine from the shop or home — no plant visit included.</p>
               <button
                 type="button"
                 onClick={() => {
@@ -546,17 +550,18 @@ export function Pricing({ onNavigate }: PricingProps) {
                 }}
                 className="btn-primary w-full mt-auto"
               >
-                Request seats
+                Request online seats
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
             <div className="card p-6 flex flex-col border-rok-500/30">
+              <p className="text-xs font-semibold uppercase tracking-wider text-rok-300 mb-2">Online · company seats</p>
               <h3 className="font-display text-lg font-bold text-white">Plant 10-seat</h3>
               <p className="mt-2">
                 <span className="font-display text-3xl font-bold text-white">$229</span>
                 <span className="text-steel-400 text-sm ml-1">/mo</span>
               </p>
-              <p className="text-sm text-steel-400 mt-2 mb-5">Ten Premium seats for one plant.</p>
+              <p className="text-sm text-steel-400 mt-2 mb-5">Ten online Premium seats for your crew. Train on ForgeLine from the shop or home — no plant visit included.</p>
               <button
                 type="button"
                 onClick={() => {
@@ -564,29 +569,29 @@ export function Pricing({ onNavigate }: PricingProps) {
                 }}
                 className="btn-primary w-full mt-auto"
               >
-                Request seats
+                Request online seats
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
         </div>
 
-        {/* On-site & Troubleshooting strip */}
+        {/* On-site & Troubleshooting strip — separate from online plant seats */}
         <div className="mt-6 rounded-xl border border-rok-500/20 bg-gradient-to-br from-navy-800/60 to-navy-950/40 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-lg bg-rok-500/15 border border-rok-500/30 flex items-center justify-center shrink-0">
               <Wrench className="w-5 h-5 text-rok-400" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-white">Looking for on-site training or plant troubleshooting?</h3>
-              <p className="text-xs text-steel-400 mt-0.5">ForgeLine offers hands-on classes at your facility and remote diagnostic support.</p>
+              <h3 className="text-sm font-semibold text-white">On-site training and plant visits</h3>
+              <p className="text-xs text-steel-400 mt-0.5">Quoted by Kris for your facility. Separate from the online plant seats above — no seat price on this path.</p>
             </div>
           </div>
           <button
-            onClick={() => onNavigate({ name: 'services' })}
-            className="btn-primary text-sm shrink-0"
+            onClick={() => { window.location.assign('/request?intent=onsite'); }}
+            className="btn-secondary text-sm shrink-0"
           >
-            View Services
+            Request on-site quote
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

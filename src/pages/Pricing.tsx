@@ -529,20 +529,13 @@ export function Pricing({ onNavigate }: PricingProps) {
 
                         {/* Plant seats — online company membership; request via /request?seats= */}
         <div id="online-seats" className="mt-10">
-          <h2 className="font-display text-2xl font-bold text-white mb-2">Online plant seats.</h2>
-          <div className="mb-3 p-3 rounded-lg bg-accent-500/10 border border-accent-500/30">
-            <p className="text-sm font-semibold text-white">
-              Company memberships so your crew trains <span className="text-accent-300">ONLINE</span> on ForgeLine.
-            </p>
-            <p className="text-sm font-semibold text-warning-400 mt-1">
-              NOT an on-site visit or plant trip.
-            </p>
-          </div>
-          <div className="mb-5 p-3 rounded-lg bg-navy-800/60 border border-steel-700/60">
-            <p className="text-xs text-steel-300">
-              <span className="font-semibold text-white">After you request:</span> Kris adds your company and sets up your company page at <span className="font-mono text-accent-300">/company</span> — where your crew members sign up and your seats are managed.
-            </p>
-          </div>
+          <h2 className="font-display text-2xl font-bold text-white mb-2">Online plant seats</h2>
+          <p className="text-sm text-steel-400 mb-2">
+            Company memberships so your crew trains online on ForgeLine. Not an on-site visit and not a plant trip.
+          </p>
+          <p className="text-xs text-steel-500 mb-5">
+            Request seats for your company below. Kris adds the company and sets up your company page at /company.
+          </p>
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="card p-6 flex flex-col border-rok-500/30">
               <p className="text-xs font-semibold uppercase tracking-wider text-rok-300 mb-2">Online · company seats</p>
@@ -551,11 +544,7 @@ export function Pricing({ onNavigate }: PricingProps) {
                 <span className="font-display text-3xl font-bold text-white">$129</span>
                 <span className="text-steel-400 text-sm ml-1">/mo</span>
               </p>
-              <ul className="mt-3 mb-5 space-y-1.5">
-                <li className="flex items-start gap-2 text-sm text-steel-300"><Check className="w-4 h-4 text-rok-400 shrink-0 mt-0.5" />Five online Premium seats for your crew</li>
-                <li className="flex items-start gap-2 text-sm text-steel-300"><Check className="w-4 h-4 text-rok-400 shrink-0 mt-0.5" />Train from the shop or home</li>
-                <li className="flex items-start gap-2 text-sm text-steel-500"><X className="w-4 h-4 shrink-0 mt-0.5" />No plant visit included</li>
-              </ul>
+              <p className="text-sm text-steel-400 mt-2 mb-5">Five online Premium seats for your crew. Train on ForgeLine from the shop or home — no plant visit included.</p>
               <button
                 type="button"
                 onClick={() => { window.location.assign('/request?seats=5'); }}
@@ -572,11 +561,7 @@ export function Pricing({ onNavigate }: PricingProps) {
                 <span className="font-display text-3xl font-bold text-white">$229</span>
                 <span className="text-steel-400 text-sm ml-1">/mo</span>
               </p>
-              <ul className="mt-3 mb-5 space-y-1.5">
-                <li className="flex items-start gap-2 text-sm text-steel-300"><Check className="w-4 h-4 text-rok-400 shrink-0 mt-0.5" />Ten online Premium seats for your crew</li>
-                <li className="flex items-start gap-2 text-sm text-steel-300"><Check className="w-4 h-4 text-rok-400 shrink-0 mt-0.5" />Train from the shop or home</li>
-                <li className="flex items-start gap-2 text-sm text-steel-500"><X className="w-4 h-4 shrink-0 mt-0.5" />No plant visit included</li>
-              </ul>
+              <p className="text-sm text-steel-400 mt-2 mb-5">Ten online Premium seats for your crew. Train on ForgeLine from the shop or home — no plant visit included.</p>
               <button
                 type="button"
                 onClick={() => { window.location.assign('/request?seats=10'); }}

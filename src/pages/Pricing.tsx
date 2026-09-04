@@ -538,9 +538,11 @@ export function Pricing({ onNavigate }: PricingProps) {
               NOT an on-site visit or plant trip.
             </p>
           </div>
-          <p className="text-xs text-steel-500 mb-5">
-            Request seats for your company below. Kris adds the company and sets up your company page at /company.
-          </p>
+          <div className="mb-5 p-3 rounded-lg bg-navy-800/60 border border-steel-700/60">
+            <p className="text-xs text-steel-300">
+              <span className="font-semibold text-white">After you request:</span> Kris adds your company and sets up your company page at <span className="font-mono text-accent-300">/company</span> — where your crew members sign up and your seats are managed.
+            </p>
+          </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="card p-6 flex flex-col border-rok-500/30">
               <p className="text-xs font-semibold uppercase tracking-wider text-rok-300 mb-2">Online · company seats</p>

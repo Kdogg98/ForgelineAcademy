@@ -45,14 +45,8 @@ export function Services({ onNavigate }: ServicesProps) {
     const seats = params.get('seats');
     const intent = params.get('intent');
     if (seats === '5' || seats === '10') {
-      const price = seats === '5' ? '$129/mo' : '$229/mo';
-      setSeatsMode(seats);
-      setOnsiteIntent(false);
-      setForm((f) => ({
-        ...f,
-        service_type: 'both',
-        message: `Request seats for company — ONLINE membership on ForgeLine (NOT on-site training). Plant ${seats}-seat at ${price} for ${seats} Premium seats. Kris adds the company and sets up /company.`,
-      }));
+      window.location.replace(`/upgrade?seats=${seats}`);
+      return;
     } else if (intent === 'onsite') {
       setSeatsMode(null);
       setOnsiteIntent(true);

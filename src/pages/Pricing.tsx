@@ -46,57 +46,6 @@ export function Pricing({ onNavigate }: PricingProps) {
   const [promoCode, setPromoCode] = useState('');
   const [promoMessage, setPromoMessage] = useState<string | null>(null);
   const [promoValid, setPromoValid] = useState(false);
-  const [seatsPick, setSeatsPick] = useState<'5' | '10' | null>(null);
-  const [seatsForm, setSeatsForm] = useState({ name: '', company: '', email: '', phone: '' });
-  const [seatsSubmitting, setSeatsSubmitting] = useState(false);
-  const [seatsSubmitted, setSeatsSubmitted] = useState(false);
-  const [seatsError, setSeatsError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const seats = new URLSearchParams(window.location.search).get('seats');
-    if (seats === '5' || seats === '10') {
-      setSeatsPick(seats);
-      const el = document.getElementById('online-seats');
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, []);
-
-  async function handleSeatsRequest(e: React.FormEvent) {
-    e.preventDefault();
-    if (!seatsPick || !seatsForm.name.trim() || !seatsForm.email.trim()) return;
-    setSeatsSubmitting(true);
-    setSeatsError(null);
-    const price = seatsPick === '5' ? '$129/mo' : '$229/mo';
-    const message = `ONLINE plant seats (company membership on ForgeLine — NOT an on-site visit or plant trip). Plant ${seatsPick}-seat at ${price} for ${seatsPick} Premium seats. Kris sets up the company page at /company.`;
-    try {
-      const { error: insertErr } = await supabase.from('service_requests').insert({
-        name: seatsForm.name.trim(),
-        company: seatsForm.company.trim() || null,
-        email: seatsForm.email.trim(),
-        phone: seatsForm.phone.trim() || null,
-        service_type: 'both',
-        message,
-      });
-      if (insertErr) throw insertErr;
-      setSeatsSubmitted(true);
-      track('plant_lead', { service_type: 'online_seats', seats: seatsPick });
-      supabase.functions.invoke('notify', {
-        body: {
-          type: 'service_request',
-          name: seatsForm.name.trim(),
-          company: seatsForm.company.trim() || null,
-          email: seatsForm.email.trim(),
-          phone: seatsForm.phone.trim() || null,
-          service_type: 'both',
-          message,
-        },
-      }).catch(() => {});
-    } catch (err) {
-      setSeatsError(err instanceof Error ? err.message : 'Failed to submit seat request');
-    } finally {
-      setSeatsSubmitting(false);
-    }
-  }
 
   const [validating, setValidating] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
@@ -578,17 +527,17 @@ export function Pricing({ onNavigate }: PricingProps) {
         )}
 
 
-                {/* Plant seats — online company memberships on /upgrade only (not /request) */}
+                        {/* Plant seats — online company membership; request via /request?seats= */}
         <div id="online-seats" className="mt-10">
           <h2 className="font-display text-2xl font-bold text-white mb-2">Online plant seats</h2>
           <p className="text-sm text-steel-400 mb-2">
             Company memberships so your crew trains online on ForgeLine. Not an on-site visit and not a plant trip.
           </p>
           <p className="text-xs text-steel-500 mb-5">
-            Request seats here on /upgrade. Kris sets up your company page at /company so your team logs in under your plant.
+            Request seats for your company below. Kris adds the company and sets up your company page at /company.
           </p>
           <div className="grid sm:grid-cols-2 gap-4">
-            <div className={`card p-6 flex flex-col border-rok-500/30 ${seatsPick === '5' ? 'ring-2 ring-rok-400' : ''}`}>
+            <div className="card p-6 flex flex-col border-rok-500/30">
               <p className="text-xs font-semibold uppercase tracking-wider text-rok-300 mb-2">Online · company seats</p>
               <h3 className="font-display text-lg font-bold text-white">Plant 5-seat</h3>
               <p className="mt-2">
@@ -598,14 +547,14 @@ export function Pricing({ onNavigate }: PricingProps) {
               <p className="text-sm text-steel-400 mt-2 mb-5">Five online Premium seats for your crew. Train on ForgeLine from the shop or home — no plant visit included.</p>
               <button
                 type="button"
-                onClick={() => { setSeatsPick('5'); setSeatsSubmitted(false); setSeatsError(null); }}
+                onClick={() => { window.location.assign('/request?seats=5'); }}
                 className="btn-primary w-full mt-auto"
               >
-                Request online seats
+                Request seats for company
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
-            <div className={`card p-6 flex flex-col border-rok-500/30 ${seatsPick === '10' ? 'ring-2 ring-rok-400' : ''}`}>
+            <div className="card p-6 flex flex-col border-rok-500/30">
               <p className="text-xs font-semibold uppercase tracking-wider text-rok-300 mb-2">Online · company seats</p>
               <h3 className="font-display text-lg font-bold text-white">Plant 10-seat</h3>
               <p className="mt-2">
@@ -615,52 +564,17 @@ export function Pricing({ onNavigate }: PricingProps) {
               <p className="text-sm text-steel-400 mt-2 mb-5">Ten online Premium seats for your crew. Train on ForgeLine from the shop or home — no plant visit included.</p>
               <button
                 type="button"
-                onClick={() => { setSeatsPick('10'); setSeatsSubmitted(false); setSeatsError(null); }}
+                onClick={() => { window.location.assign('/request?seats=10'); }}
                 className="btn-primary w-full mt-auto"
               >
-                Request online seats
+                Request seats for company
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
-
-          {seatsPick && (
-            <div className="mt-6 card p-6 border-rok-500/30">
-              <h3 className="font-display text-lg font-bold text-white mb-1">
-                Request online plant seats ({seatsPick})
-              </h3>
-              <p className="text-sm text-steel-400 mb-4">
-                Online company membership only — {seatsPick === '5' ? '$129/mo · 5 seats' : '$229/mo · 10 seats'}.
-                Not an on-site visit. Or email {SITE_CONFIG.supportEmail} / call {SITE_CONFIG.phone}.
-              </p>
-              {seatsSubmitted ? (
-                <p className="text-sm text-success-300">Got it. Kris will set up your company page and confirm seats.</p>
-              ) : (
-                <form onSubmit={handleSeatsRequest} className="space-y-3">
-                  {seatsError && (
-                    <div className="flex items-center gap-2 text-sm text-error-400">
-                      <AlertCircle className="w-4 h-4" />
-                      {seatsError}
-                    </div>
-                  )}
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    <input className="input" required placeholder="Name *" value={seatsForm.name} onChange={(e) => setSeatsForm({ ...seatsForm, name: e.target.value })} />
-                    <input className="input" placeholder="Company" value={seatsForm.company} onChange={(e) => setSeatsForm({ ...seatsForm, company: e.target.value })} />
-                    <input className="input" type="email" required placeholder="Email *" value={seatsForm.email} onChange={(e) => setSeatsForm({ ...seatsForm, email: e.target.value })} />
-                    <input className="input" type="tel" placeholder="Phone" value={seatsForm.phone} onChange={(e) => setSeatsForm({ ...seatsForm, phone: e.target.value })} />
-                  </div>
-                  <button type="submit" disabled={seatsSubmitting} className="btn-primary">
-                    {seatsSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                    Submit online seat request
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </form>
-              )}
-            </div>
-          )}
         </div>
 
-        {/* On-site & Troubleshooting strip — /request only, no seat prices */}
+        {/* On-site — separate intake on /request, no seat prices */}
         <div className="mt-6 rounded-xl border border-rok-500/20 bg-gradient-to-br from-navy-800/60 to-navy-950/40 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-lg bg-rok-500/15 border border-rok-500/30 flex items-center justify-center shrink-0">
@@ -672,7 +586,8 @@ export function Pricing({ onNavigate }: PricingProps) {
             </div>
           </div>
           <button
-            onClick={() => { window.location.assign('/request'); }}
+            type="button"
+            onClick={() => { window.location.assign('/request?intent=onsite'); }}
             className="btn-secondary text-sm shrink-0"
           >
             Request on-site quote

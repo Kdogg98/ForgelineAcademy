@@ -51,7 +51,7 @@ export function Services({ onNavigate }: ServicesProps) {
       setForm((f) => ({
         ...f,
         service_type: 'both',
-        message: `Request seats for company — ONLINE membership on ForgeLine (NOT on-site training). Plant ${seats}-seat at ${price} for ${seats} Premium seats. Kris adds the company and sets up /company.`,
+        message: `ONLINE plant seats (company membership - NOT on-site visit). Plant ${seats}-seat at ${price} for ${seats} Premium seats. Kris adds the company and sets up /company.`,
       }));
     } else if (intent === 'onsite') {
       setSeatsMode(null);
@@ -301,7 +301,7 @@ export function Services({ onNavigate }: ServicesProps) {
                 </p>
                 {seatsMode && (
                   <div className="mb-4 p-3 rounded-lg bg-rok-500/10 border border-rok-500/30 text-sm text-rok-200">
-                    Company seat request · {seatsMode === '5' ? '$129/mo · 5 seats' : '$229/mo · 10 seats'} · online membership · not on-site
+                    Online plant seats · {seatsMode === '5' ? '$129/mo · 5 seats' : '$229/mo · 10 seats'} · not on-site
                   </div>
                 )}
 

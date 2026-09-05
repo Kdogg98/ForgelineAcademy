@@ -39,7 +39,7 @@ const STAGE_ICON: Record<Stage, typeof Wrench> = {
 };
 
 export function Dashboard({ courses, onNavigate, progressMap, certs }: DashboardProps) {
-  const { user, isPremium, isAdmin, fullName, updateFullName } = useAuth();
+  const { user, isPremium, isAdmin, fullName, updateFullName, profileReady } = useAuth();
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState('');
   const [savingName, setSavingName] = useState(false);
@@ -221,7 +221,7 @@ export function Dashboard({ courses, onNavigate, progressMap, certs }: Dashboard
             {STAGES.map((stage, i) => {
               const Icon = STAGE_ICON[stage.key];
               const pct = stageProgress[stage.key];
-              const isLocked = stage.tier === 'premium' && !isPremium && !isAdmin;
+              const isLocked = stage.tier === 'premium' && profileReady && !isPremium && !isAdmin;
               return (
                 <div key={stage.key} className="card p-5">
                   <div className="flex items-center justify-between mb-3">

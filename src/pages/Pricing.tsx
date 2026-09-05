@@ -37,7 +37,7 @@ interface PricingProps {
 }
 
 export function Pricing({ onNavigate }: PricingProps) {
-  const { user, isPremium, isAdmin, refreshPremium } = useAuth();
+  const { user, isPremium, isAdmin, refreshPremium, profileReady } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
@@ -411,7 +411,7 @@ export function Pricing({ onNavigate }: PricingProps) {
                 <ArrowRight className="w-4 h-4" />
               </button>
             )}
-            {user && !isPremium && !isAdmin && (
+            {user && profileReady && !isPremium && !isAdmin && (
               <p className="text-xs text-steel-500 text-center mt-3">
                 Secure checkout powered by Stripe. Cancel anytime.
               </p>
@@ -427,7 +427,7 @@ export function Pricing({ onNavigate }: PricingProps) {
         )}
 
         {/* Promo / Referral code input */}
-        {user && !isPremium && !isAdmin && (
+        {user && profileReady && !isPremium && !isAdmin && (
           <div className="mt-6 card p-5">
             <div className="flex items-center gap-2 mb-3">
               <Tag className="w-4 h-4 text-accent-400" />

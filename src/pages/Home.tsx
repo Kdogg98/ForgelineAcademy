@@ -32,6 +32,7 @@ import {
 } from '@/lib/assessment';
 import type { Route } from '@/components/Nav';
 import { PlantFloorLinks } from '@/components/PlantFloorLinks';
+import { LatestAnnouncements } from '@/components/LatestAnnouncements';
 
 interface HomeProps {
   courses: Course[];
@@ -510,6 +511,10 @@ export function Home({
             </div>
           </div>
         </section>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10">
+          <LatestAnnouncements onNavigate={onNavigate} />
+        </div>
 
         {/* Career Ladder Overview */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 py-16">

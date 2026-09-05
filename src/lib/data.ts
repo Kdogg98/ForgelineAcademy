@@ -8,6 +8,27 @@ import type {
   QuizQuestion,
 } from '@/lib/types';
 
+
+/** Lessons may store the key as `answer` or `correctIndex` — scorer needs correctIndex. */
+function normalizeQuiz(raw: unknown): QuizQuestion[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((q) => {
+    const item = q as QuizQuestion & { answer?: number };
+    const correctIndex =
+      typeof item.correctIndex === 'number'
+        ? item.correctIndex
+        : typeof item.answer === 'number'
+          ? item.answer
+          : 0;
+    return {
+      question: item.question,
+      options: item.options,
+      correctIndex,
+      explanation: item.explanation,
+    };
+  });
+}
+
 export async function fetchCourses(): Promise<Course[]> {
   const { data, error } = await supabase
     .from('courses')
@@ -55,7 +76,7 @@ export async function fetchLessons(courseId: string): Promise<LessonWithModule[]
       estimated_minutes: r.estimated_minutes,
       has_video: r.has_video,
       has_pdf: r.has_pdf,
-      quiz: (r.quiz as QuizQuestion[] | null) ?? [],
+      quiz: normalizeQuiz(r.quiz),
       pass_threshold: r.pass_threshold,
       sort_order: r.sort_order,
       video_url: r.video_url,

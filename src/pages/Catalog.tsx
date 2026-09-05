@@ -28,7 +28,7 @@ export function Catalog({
   onNavigate,
   initialQuery = '',
 }: CatalogProps) {
-  const { isPremium, isAdmin } = useAuth();
+  const { isPremium, isAdmin, profileReady } = useAuth();
   const [query, setQuery] = useState(initialQuery);
   const [stageFilter, setStageFilter] = useState<StageFilter>('all');
   const [tierFilter, setTierFilter] = useState<TierFilter>('all');
@@ -213,7 +213,7 @@ export function Catalog({
                 course={c}
                 progress={progressMap[c.id] ?? 0}
                 hasCertificate={certCourseIds.has(c.id)}
-                locked={c.tier === 'premium' && !isPremium && !isAdmin}
+                locked={c.tier === 'premium' && profileReady && !isPremium && !isAdmin}
                 onClick={() => onNavigate({ name: 'course', courseId: c.id })}
               />
             ))}

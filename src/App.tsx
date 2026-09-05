@@ -23,6 +23,7 @@ import { BookMeeting } from '@/pages/BookMeeting';
 import { Services } from '@/pages/Services';
 import { CompanyAdmin } from '@/pages/CompanyAdmin';
 import { SkillAssessment } from '@/pages/SkillAssessment';
+import { Announcements } from '@/pages/Announcements';
 
 function AppContent() {
   const { user, loading: authLoading } = useAuth();
@@ -192,6 +193,7 @@ function AppContent() {
             onNavigate={navigate}
           />
         )}
+        {route.name === 'announcements' && <Announcements onNavigate={navigate} />}
         {route.name === 'search' && (
           <Catalog
             courses={courses}

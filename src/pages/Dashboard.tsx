@@ -22,6 +22,7 @@ import { ProgressBar } from '@/components/ui/ProgressBar';
 import { TierBadge } from '@/components/ui/Badge';
 import { useAuth } from '@/lib/auth';
 import type { Route } from '@/components/Nav';
+import { LatestAnnouncements } from '@/components/LatestAnnouncements';
 
 interface DashboardProps {
   courses: Course[];
@@ -151,6 +152,8 @@ export function Dashboard({ courses, onNavigate, progressMap, certs }: Dashboard
             </button>
           </div>
         )}
+
+        <LatestAnnouncements onNavigate={onNavigate} />
 
         {/* Profile name card */}
       <section>

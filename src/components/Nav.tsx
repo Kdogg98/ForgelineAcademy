@@ -19,7 +19,8 @@ export type Route =
   | { name: 'search'; query: string }
   | { name: 'book' }
   | { name: 'services' }
-  | { name: 'assessment' };
+  | { name: 'assessment' }
+  | { name: 'announcements' };
 
 interface NavProps {
   route: Route;
@@ -33,6 +34,7 @@ const NAV_LINKS: { label: string; route: Route }[] = [
   { label: 'Certificates', route: { name: 'certificates' } },
   { label: 'Book a Meeting', route: { name: 'book' } },
   { label: 'Services', route: { name: 'services' } },
+  { label: 'Message Board', route: { name: 'announcements' } },
 ];
 
 export function Nav({ route, onNavigate }: NavProps) {

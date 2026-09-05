@@ -264,7 +264,8 @@ export function CourseDetail({ courseId, preloadedCourse, onNavigate, onProgress
     setQuizError(null);
     let correct = 0;
     for (const [i, q] of lesson.quiz.entries()) {
-      if (quizAnswers[`${lesson.id}-${i}`] === q.correctIndex) correct++;
+      const correctIdx = typeof q.correctIndex === 'number' ? q.correctIndex : (q as { answer?: number }).answer;
+      if (quizAnswers[`${lesson.id}-${i}`] === correctIdx) correct++;
     }
     const score = Math.round((correct / lesson.quiz.length) * 100);
     const passed = score >= lesson.pass_threshold;
@@ -1101,7 +1102,8 @@ function LessonView({
                   {q.options.map((opt, oi) => {
                     const selected = quizAnswers[`${lesson.id}-${qi}`] === oi;
                     const showResult = quizResult !== null;
-                    const isCorrect = oi === q.correctIndex;
+                    const correctIdx = typeof q.correctIndex === 'number' ? q.correctIndex : (q as { answer?: number }).answer;
+                    const isCorrect = oi === correctIdx;
                     const wasSelected = selected;
                     let cls = 'border-steel-700 hover:border-accent-500/50 text-steel-200';
                     if (showResult) {

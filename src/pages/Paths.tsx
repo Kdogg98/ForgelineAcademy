@@ -43,7 +43,7 @@ const STAGE_ACCENT: Record<Stage, string> = {
 };
 
 export function Paths({ courses, progressMap, onNavigate, focusPath, showWelcome }: PathsProps) {
-  const { isPremium, isAdmin } = useAuth();
+  const { isPremium, isAdmin, profileReady } = useAuth();
   const [welcomeVisible, setWelcomeVisible] = useState(true);
   const stageRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -150,7 +150,7 @@ export function Paths({ courses, progressMap, onNavigate, focusPath, showWelcome
             const Icon = STAGE_ICON[stage.key];
             const list = byStage[stage.key] ?? [];
             const prog = stageProgress[stage.key];
-            const locked = stage.tier === 'premium' && !isPremium && !isAdmin;
+            const locked = stage.tier === 'premium' && profileReady && !isPremium && !isAdmin;
             const isLast = idx === STAGES.length - 1;
 
             return (
@@ -214,7 +214,7 @@ export function Paths({ courses, progressMap, onNavigate, focusPath, showWelcome
                         {list.map((course) => {
                           const p = progressMap[course.id] ?? 0;
                           const courseLocked =
-                            course.tier === 'premium' && !isPremium && !isAdmin;
+                            course.tier === 'premium' && profileReady && !isPremium && !isAdmin;
                           return (
                             <button
                               key={course.id}

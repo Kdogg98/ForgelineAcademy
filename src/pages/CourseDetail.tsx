@@ -55,7 +55,7 @@ interface ModuleGroup {
 }
 
 export function CourseDetail({ courseId, preloadedCourse, onNavigate, onProgressChanged }: CourseDetailProps) {
-  const { user, isPremium, isAdmin, company } = useAuth();
+  const { user, isPremium, isAdmin, company, profileReady, refreshPremium } = useAuth();
   const [course, setCourse] = useState<Course | null>(preloadedCourse ?? null);
   const [lessons, setLessons] = useState<LessonWithModule[]>([]);
   const [progress, setProgress] = useState<UserProgress[]>([]);
@@ -72,7 +72,11 @@ export function CourseDetail({ courseId, preloadedCourse, onNavigate, onProgress
   const [soloReviewed, setSoloReviewed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [quizError, setQuizError] = useState<string | null>(null);
-  const locked = course?.tier === 'premium' && !isPremium && !isAdmin;
+  const locked = course?.tier === 'premium' && profileReady && !isPremium && !isAdmin;
+  useEffect(() => {
+    if (locked && user?.id) void refreshPremium();
+  }, [locked, user?.id]);
+
   const engagementEnabled = Boolean(user) && !locked && Boolean(activeLesson);
   const { engagement, loading: engagementLoading, markContentOpened, relockQuiz, fetchEngagement } = useLessonEngagement(
     activeLesson?.id ?? null,

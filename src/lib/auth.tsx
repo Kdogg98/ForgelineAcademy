@@ -1,17 +1,14 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import type { Company } from '@/lib/types';
-
-interface CompanyInfo {
-  company: Company | null;
-  role: 'owner' | 'admin' | 'member' | null;
-}
 
 interface AuthState {
   session: Session | null;
   user: User | null;
   loading: boolean;
+  /** False until the first profiles row fetch for this session finishes (success or fail). */
+  profileReady: boolean;
   isPremium: boolean;
   isAdmin: boolean;
   fullName: string | null;
@@ -28,17 +25,38 @@ interface AuthState {
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
 
+type ProfileRow = {
+  is_premium: boolean | null;
+  is_admin: boolean | null;
+  full_name: string | null;
+  company_id: string | null;
+  assessment_completed: boolean | null;
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileReady, setProfileReady] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [fullName, setFullName] = useState<string | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
   const [companyRole, setCompanyRole] = useState<'owner' | 'admin' | 'member' | null>(null);
   const [assessmentCompleted, setAssessmentCompleted] = useState(true);
+  const loadGen = useRef(0);
+
+  async function fetchProfileRow(uid: string): Promise<ProfileRow | null> {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('is_premium, is_admin, full_name, company_id, assessment_completed')
+      .eq('id', uid)
+      .maybeSingle();
+    if (error) throw error;
+    return data as ProfileRow | null;
+  }
 
   async function loadProfile(uid: string | undefined) {
+    const gen = ++loadGen.current;
     if (!uid) {
       setIsPremium(false);
       setIsAdmin(false);
@@ -46,25 +64,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setCompany(null);
       setCompanyRole(null);
       setAssessmentCompleted(true);
+      setProfileReady(true);
       return;
     }
-    const { data } = await supabase
-      .from('profiles')
-      .select('is_premium, is_admin, full_name, company_id, assessment_completed')
-      .eq('id', uid)
-      .maybeSingle();
+
+    setProfileReady(false);
+
+    let data: ProfileRow | null = null;
+    try {
+      data = await fetchProfileRow(uid);
+      // RLS can look like "no row" if the JWT isn't attached yet — retry once.
+      if (!data) {
+        await new Promise((r) => setTimeout(r, 300));
+        if (gen !== loadGen.current) return;
+        data = await fetchProfileRow(uid);
+      }
+    } catch {
+      await new Promise((r) => setTimeout(r, 300));
+      if (gen !== loadGen.current) return;
+      try {
+        data = await fetchProfileRow(uid);
+      } catch {
+        data = null;
+      }
+    }
+
+    if (gen !== loadGen.current) return;
+
     setIsPremium(Boolean(data?.is_premium));
     setIsAdmin(Boolean(data?.is_admin));
     setFullName(data?.full_name ?? null);
     setAssessmentCompleted(Boolean(data?.assessment_completed));
 
-    // Load company info if user has a company_id
     if (data?.company_id) {
       const { data: companyData } = await supabase
         .from('companies')
         .select('*')
         .eq('id', data.company_id)
         .maybeSingle();
+      if (gen !== loadGen.current) return;
       setCompany(companyData as Company | null);
 
       const { data: memberData } = await supabase
@@ -73,11 +111,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq('company_id', data.company_id)
         .eq('user_id', uid)
         .maybeSingle();
+      if (gen !== loadGen.current) return;
       setCompanyRole((memberData?.role as 'owner' | 'admin' | 'member') ?? null);
     } else {
       setCompany(null);
       setCompanyRole(null);
     }
+
+    setProfileReady(true);
   }
 
   async function updateFullName(name: string) {
@@ -96,21 +137,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
-      void loadProfile(data.session?.user?.id);
-    });
+    let cancelled = false;
 
+    // Prefer onAuthStateChange (fires INITIAL_SESSION) so the client JWT is attached
+    // before we hit profiles. Avoid racing getSession().then(loadProfile).
     const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      (async () => {
+      void (async () => {
         setSession(newSession);
-        setLoading(false);
         await loadProfile(newSession?.user?.id);
+        if (!cancelled) setLoading(false);
       })();
     });
 
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   async function signIn(email: string, password: string) {
@@ -122,10 +164,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) return { error: error.message };
     if (data.user) {
+      // Do NOT send is_premium:false — that clobbers complimentary grants on upsert.
+      // handle_new_user trigger inserts defaults; we only set identity fields.
       await supabase.from('profiles').upsert({
         id: data.user.id,
         email: data.user.email,
-        is_premium: false,
         full_name: fullName || null,
       });
       try {
@@ -147,6 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setCompany(null);
     setCompanyRole(null);
     setAssessmentCompleted(true);
+    setProfileReady(true);
   }
 
   return (
@@ -155,6 +199,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         session,
         user: session?.user ?? null,
         loading,
+        profileReady,
         isPremium: isPremium || (company?.premium ?? false),
         isAdmin,
         fullName,

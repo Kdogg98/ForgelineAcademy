@@ -79,7 +79,7 @@ export function Home({
   certCourseIds,
   onNavigate,
 }: HomeProps) {
-  const { user, isPremium, isAdmin, assessmentCompleted } = useAuth();
+  const { user, isPremium, isAdmin, assessmentCompleted, profileReady } = useAuth();
   const [tab, setTab] = useState<Tab>('overview');
   const [assessment, setAssessment] = useState<SavedAssessment | null>(null);
   const [assessmentLoading, setAssessmentLoading] = useState(false);
@@ -195,7 +195,7 @@ export function Home({
         course={c}
         progress={progressMap[c.id] ?? 0}
         hasCertificate={certCourseIds.has(c.id)}
-        locked={c.tier === 'premium' && !isPremium && !isAdmin}
+        locked={c.tier === 'premium' && profileReady && !isPremium && !isAdmin}
         onClick={() => openCourse(c.id)}
       />
     ));

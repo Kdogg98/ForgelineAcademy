@@ -38,23 +38,31 @@ export function Services({ onNavigate }: ServicesProps) {
   const [error, setError] = useState<string | null>(null);
 
   const [seatsMode, setSeatsMode] = useState<'5' | '10' | null>(null);
+  const [trialMode, setTrialMode] = useState(false);
   const [onsiteIntent, setOnsiteIntent] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const seats = params.get('seats');
     const intent = params.get('intent');
+    const isTrial = params.get('trial') === '1' || params.get('trial') === 'true';
     if (seats === '5' || seats === '10') {
       const price = seats === '5' ? '$129/mo' : '$229/mo';
       setSeatsMode(seats);
+      setTrialMode(isTrial && seats === '5');
       setOnsiteIntent(false);
+      const trialMsg =
+        'TRIAL REQUEST — 30-day FREE company trial (ONLINE only, NOT on-site). 5 Premium seats free for 30 days. After 30 days: Plant 5-seat $129/mo or Plant 10-seat $229/mo, or access ends. Kris adds the company and builds /company.';
+      const paidMsg =
+        `Request seats for company — ONLINE membership on ForgeLine (NOT on-site training). Plant ${seats}-seat at ${price} for ${seats} Premium seats. Kris adds the company and sets up /company.`;
       setForm((f) => ({
         ...f,
         service_type: 'both',
-        message: `Request seats for company — ONLINE membership on ForgeLine (NOT on-site training). Plant ${seats}-seat at ${price} for ${seats} Premium seats. Kris adds the company and sets up /company.`,
+        message: isTrial && seats === '5' ? trialMsg : paidMsg,
       }));
     } else if (intent === 'onsite') {
       setSeatsMode(null);
+      setTrialMode(false);
       setOnsiteIntent(true);
       setForm((f) => ({
         ...f,
@@ -110,17 +118,21 @@ export function Services({ onNavigate }: ServicesProps) {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-12 text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-rok-500/15 border border-rok-500/40 text-rok-300 text-xs font-semibold uppercase tracking-wider mb-4">
             <Wrench className="w-3.5 h-3.5" />
-            {seatsMode ? 'Online company seats' : onsiteIntent ? 'On-site & plant visits' : 'On-Site & Plant Support'}
+            {trialMode ? '30-day free company trial' : seatsMode ? 'Online company seats' : onsiteIntent ? 'On-site & plant visits' : 'On-Site & Plant Support'}
           </div>
           <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-3">
-            {seatsMode
+            {trialMode
+              ? 'Start your 30-day free company trial'
+              : seatsMode
               ? 'Request seats for your company'
               : onsiteIntent
                 ? 'On-site training and plant visits'
                 : 'More Than Online Training'}
           </h1>
           <p className="text-steel-300 max-w-2xl mx-auto text-lg leading-relaxed">
-            {seatsMode
+            {trialMode
+              ? '5 online Premium seats free for 30 days. After that: $129/mo (5) or $229/mo (10), or access ends. Kris builds your company page. Not on-site.'
+              : seatsMode
               ? 'Online company membership for your crew on ForgeLine. Kris adds the company and builds your company page. This is not an on-site visit.'
               : onsiteIntent
                 ? 'On-site training and plant visits are quoted by Kris for your facility. Separate from online plant seats — no seat price on this path.'
@@ -288,22 +300,28 @@ export function Services({ onNavigate }: ServicesProps) {
             ) : (
               <>
                 <h3 className="font-display text-xl font-bold text-white mb-2">
-                  {seatsMode
+                  {trialMode
+                    ? 'Request 30-day free company trial (5 seats)'
+                    : seatsMode
                     ? `Request seats for company (${seatsMode})`
                     : onsiteIntent
                       ? 'Request an on-site / plant-visit quote'
                       : 'Request a Service'}
                 </h3>
                 <p className="text-sm text-steel-400 mb-5">
-                  {seatsMode
+                  {trialMode
+                    ? 'Online only — 5 seats free for 30 days, then paid seats or access ends. Kris sets up /company. Not an on-site visit.'
+                    : seatsMode
                     ? 'Online company membership only. Your crew trains on ForgeLine. Kris sets up your company page. This is not an on-site visit.'
                     : onsiteIntent
                       ? 'On-site training and plant visits are quoted by Kris. Separate from online plant seats — no seat price on this form.'
                       : "Tell me what you need. I'll respond directly to coordinate dates, scope, and pricing."}
                 </p>
                 {seatsMode && (
-                  <div className="mb-4 p-3 rounded-lg bg-rok-500/10 border border-rok-500/30 text-sm text-rok-200">
-                    Company seat request · {seatsMode === '5' ? '$129/mo · 5 seats' : '$229/mo · 10 seats'} · online membership · not on-site
+                  <div className={`mb-4 p-3 rounded-lg border text-sm ${trialMode ? 'bg-premium-500/10 border-premium-500/30 text-premium-200' : 'bg-rok-500/10 border-rok-500/30 text-rok-200'}`}>
+                    {trialMode
+                      ? 'TRIAL · 5 seats free for 30 days · then $129/mo (5) or $229/mo (10) or ends · online only · not on-site'
+                      : `Company seat request · ${seatsMode === '5' ? '$129/mo · 5 seats' : '$229/mo · 10 seats'} · online membership · not on-site`}
                   </div>
                 )}
 

@@ -526,18 +526,39 @@ export function Pricing({ onNavigate }: PricingProps) {
         )}
 
 
-                                {/* Plant seats — online company membership; request via /request?seats= */}
+                                {/* Plant seats — online company membership; trial + paid via /request?seats= */}
         <div id="online-seats" className="mt-10">
           <h2 className="font-display text-2xl font-bold text-white mb-2">Online plant seats</h2>
           <p className="text-sm text-steel-400 mb-2">
             Company memberships so your crew trains online on ForgeLine. Not an on-site visit and not a plant trip.
           </p>
           <p className="text-xs text-steel-500 mb-5">
-            Request seats for your company below. Kris adds the company and sets up your company page at /company.
+            Kris adds the company and sets up your company page at /company.
           </p>
+
+          {/* 30-day free company trial — 5 online seats */}
+          <div className="card p-6 mb-4 border-premium-500/40 bg-premium-500/5 flex flex-col sm:flex-row sm:items-center gap-5">
+            <div className="flex-1">
+              <p className="text-xs font-semibold uppercase tracking-wider text-premium-300 mb-2">30-day free trial · online company</p>
+              <h3 className="font-display text-xl font-bold text-white">5 online seats free for 30 days</h3>
+              <p className="text-sm text-steel-300 mt-2">
+                Try plant seats with your crew — online only. After 30 days choose Plant 5-seat ($129/mo) or Plant 10-seat ($229/mo), or access ends.
+                Kris builds your company page. This is not on-site training.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => { window.location.assign('/request?seats=5&trial=1'); }}
+              className="btn-premium shrink-0"
+            >
+              Start 30-day free trial
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="card p-6 flex flex-col border-rok-500/30">
-              <p className="text-xs font-semibold uppercase tracking-wider text-rok-300 mb-2">Online · company seats</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-rok-300 mb-2">Online · company seats · paid</p>
               <h3 className="font-display text-lg font-bold text-white">Plant 5-seat</h3>
               <p className="mt-2">
                 <span className="font-display text-3xl font-bold text-white">$129</span>
@@ -554,7 +575,7 @@ export function Pricing({ onNavigate }: PricingProps) {
               </button>
             </div>
             <div className="card p-6 flex flex-col border-rok-500/30">
-              <p className="text-xs font-semibold uppercase tracking-wider text-rok-300 mb-2">Online · company seats</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-rok-300 mb-2">Online · company seats · paid</p>
               <h3 className="font-display text-lg font-bold text-white">Plant 10-seat</h3>
               <p className="mt-2">
                 <span className="font-display text-3xl font-bold text-white">$229</span>

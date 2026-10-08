@@ -104,7 +104,7 @@ export function AICourseTutor({
       {/* Floating button */}
       <button
         onClick={() => setOpen(true)}
-        className={`fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 rounded-full bg-rok-500 text-white font-semibold shadow-rok-lg hover:bg-rok-400 transition-all duration-300 hover:scale-105 animate-pulse-rok ${
+        className={`fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 rounded-full bg-rok-500 text-on-rok font-semibold shadow-rok-lg hover:bg-rok-hover transition-all duration-300 hover:scale-105 animate-pulse-rok ${
           open ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
         aria-label="Open AI Course Tutor"
@@ -152,7 +152,7 @@ export function AICourseTutor({
                 )}
                 <button
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-bold text-white bg-rok-500 hover:bg-rok-400 transition-colors min-w-[48px] justify-center shadow-rok"
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-bold text-on-rok bg-rok-500 hover:bg-rok-hover transition-colors min-w-[48px] justify-center shadow-rok"
                   aria-label="Close tutor"
                 >
                   <X className="w-5 h-5" />
@@ -265,7 +265,7 @@ export function AICourseTutor({
                     <button
                       onClick={handleSend}
                       disabled={!input.trim() || loading}
-                      className="p-2.5 rounded-xl bg-rok-500 text-white hover:bg-rok-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      className="p-2.5 rounded-xl bg-rok-500 text-on-rok hover:bg-rok-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                       aria-label="Send message"
                     >
                       <Send className="w-4 h-4" />
@@ -276,7 +276,7 @@ export function AICourseTutor({
                   </p>
                   <button
                     onClick={() => setOpen(false)}
-                    className="w-full mt-3 py-2.5 rounded-xl text-sm font-bold text-white bg-rok-500 hover:bg-rok-400 transition-colors shadow-rok"
+                    className="w-full mt-3 py-2.5 rounded-xl text-sm font-bold text-on-rok bg-rok-500 hover:bg-rok-hover transition-colors shadow-rok"
                   >
                     Done
                   </button>

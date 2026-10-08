@@ -224,7 +224,7 @@ export function SkillAssessment({ onComplete }: SkillAssessmentProps) {
 
     return (
       <div className="pt-16 min-h-screen relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(236,104,43,0.08),_transparent_55%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgb(var(--fl-rok-500)/0.08),_transparent_55%)]" />
         <div className="pointer-events-none absolute inset-0 bg-grid-steel bg-grid-32 opacity-20" />
 
         <div ref={scrollRef} className="relative max-w-xl mx-auto px-4 py-12 max-h-screen overflow-y-auto">
@@ -343,7 +343,7 @@ export function SkillAssessment({ onComplete }: SkillAssessmentProps) {
 
   return (
     <div className="pt-16 min-h-screen flex flex-col relative">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(236,104,43,0.05),_transparent_50%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgb(var(--fl-rok-500)/0.05),_transparent_50%)]" />
 
       {/* Header */}
       <header className="relative border-b border-steel-700/50 bg-navy-950/70 backdrop-blur-md">
@@ -406,7 +406,7 @@ export function SkillAssessment({ onComplete }: SkillAssessmentProps) {
                   onClick={() => setSelectedOption(i)}
                   className={`w-full text-left flex items-center gap-3 rounded-xl border px-4 py-3.5 transition-all ${
                     isSelected
-                      ? 'border-rok-500/60 bg-rok-500/15 text-white shadow-[0_0_20px_rgba(236,104,43,0.12)]'
+                      ? 'border-rok-500/60 bg-rok-500/15 text-white shadow-[0_0_20px_rgb(var(--fl-rok-500)/0.12)]'
                       : 'border-steel-700/60 bg-navy-900/80 text-steel-200 hover:border-steel-500 hover:bg-navy-800/80'
                   }`}
                 >
@@ -447,7 +447,7 @@ export function SkillAssessment({ onComplete }: SkillAssessmentProps) {
           <button
             onClick={handleNext}
             disabled={selectedOption === null}
-            className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-rok-500 to-rok-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-rok-500/20 hover:from-rok-400 hover:to-rok-500 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none transition-all"
+            className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-rok-500 to-rok-600 px-6 py-3 text-sm font-semibold text-on-rok shadow-lg shadow-rok-500/20 hover:from-rok-400 hover:to-rok-500 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none transition-all"
           >
             {currentIndex + 1 === questions.length ? 'Finish & Evaluate' : 'Next Question'}
             <ArrowRight className="h-4 w-4" />

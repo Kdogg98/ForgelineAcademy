@@ -7,6 +7,7 @@ import {
 } from '@/lib/seo/courseSlugs';
 import { keywordsForCourse } from '@/lib/seo/courseKeywords';
 import { getFlagshipStory } from '@/lib/seo/flagshipStories';
+import { useCompanyTheme } from '@/lib/theme/useCompanyTheme';
 
 const SITE = 'https://forgelineacademy.com';
 const DEFAULT_TITLE = 'ForgeLine Academy — Industrial Maintenance Training';
@@ -64,6 +65,8 @@ function clipMetaDescription(text: string, max = 155): string {
 }
 
 export function SeoHead({ route, courses = [] }: { route: Route; courses?: Course[] }) {
+  // Members of a themed company see "<page> | <Company> Academy | ForgeLine" (meta/og tags stay ForgeLine).
+  const { titleFor } = useCompanyTheme();
   useEffect(() => {
     if (route.name === 'course') {
       const live = courses.find((c) => c.id === route.courseId);
@@ -79,7 +82,7 @@ export function SeoHead({ route, courses = [] }: { route: Route; courses?: Cours
       const pageDesc = flagship?.metaDescription ? flagship.metaDescription : (clipMetaDescription(description) || DEFAULT_DESCRIPTION);
       const kws = keywordsForCourse(route.courseId);
 
-      document.title = pageTitle;
+      document.title = titleFor(pageTitle, title);
       upsertMeta('name', 'description', pageDesc);
       upsertMeta('property', 'og:title', pageTitle);
       upsertMeta('property', 'og:description', pageDesc);
@@ -118,7 +121,7 @@ export function SeoHead({ route, courses = [] }: { route: Route; courses?: Cours
       };
     }
 
-    document.title = DEFAULT_TITLE;
+    document.title = titleFor(DEFAULT_TITLE);
     upsertMeta('name', 'description', DEFAULT_DESCRIPTION);
     upsertMeta('property', 'og:title', DEFAULT_TITLE);
     upsertMeta('property', 'og:description', DEFAULT_DESCRIPTION);
@@ -126,7 +129,7 @@ export function SeoHead({ route, courses = [] }: { route: Route; courses?: Cours
     upsertLink('canonical', `${SITE}/`);
     removeMeta('name', 'keywords');
     upsertJsonLd('seo-jsonld-course', null);
-  }, [route, courses]);
+  }, [route, courses, titleFor]);
 
   return null;
 }

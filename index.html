@@ -18,6 +18,32 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){ dataLayer.push(arguments); }
     </script>
+    <script>
+      /* Company theme boot (flash-free). Mirrors src/lib/theme/themeStore.ts: re-applies the
+         cached theme of the signed-in member (or an admin preview) before the app loads. */
+      (function () {
+        try {
+          var t = null, raw = sessionStorage.getItem('fl_theme_preview');
+          if (!raw) {
+            for (var i = 0; i < localStorage.length; i++) {
+              var k = localStorage.key(i);
+              if (k && /^sb-.+-auth-token$/.test(k)) {
+                var s = JSON.parse(localStorage.getItem(k) || 'null');
+                if (s && s.user && s.user.id) { raw = localStorage.getItem('fl_company_theme:' + s.user.id); break; }
+              }
+            }
+          }
+          if (raw) t = JSON.parse(raw);
+          if (!t || t.v !== 1 || !t.vars) return;
+          var r = document.documentElement;
+          for (var name in t.vars) if (name.indexOf('--fl-') === 0) r.style.setProperty(name, t.vars[name]);
+          r.setAttribute('data-company-theme', (t.company && t.company.id) || 'preview');
+          if (t.title) document.title = t.title;
+          var link = document.querySelector('link[rel="icon"]');
+          if (link && t.favicon) { link.setAttribute('data-default-href', link.getAttribute('href')); link.removeAttribute('type'); link.setAttribute('href', t.favicon); }
+        } catch (e) { /* default ForgeLine look */ }
+      })();
+    </script>
 </head>
   <body>
     <div id="root"></div>

@@ -7,13 +7,45 @@
 @layer base {
   :root {
     color-scheme: dark;
+    /*
+     * ForgeLine palette as "r g b" triplets. Tailwind tokens read these via
+     * rgb(var(--fl-*) / <alpha-value>); CompanyThemeProvider overrides them on
+     * <html> for company members (src/lib/theme). Keep in sync with
+     * src/lib/theme/colors.ts.
+     */
+    /* navy (shades not in the original palette are generated) */
+    --fl-navy-50: 242 244 247; --fl-navy-100: 225 230 236; --fl-navy-200: 191 202 215; --fl-navy-300: 149 166 189;
+    --fl-navy-400: 95 122 155; --fl-navy-500: 42 77 122; --fl-navy-600: 30 58 95; --fl-navy-700: 22 41 74;
+    --fl-navy-800: 15 31 54; --fl-navy-900: 10 22 40; --fl-navy-950: 7 15 28;
+    /* steel (shades not in the original palette are generated) */
+    --fl-steel-50: 240 244 248; --fl-steel-100: 220 228 237; --fl-steel-200: 184 199 217; --fl-steel-300: 143 163 188;
+    --fl-steel-400: 107 130 160; --fl-steel-500: 77 101 133; --fl-steel-600: 58 78 107; --fl-steel-700: 42 58 82;
+    --fl-steel-800: 30 42 61; --fl-steel-900: 20 30 46; --fl-steel-950: 18 24 32;
+    /* accent (shades not in the original palette are generated) */
+    --fl-accent-50: 234 244 255; --fl-accent-100: 209 231 255; --fl-accent-200: 163 207 255; --fl-accent-300: 111 178 255;
+    --fl-accent-400: 58 147 245; --fl-accent-500: 26 115 212; --fl-accent-600: 14 87 168; --fl-accent-700: 11 68 128;
+    --fl-accent-800: 9 52 102; --fl-accent-900: 7 40 78; --fl-accent-950: 6 28 51;
+    /* rok (shades not in the original palette are generated) */
+    --fl-rok-50: 255 245 240; --fl-rok-100: 255 230 217; --fl-rok-200: 255 201 176; --fl-rok-300: 255 160 122;
+    --fl-rok-400: 255 122 69; --fl-rok-500: 236 104 43; --fl-rok-600: 212 85 26; --fl-rok-700: 179 68 20;
+    --fl-rok-800: 143 54 16; --fl-rok-900: 107 41 12; --fl-rok-950: 57 25 10;
+    /* crimson (shades not in the original palette are generated) */
+    --fl-crimson-50: 252 241 243; --fl-crimson-100: 248 223 228; --fl-crimson-200: 240 185 197; --fl-crimson-300: 230 139 159;
+    --fl-crimson-400: 240 67 93; --fl-crimson-500: 205 23 63; --fl-crimson-600: 169 18 51; --fl-crimson-700: 133 14 40;
+    --fl-crimson-800: 107 12 33; --fl-crimson-900: 78 9 24; --fl-crimson-950: 49 6 15;
+    /* premium (shades not in the original palette are generated) */
+    --fl-premium-50: 254 249 240; --fl-premium-100: 254 241 221; --fl-premium-200: 252 226 182; --fl-premium-300: 250 207 133;
+    --fl-premium-400: 252 211 77; --fl-premium-500: 245 158 11; --fl-premium-600: 217 119 6; --fl-premium-700: 180 83 9;
+    --fl-premium-800: 127 82 6; --fl-premium-900: 93 60 4; --fl-premium-950: 59 38 3;
+    --fl-rok-hover: 255 122 69; --fl-accent-hover: 58 147 245; --fl-premium-hover: 252 211 77;
+    --fl-on-rok: 255 255 255; --fl-on-accent: 255 255 255; --fl-on-premium: 10 22 40;
   }
   html {
     scroll-behavior: smooth;
   }
   body {
     @apply bg-navy-900 text-steel-100 font-sans antialiased;
-    background-image: radial-gradient(ellipse at top, rgba(22, 41, 74, 0.55) 0%, rgba(10, 22, 40, 0) 55%);
+    background-image: radial-gradient(ellipse at top, rgb(var(--fl-navy-700) / 0.55) 0%, rgb(var(--fl-navy-900) / 0) 55%);
     background-attachment: fixed;
   }
   h1, h2, h3, h4 {
@@ -29,7 +61,7 @@
     @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-rok-400/50 disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .btn-primary {
-    @apply btn bg-rok-500 text-white hover:bg-rok-400 shadow-rok;
+    @apply btn bg-rok-500 text-on-rok hover:bg-rok-hover shadow-rok;
   }
   .btn-secondary {
     @apply btn bg-navy-700 text-steel-100 border border-steel-700 hover:bg-navy-600 hover:border-steel-500;
@@ -38,10 +70,10 @@
     @apply btn text-steel-300 hover:text-white hover:bg-navy-700;
   }
   .btn-premium {
-    @apply btn bg-gradient-to-r from-premium-500 to-premium-600 text-navy-900 hover:from-premium-400 hover:to-premium-500 shadow-lg shadow-premium-500/20;
+    @apply btn bg-gradient-to-r from-premium-500 to-premium-600 text-on-premium hover:from-premium-hover hover:to-premium-500 shadow-lg shadow-premium-500/20;
   }
   .btn-outline-rok {
-    @apply btn border-2 border-rok-500 text-rok-400 hover:bg-rok-500 hover:text-white;
+    @apply btn border-2 border-rok-500 text-rok-400 hover:bg-rok-500 hover:text-on-rok;
   }
   .card {
     @apply bg-navy-800/80 border border-steel-700/60 rounded-xl backdrop-blur-sm;
@@ -90,13 +122,28 @@
 }
 
 .skeleton {
-  background: linear-gradient(90deg, rgba(30, 42, 61, 0.4) 25%, rgba(42, 58, 82, 0.6) 50%, rgba(30, 42, 61, 0.4) 75%);
+  background: linear-gradient(90deg, rgb(var(--fl-steel-800) / 0.4) 25%, rgb(var(--fl-steel-700) / 0.6) 50%, rgb(var(--fl-steel-800) / 0.4) 75%);
   background-size: 200% 100%;
   @apply animate-shimmer rounded;
 }
 
 .geometric-overlay {
   background-image:
-    linear-gradient(135deg, transparent 40%, rgba(236, 104, 43, 0.12) 40%, rgba(236, 104, 43, 0.12) 60%, transparent 60%),
-    linear-gradient(225deg, transparent 40%, rgba(205, 23, 63, 0.08) 40%, rgba(205, 23, 63, 0.08) 55%, transparent 55%);
+    linear-gradient(135deg, transparent 40%, rgb(var(--fl-rok-500) / 0.12) 40%, rgb(var(--fl-rok-500) / 0.12) 60%, transparent 60%),
+    linear-gradient(225deg, transparent 40%, rgb(var(--fl-crimson-500) / 0.08) 40%, rgb(var(--fl-crimson-500) / 0.08) 55%, transparent 55%);
+}
+/* ── Company theme atmosphere (only when CompanyThemeProvider sets data-company-theme) ── */
+html[data-company-theme] body {
+  background-image:
+    radial-gradient(ellipse at top, rgb(var(--fl-navy-700) / 0.6) 0%, rgb(var(--fl-navy-900) / 0) 55%),
+    radial-gradient(ellipse at 100% 0%, rgb(var(--fl-rok-500) / 0.07) 0%, transparent 45%),
+    radial-gradient(ellipse at 0% 100%, rgb(var(--fl-crimson-500) / 0.06) 0%, transparent 50%);
+}
+
+/* Subtle diagonal brand pattern for branded heroes / section accents. */
+.brand-pattern {
+  background-image:
+    repeating-linear-gradient(135deg, rgb(var(--fl-rok-500) / 0.06) 0 2px, transparent 2px 18px),
+    radial-gradient(circle at 85% 20%, rgb(var(--fl-rok-500) / 0.18), transparent 45%),
+    radial-gradient(circle at 10% 90%, rgb(var(--fl-accent-500) / 0.18), transparent 50%);
 }

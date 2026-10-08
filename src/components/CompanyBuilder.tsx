@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Sparkles, Loader2, RefreshCw, Save, Send, EyeOff, AlertCircle, CheckCircle2, X, Plus, Trash2 } from 'lucide-react';
+import { Sparkles, Loader2, RefreshCw, Save, Send, EyeOff, Eye, AlertCircle, CheckCircle2, X, Plus, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { fetchCourses } from '@/lib/data';
 import type { Company, CompanyDraft, Course } from '@/lib/types';
@@ -15,6 +15,8 @@ import {
   unpublishCompanyProfile,
 } from '@/lib/companyBrand';
 import { CompanyOverview } from '@/components/CompanyOverview';
+import { useCompanyTheme } from '@/lib/theme/useCompanyTheme';
+import { themeCompanyFromDraft } from '@/lib/theme/themeStore';
 
 interface CompanyOption {
   id: string;
@@ -38,6 +40,7 @@ export function CompanyBuilder() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [addCourseId, setAddCourseId] = useState('');
+  const { startPreview } = useCompanyTheme();
 
   const loadCompanies = useCallback(async () => {
     const { data } = await supabase.rpc('get_all_companies_with_stats');
@@ -345,6 +348,14 @@ export function CompanyBuilder() {
                   <EyeOff className="w-4 h-4" /> Unpublish
                 </button>
               )}
+              <button
+                onClick={() => startPreview(themeCompanyFromDraft(draft, companyId, published))}
+                disabled={!draft.name.trim()}
+                className="btn-ghost text-sm ml-auto"
+                title="Re-theme the whole site with this draft for your browser tab only"
+              >
+                <Eye className="w-4 h-4" /> Preview site as {draft.name.trim() || 'company'}
+              </button>
             </div>
           </div>
 

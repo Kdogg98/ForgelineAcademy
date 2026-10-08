@@ -1,59 +1,23 @@
+const SHADES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+const v = (name) => `rgb(var(${name}) / <alpha-value>)`;
+const themed = (token, shades = SHADES) => Object.fromEntries(shades.map((s) => [s, v(`--fl-${token}-${s}`)]));
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
-        navy: {
-          950: '#070F1C',
-          900: '#0A1628',
-          800: '#0F1F36',
-          700: '#16294A',
-          600: '#1E3A5F',
-          500: '#2A4D7A',
-        },
-        steel: {
-          50: '#F0F4F8',
-          100: '#DCE4ED',
-          200: '#B8C7D9',
-          300: '#8FA3BC',
-          400: '#6B82A0',
-          500: '#4D6585',
-          600: '#3A4E6B',
-          700: '#2A3A52',
-          800: '#1E2A3D',
-          900: '#141E2E',
-        },
-        accent: {
-          50: '#EAF4FF',
-          100: '#D1E7FF',
-          200: '#A3CFFF',
-          300: '#6FB2FF',
-          400: '#3A93F5',
-          500: '#1A73D4',
-          600: '#0E57A8',
-          700: '#0B4480',
-          800: '#093466',
-          900: '#07284E',
-        },
-        rok: {
-          50: '#FFF5F0',
-          100: '#FFE6D9',
-          200: '#FFC9B0',
-          300: '#FFA07A',
-          400: '#FF7A45',
-          500: '#EC682B',
-          600: '#D4551A',
-          700: '#B34414',
-          800: '#8F3610',
-          900: '#6B290C',
-        },
-        crimson: {
-          400: '#F0435D',
-          500: '#CD173F',
-          600: '#A91233',
-          700: '#850E28',
-        },
+        // Brand tokens resolve to CSS variables (defaults in src/index.css) so a
+        // company theme can re-skin the whole site. See src/lib/theme/colors.ts.
+        navy: themed('navy'),
+        steel: themed('steel'),
+        accent: { ...themed('accent'), hover: v('--fl-accent-hover') },
+        rok: { ...themed('rok'), hover: v('--fl-rok-hover') },
+        crimson: themed('crimson'),
+        'on-rok': v('--fl-on-rok'),
+        'on-accent': v('--fl-on-accent'),
+        'on-premium': v('--fl-on-premium'),
         success: {
           400: '#4ADE80',
           500: '#22C55E',
@@ -70,12 +34,9 @@ export default {
           500: '#EF4444',
           600: '#DC2626',
         },
-        premium: {
-          400: '#FCD34D',
-          500: '#F59E0B',
-          600: '#D97706',
-          700: '#B45309',
-        },
+        // premium keeps its original 400-700 classes: premium-200/300/900/950 are used in
+        // CourseCard/others but were never defined, and enabling them would change the default look.
+        premium: { ...themed('premium', [400, 500, 600, 700]), hover: v('--fl-premium-hover') },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -83,17 +44,17 @@ export default {
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
       backgroundImage: {
-        'grid-steel': "linear-gradient(to right, rgba(106,130,160,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(106,130,160,0.06) 1px, transparent 1px)",
-        'radial-navy': 'radial-gradient(ellipse at top, #16294A 0%, #0A1628 55%, #070F1C 100%)',
-        'hero-rok': 'linear-gradient(135deg, #EC682B 0%, #CD173F 45%, #0A1628 100%)',
-        'geometric-rok': 'linear-gradient(120deg, #EC682B 0%, #D4551A 25%, #CD173F 50%, #0F1F36 75%, #0A1628 100%)',
+        'grid-steel': 'linear-gradient(to right, rgb(var(--fl-steel-400) / 0.06) 1px, transparent 1px), linear-gradient(to bottom, rgb(var(--fl-steel-400) / 0.06) 1px, transparent 1px)',
+        'radial-navy': 'radial-gradient(ellipse at top, rgb(var(--fl-navy-700)) 0%, rgb(var(--fl-navy-900)) 55%, rgb(var(--fl-navy-950)) 100%)',
+        'hero-rok': 'linear-gradient(135deg, rgb(var(--fl-rok-500)) 0%, rgb(var(--fl-crimson-500)) 45%, rgb(var(--fl-navy-900)) 100%)',
+        'geometric-rok': 'linear-gradient(120deg, rgb(var(--fl-rok-500)) 0%, rgb(var(--fl-rok-600)) 25%, rgb(var(--fl-crimson-500)) 50%, rgb(var(--fl-navy-800)) 75%, rgb(var(--fl-navy-900)) 100%)',
       },
       backgroundSize: {
         'grid-32': '32px 32px',
       },
       boxShadow: {
-        'rok': '0 10px 40px -10px rgba(236, 104, 43, 0.45)',
-        'rok-lg': '0 20px 50px -12px rgba(236, 104, 43, 0.55)',
+        'rok': '0 10px 40px -10px rgb(var(--fl-rok-500) / 0.45)',
+        'rok-lg': '0 20px 50px -12px rgb(var(--fl-rok-500) / 0.55)',
         'card-lift': '0 20px 40px -15px rgba(0, 0, 0, 0.5)',
       },
       keyframes: {
@@ -110,8 +71,8 @@ export default {
           '100%': { backgroundPosition: '200% 0' },
         },
         'pulse-rok': {
-          '0%, 100%': { boxShadow: '0 0 0 0 rgba(236, 104, 43, 0.4)' },
-          '50%': { boxShadow: '0 0 0 12px rgba(236, 104, 43, 0)' },
+          '0%, 100%': { boxShadow: '0 0 0 0 rgb(var(--fl-rok-500) / 0.4)' },
+          '50%': { boxShadow: '0 0 0 12px rgb(var(--fl-rok-500) / 0)' },
         },
       },
       animation: {

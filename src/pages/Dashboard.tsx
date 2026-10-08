@@ -23,6 +23,8 @@ import { TierBadge } from '@/components/ui/Badge';
 import { useAuth } from '@/lib/auth';
 import type { Route } from '@/components/Nav';
 import { LatestAnnouncements } from '@/components/LatestAnnouncements';
+import { useCompanyTheme } from '@/lib/theme/useCompanyTheme';
+import { CompanyWelcomeHero } from '@/components/brand/CompanyBrand';
 
 interface DashboardProps {
   courses: Course[];
@@ -40,6 +42,7 @@ const STAGE_ICON: Record<Stage, typeof Wrench> = {
 
 export function Dashboard({ courses, onNavigate, progressMap, certs }: DashboardProps) {
   const { user, isPremium, isAdmin, fullName, updateFullName, profileReady } = useAuth();
+  const { company: themeCompany } = useCompanyTheme();
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState('');
   const [savingName, setSavingName] = useState(false);
@@ -113,6 +116,7 @@ export function Dashboard({ courses, onNavigate, progressMap, certs }: Dashboard
 
   return (
     <div className="pt-16 min-h-screen">
+      {themeCompany && <CompanyWelcomeHero company={themeCompany} onNavigate={onNavigate} compact />}
       <div className="border-b border-steel-700/60 bg-navy-950/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
           <h1 className="font-display text-3xl font-bold text-white mb-1">

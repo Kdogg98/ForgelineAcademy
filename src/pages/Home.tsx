@@ -33,6 +33,9 @@ import {
 import type { Route } from '@/components/Nav';
 import { PlantFloorLinks } from '@/components/PlantFloorLinks';
 import { LatestAnnouncements } from '@/components/LatestAnnouncements';
+import { useCompanyTheme } from '@/lib/theme/useCompanyTheme';
+import { themeCompanyFromRow } from '@/lib/theme/themeStore';
+import { CompanyWelcomeHero, ContinueLearningPanel } from '@/components/brand/CompanyBrand';
 
 interface HomeProps {
   courses: Course[];
@@ -79,7 +82,13 @@ export function Home({
   certCourseIds,
   onNavigate,
 }: HomeProps) {
-  const { user, isPremium, isAdmin, assessmentCompleted, profileReady } = useAuth();
+  const { user, isPremium, premiumSource, company, isAdmin, assessmentCompleted, profileReady } = useAuth();
+  const { company: themeCompany } = useCompanyTheme();
+  // Company members (themed company, or company-premium seat) get a member home instead of
+  // the public marketing hero / beta-discount / Start Free CTAs. Signed-out visitors keep the public page.
+  const memberHome = Boolean(themeCompany) || (Boolean(user) && premiumSource === 'company');
+  // Unpublished-profile companies still get the member home, in the default ForgeLine colors.
+  const memberCompany = themeCompany ?? (memberHome && company ? themeCompanyFromRow(company) : null);
   const [tab, setTab] = useState<Tab>('overview');
   const [assessment, setAssessment] = useState<SavedAssessment | null>(null);
   const [assessmentLoading, setAssessmentLoading] = useState(false);
@@ -421,6 +430,20 @@ export function Home({
   function renderOverview() {
     return (
       <div className="pt-[100px]">
+        {memberCompany && (
+          <>
+            <CompanyWelcomeHero company={memberCompany} onNavigate={onNavigate} />
+            <ContinueLearningPanel
+              company={memberCompany}
+              courses={courses}
+              progressMap={progressMap}
+              certCourseIds={certCourseIds}
+              onNavigate={onNavigate}
+            />
+          </>
+        )}
+        {!memberHome && (
+          <>
         {/* Hero */}
         <section className="relative overflow-hidden">
           <div className="absolute inset-0">
@@ -511,6 +534,8 @@ export function Home({
             </div>
           </div>
         </section>
+          </>
+        )}
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10">
           <LatestAnnouncements onNavigate={onNavigate} />
@@ -726,7 +751,8 @@ export function Home({
           </div>
         </section>
 
-        {/* CTA banner */}
+        {/* CTA banner (upsell; hidden for anyone who already has premium, incl. company seats) */}
+        {!isPremium && !isAdmin && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 py-16">
           <div className="relative overflow-hidden rounded-2xl border border-rok-500/30 bg-gradient-to-br from-navy-800 via-navy-900 to-navy-950 p-8 sm:p-12">
             <div className="absolute inset-0 bg-grid-steel bg-grid-32 opacity-15" />
@@ -754,6 +780,7 @@ export function Home({
             </div>
           </div>
         </section>
+        )}
       </div>
     );
   }

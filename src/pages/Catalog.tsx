@@ -144,7 +144,7 @@ export function Catalog({
             onClick={() => setStageFilter('all')}
             className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
               stageFilter === 'all'
-                ? 'bg-accent-500 text-white border-accent-500'
+                ? 'bg-accent-500 text-on-accent border-accent-500'
                 : 'bg-navy-800 text-steel-300 border-steel-700 hover:border-accent-500/50'
             }`}
           >
@@ -156,7 +156,7 @@ export function Catalog({
               onClick={() => setStageFilter(s.key)}
               className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
                 stageFilter === s.key
-                  ? 'bg-accent-500 text-white border-accent-500'
+                  ? 'bg-accent-500 text-on-accent border-accent-500'
                   : 'bg-navy-800 text-steel-300 border-steel-700 hover:border-accent-500/50'
               }`}
             >

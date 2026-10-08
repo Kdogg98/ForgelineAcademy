@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Search, Menu, X, User, LogOut, LayoutDashboard, Award, Shield, Building2 } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { useAuth } from '@/lib/auth';
+import { useCompanyTheme } from '@/lib/theme/useCompanyTheme';
+import { CoBrandLogo } from '@/components/brand/CompanyBrand';
 
 export type Route =
   | { name: 'home' }
@@ -45,7 +47,8 @@ export function Nav({ route, onNavigate }: NavProps) {
   const [searchValue, setSearchValue] = useState('');
 
   const { user, isPremium, isAdmin, signOut, company, companyRole } = useAuth();
-  const showCompanyChip = Boolean(company && !/^test$/i.test((company.name || '').trim()));
+  const { company: themeCompany } = useCompanyTheme();
+  const showCompanyChip = !themeCompany && Boolean(company && !/^test$/i.test((company.name || '').trim()));
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -75,9 +78,9 @@ export function Nav({ route, onNavigate }: NavProps) {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-8">
+            <div className={`flex items-center ${themeCompany ? 'gap-5' : 'gap-8'}`}>
               <button onClick={() => onNavigate({ name: 'home' })} aria-label="Home">
-                <Logo />
+                {themeCompany ? <CoBrandLogo company={themeCompany} /> : <Logo />}
               </button>
               {showCompanyChip && company?.logo_url && (
                 <>
@@ -97,7 +100,7 @@ export function Nav({ route, onNavigate }: NavProps) {
                   <button
                     key={link.label}
                     onClick={() => { setUserMenu(false); onNavigate(link.route); }}
-                    className={`px-3.5 py-2 rounded-md text-sm font-medium transition-colors ${
+                    className={`px-3.5 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
                       isActive(link.route)
                         ? 'text-white bg-navy-700/80'
                         : 'text-steel-300 hover:text-white hover:bg-navy-800/60'

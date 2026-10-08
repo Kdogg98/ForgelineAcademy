@@ -4,9 +4,12 @@ import { SITE_CONFIG } from '@/lib/siteConfig';
 import { useAuth } from '@/lib/auth';
 import type { Route } from '@/components/Nav';
 import { PlantFloorLinks } from '@/components/PlantFloorLinks';
+import { useCompanyTheme } from '@/lib/theme/useCompanyTheme';
+import { CoBrandLogo } from '@/components/brand/CompanyBrand';
 
 export function Footer({ onNavigate }: { onNavigate: (r: Route) => void }) {
   const { user } = useAuth();
+  const { company: themeCompany } = useCompanyTheme();
   const [showNexus, setShowNexus] = useState(false);
 
   useEffect(() => {
@@ -21,17 +24,26 @@ export function Footer({ onNavigate }: { onNavigate: (r: Route) => void }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="md:col-span-2">
-              <div className="flex items-center gap-2.5 mb-4">
-                <Hexagon className="w-7 h-7 text-rok-500" strokeWidth={1.6} />
-                <div className="leading-none">
-                  <div className="font-display text-lg font-bold text-white">
-                    ForgeLine Academy
-                  </div>
-                  <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-steel-400">
-                    Industrial Training
+              {themeCompany ? (
+                <div className="mb-4">
+                  <CoBrandLogo company={themeCompany} size="lg" />
+                  <p className="mt-3 text-sm text-steel-300 max-w-md">
+                    {themeCompany.name} team training, delivered by ForgeLine Academy.
+                  </p>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2.5 mb-4">
+                  <Hexagon className="w-7 h-7 text-rok-500" strokeWidth={1.6} />
+                  <div className="leading-none">
+                    <div className="font-display text-lg font-bold text-white">
+                      ForgeLine Academy
+                    </div>
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-steel-400">
+                      Industrial Training
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
               <p className="text-sm text-steel-400 leading-relaxed max-w-md">
                 Structured, plant-floor-proven training for industrial electricians,
                 millwrights, I&amp;E technicians, and maintenance engineers. Built by
@@ -202,7 +214,7 @@ export function Footer({ onNavigate }: { onNavigate: (r: Route) => void }) {
               <div className="absolute inset-0 rounded-full border border-rok-500/40 animate-ping" />
               <div className="absolute inset-2 rounded-full border border-rok-400/30" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <Hexagon className="w-14 h-14 text-rok-500 drop-shadow-[0_0_20px_rgba(236,104,43,0.6)]" strokeWidth={1.5} />
+                <Hexagon className="w-14 h-14 text-rok-500 drop-shadow-[0_0_20px_rgb(var(--fl-rok-500)/0.6)]" strokeWidth={1.5} />
               </div>
               <div className="absolute inset-0 flex items-center justify-center">
                 <Zap className="w-6 h-6 text-rok-300" />

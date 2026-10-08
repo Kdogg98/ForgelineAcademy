@@ -1,6 +1,10 @@
 import { Award, Download, Hexagon, AlertCircle, Shield, Building2 } from 'lucide-react';
 import type { Certificate } from '@/lib/types';
 import { useAuth } from '@/lib/auth';
+import { useCompanyTheme } from '@/lib/theme/useCompanyTheme';
+import { academyName, type ThemeCompany } from '@/lib/theme/themeStore';
+import { initialsOf } from '@/lib/theme/colors';
+import { CompanyLogoMark, TrainingByForgeLine } from '@/components/brand/CompanyBrand';
 import type { Route } from '@/components/Nav';
 
 interface CertificatesProps {
@@ -10,6 +14,7 @@ interface CertificatesProps {
 
 export function Certificates({ onNavigate, certificates }: CertificatesProps) {
   const { user, fullName, company } = useAuth();
+  const { company: brandCompany } = useCompanyTheme();
   const certs = certificates;
 
   if (!user) {
@@ -59,7 +64,7 @@ export function Certificates({ onNavigate, certificates }: CertificatesProps) {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {certs.map((cert) => (
-              <CertificateCard key={cert.id} cert={cert} userName={fullName || user?.email || 'Technician'} companyName={company?.name ?? null} companyLogo={company?.logo_url ?? null} />
+              <CertificateCard key={cert.id} cert={cert} userName={fullName || user?.email || 'Technician'} companyName={company?.name ?? null} companyLogo={company?.logo_url ?? null} brandCompany={brandCompany} />
             ))}
           </div>
         )}
@@ -73,11 +78,14 @@ function CertificateCard({
   userName,
   companyName,
   companyLogo,
+  brandCompany,
 }: {
   cert: Certificate;
   userName: string;
   companyName: string | null;
   companyLogo: string | null;
+  /** Active company theme: co-brands the certificate header and print colors. */
+  brandCompany: ThemeCompany | null;
 }) {
   const issuedDate = new Date(cert.issued_at).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -90,6 +98,10 @@ function CertificateCard({
     if (!certEl) return;
     const win = window.open('', '_blank', 'width=1000,height=700');
     if (!win) return;
+    const c = printColors(!!brandCompany);
+    const safeName = escapeHtml(userName);
+    const safeCourse = escapeHtml(cert.course?.title ?? 'Industrial Maintenance Course');
+    const brandHtml = brandCompany ? coBrandHtml(brandCompany, c) : forgeLineBrandHtml(c);
     win.document.write(`<!DOCTYPE html>
 <html><head><title>ForgeLine Certificate - ${cert.certificate_number}</title>
 <style>
@@ -97,29 +109,32 @@ function CertificateCard({
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: #e8e8e8; font-family: 'Georgia', 'Times New Roman', serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 30px; }
   .cert {
-    width: 980px; height: 680px; background: #0A1628; position: relative;
+    width: 980px; height: 680px; background: ${c.bg}; position: relative;
     padding: 50px 70px; color: #fff; overflow: hidden;
   }
   .cert::before {
     content: ''; position: absolute; inset: 14px;
-    border: 2px solid #2A4D7A; border-radius: 4px;
+    border: 2px solid ${c.frame}; border-radius: 4px;
   }
   .cert::after {
     content: ''; position: absolute; inset: 22px;
-    border: 1px solid #1a3a5a; border-radius: 2px;
+    border: 1px solid ${c.frameInner}; border-radius: 2px;
   }
-  .corner { position: absolute; width: 40px; height: 40px; border: 3px solid #3B82F6; }
+  .corner { position: absolute; width: 40px; height: 40px; border: 3px solid ${c.strong}; }
   .corner.tl { top: 14px; left: 14px; border-right: none; border-bottom: none; }
   .corner.tr { top: 14px; right: 14px; border-left: none; border-bottom: none; }
   .corner.bl { bottom: 14px; left: 14px; border-right: none; border-top: none; }
   .corner.br { bottom: 14px; right: 14px; border-left: none; border-top: none; }
   .brand { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px; }
   .brand-hex { width: 28px; height: 28px; }
-  .brand-text { font-size: 13px; letter-spacing: 5px; color: #60A5FA; font-weight: bold; text-transform: uppercase; }
+  .brand-text { font-size: 13px; letter-spacing: 5px; color: ${c.light}; font-weight: bold; text-transform: uppercase; }
+  .co-logo { height: 34px; max-width: 120px; object-fit: contain; background: #fff; border-radius: 6px; padding: 2px; }
+  .co-initials { width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font: bold 14px Arial, sans-serif; background: ${c.strong}; color: ${c.onStrong}; }
+  .co-by { text-align: center; font-size: 9px; letter-spacing: 3px; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px; font-family: Arial, sans-serif; }
   .doc-type { text-align: center; font-size: 11px; letter-spacing: 4px; color: #64748B; text-transform: uppercase; margin-bottom: 30px; }
   .title { text-align: center; font-size: 38px; font-weight: bold; color: #fff; margin-bottom: 8px; letter-spacing: 1px; }
   .subtitle { text-align: center; font-size: 14px; color: #94A3B8; margin-bottom: 35px; }
-  .name { text-align: center; font-size: 30px; font-weight: bold; color: #60A5FA; border-bottom: 1px solid #334155; display: inline-block; padding: 0 50px 6px; margin: 0 auto 20px; }
+  .name { text-align: center; font-size: 30px; font-weight: bold; color: ${c.light}; border-bottom: 1px solid #334155; display: inline-block; padding: 0 50px 6px; margin: 0 auto 20px; }
   .name-wrap { text-align: center; margin-bottom: 18px; }
   .completed-text { text-align: center; font-size: 14px; color: #94A3B8; margin-bottom: 12px; }
   .course { text-align: center; font-size: 22px; font-style: italic; color: #CBD5E1; max-width: 600px; margin: 0 auto; line-height: 1.4; }
@@ -129,21 +144,18 @@ function CertificateCard({
   .sig-label { font-size: 11px; color: #64748B; text-transform: uppercase; letter-spacing: 2px; }
   .sig-value { font-size: 13px; color: #94A3B8; margin-top: 2px; }
   .cert-no { position: absolute; bottom: 30px; left: 0; right: 0; text-align: center; font-size: 10px; color: #475569; letter-spacing: 2px; font-family: monospace; }
-  .seal { position: absolute; bottom: 110px; right: 80px; width: 70px; height: 70px; border: 2px solid #3B82F6; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #60A5FA; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; transform: rotate(-12deg); }
+  .seal { position: absolute; bottom: 110px; right: 80px; width: 70px; height: 70px; border: 2px solid ${c.strong}; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; color: ${c.light}; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; transform: rotate(-12deg); }
 </style></head><body>
 <div class="cert">
   <div class="corner tl"></div><div class="corner tr"></div>
   <div class="corner bl"></div><div class="corner br"></div>
-  <div class="brand">
-    <svg class="brand-hex" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="1.6"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-    <span class="brand-text">ForgeLine Academy</span>
-  </div>
+  ${brandHtml}
   <div class="doc-type">Certificate of Completion</div>
   <div class="title">Certificate of Completion</div>
   <div class="subtitle">This is to certify that</div>
-  <div class="name-wrap"><span class="name">${userName}</span></div>
+  <div class="name-wrap"><span class="name">${safeName}</span></div>
   <div class="completed-text">has successfully completed all required lessons and knowledge checks for</div>
-  <div class="course">${cert.course?.title ?? 'Industrial Maintenance Course'}</div>
+  <div class="course">${safeCourse}</div>
   <div class="seal">Verified</div>
   <div class="footer">
     <div class="sig-block">
@@ -185,6 +197,17 @@ function CertificateCard({
 
         <div className="relative text-center py-6">
           {/* Brand */}
+          {brandCompany ? (
+            <div className="flex flex-col items-center gap-1.5 mb-5">
+              <div className="flex items-center gap-2.5">
+                <CompanyLogoMark company={brandCompany} className="h-8 w-8 text-sm" />
+                <span className="text-sm font-bold tracking-[0.2em] text-accent-300 uppercase">
+                  {academyName(brandCompany.name)}
+                </span>
+              </div>
+              <TrainingByForgeLine />
+            </div>
+          ) : (
           <div className="flex items-center justify-center gap-2 mb-5">
             <Hexagon className="w-7 h-7 text-accent-500" strokeWidth={1.6} />
             <div className="text-xs font-bold tracking-[0.3em] text-accent-300 uppercase">
@@ -201,6 +224,7 @@ function CertificateCard({
               </>
             )}
           </div>
+          )}
 
           {/* Document type */}
           <div className="text-[10px] uppercase tracking-[0.3em] text-steel-500 mb-1">
@@ -267,4 +291,56 @@ function CertificateCard({
       </div>
     </div>
   );
+}
+
+/* ─── Print/download helpers ─── */
+
+const HEX_PATH =
+  'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z';
+
+interface PrintColors {
+  bg: string;
+  frame: string;
+  frameInner: string;
+  strong: string;
+  light: string;
+  onStrong: string;
+}
+
+function escapeHtml(v: string): string {
+  return v.replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch] as string);
+}
+
+/** Certificate print palette: ForgeLine defaults, or the active company theme's CSS variables. */
+function printColors(themed: boolean): PrintColors {
+  if (!themed) {
+    return { bg: '#0A1628', frame: '#2A4D7A', frameInner: '#1a3a5a', strong: '#3B82F6', light: '#60A5FA', onStrong: '#FFFFFF' };
+  }
+  const css = getComputedStyle(document.documentElement);
+  const rgb = (name: string) => `rgb(${css.getPropertyValue(name).trim() || '0 0 0'})`;
+  return {
+    bg: rgb('--fl-navy-900'),
+    frame: rgb('--fl-navy-500'),
+    frameInner: rgb('--fl-navy-600'),
+    strong: rgb('--fl-rok-500'),
+    light: rgb('--fl-accent-300'),
+    onStrong: rgb('--fl-on-rok'),
+  };
+}
+
+function forgeLineBrandHtml(c: PrintColors): string {
+  return `<div class="brand">
+    <svg class="brand-hex" viewBox="0 0 24 24" fill="none" stroke="${c.light}" stroke-width="1.6"><path d="${HEX_PATH}"/></svg>
+    <span class="brand-text">ForgeLine Academy</span>
+  </div>`;
+}
+
+/** Company logo (falls back to initials if it fails to load) + "<Company> Academy" + Training by ForgeLine. */
+function coBrandHtml(company: ThemeCompany, c: PrintColors): string {
+  const initials = `<span class="co-initials"${company.logoUrl ? ' style="display:none"' : ''}>${escapeHtml(initialsOf(company.name))}</span>`;
+  const logo = company.logoUrl
+    ? `<img class="co-logo" src="${escapeHtml(company.logoUrl)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'">`
+    : '';
+  return `<div class="brand">${logo}${initials}<span class="brand-text">${escapeHtml(academyName(company.name))}</span></div>
+  <div class="co-by">Training by <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="${c.strong}" stroke-width="2"><path d="${HEX_PATH}"/></svg> ForgeLine Academy</div>`;
 }

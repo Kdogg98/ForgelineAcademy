@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AuthProvider, useAuth } from '@/lib/auth';
+import { CompanyThemeProvider } from '@/lib/theme/CompanyThemeProvider';
 import { useCourses, fetchAllProgress, fetchCertificates } from '@/lib/data';
 import { supabase } from '@/lib/supabase';
 import { trackPageView } from '@/lib/analytics';
@@ -213,7 +214,9 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <CompanyThemeProvider>
+        <AppContent />
+      </CompanyThemeProvider>
     </AuthProvider>
   );
 }

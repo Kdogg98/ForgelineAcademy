@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
  *
  * Premium = personal comp/paid flag (profiles.is_premium)
  *        OR an active Stripe subscription (stripe_subscriptions.status)
- *        OR membership in a company with companies.premium = true.
+ *        OR membership in a company with companies.premium = true AND companies.active = true.
  *
  * Mirrors the SQL helper public.has_premium(uid). Company seats are online
  * memberships only. Admin bypass stays at the call sites (isPremium || isAdmin).
@@ -21,6 +21,8 @@ export interface EntitlementInput {
   subscriptionStatus: string | null | undefined;
   /** companies.premium of the user's company, only if a company_members row exists. */
   companyPremium: boolean | null | undefined;
+  /** companies.active of the user's company. Inactive companies (e.g. ended trial) grant nothing. */
+  companyActive: boolean | null | undefined;
   isCompanyMember: boolean;
 }
 
@@ -36,7 +38,7 @@ export function isActiveSubscriptionStatus(status: string | null | undefined): b
 export function computeEntitlement(input: EntitlementInput): Entitlement {
   if (input.profileIsPremium) return { isPremium: true, source: 'personal' };
   if (isActiveSubscriptionStatus(input.subscriptionStatus)) return { isPremium: true, source: 'subscription' };
-  if (input.isCompanyMember && input.companyPremium) return { isPremium: true, source: 'company' };
+  if (input.isCompanyMember && input.companyPremium && input.companyActive === true) return { isPremium: true, source: 'company' };
   return { isPremium: false, source: null };
 }
 

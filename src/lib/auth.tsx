@@ -10,7 +10,7 @@ interface AuthState {
   loading: boolean;
   /** False until the first profiles row fetch for this session finishes (success or fail). */
   profileReady: boolean;
-  /** Central entitlement (see lib/entitlements): personal OR active Stripe sub OR premium company. */
+  /** Central entitlement (see lib/entitlements): personal OR active Stripe sub OR premium + active company. */
   isPremium: boolean;
   premiumSource: PremiumSource;
   isAdmin: boolean;
@@ -133,6 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       profileIsPremium: data?.is_premium,
       subscriptionStatus,
       companyPremium: loadedCompany?.premium,
+      companyActive: loadedCompany?.active,
       // Trust company_members (admin-managed), not the user-editable profiles.company_id.
       isCompanyMember: loadedRole !== null,
     });

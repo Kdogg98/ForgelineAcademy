@@ -4,7 +4,7 @@
 --   20261008150100_protect_profile_privileged_columns.sql
 --
 -- Proves: manager A cannot see company B rows, employees cannot see each
--- other, company premium grants premium, drafts are admin-only, and users can
+-- other, company premium grants premium (only while the company is active), drafts are admin-only, and users can
 -- no longer self-grant is_admin / is_premium / company_id.
 --
 -- RUN ONLY ON A LOCAL STACK OR A SUPABASE BRANCH, never on production:
@@ -165,6 +165,16 @@ select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000
 set local role authenticated;
 do $$ begin assert public.has_premium(), 'active Stripe subscriber should be premium'; end $$;
 reset role;
+
+-- ---------- 4b. Inactive company grants nothing (ended trial) ----------
+update public.companies set active = false
+ where id = (select company_id from public.company_members where user_id = '00000000-0000-0000-0000-0000000000a1');
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+set local role authenticated;
+do $$ begin assert not public.has_premium(), 'inactive company must not grant premium'; end $$;
+reset role;
+update public.companies set active = true
+ where id = (select company_id from public.company_members where user_id = '00000000-0000-0000-0000-0000000000a1');
 
 -- ---------- 5. Master admin: builder flow ----------
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000ad","role":"authenticated"}', true);

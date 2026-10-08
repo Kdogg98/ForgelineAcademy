@@ -112,7 +112,8 @@ comment on function public.is_company_manager_of(uuid) is
   'True when auth.uid() is owner/admin (manager) of a company that target_user is a member of.';
 
 -- 3b. Central server-side entitlement: personal premium OR active/trialing Stripe
---     subscription OR membership (company_members) in a company with premium = true.
+--     subscription OR membership (company_members) in a company with premium = true
+--     AND active = true (an inactive company, e.g. ended trial, grants nothing).
 --     Mirrors src/lib/entitlements.ts. Callers may only ask about themselves
 --     unless they are a master admin or that user's company manager.
 create or replace function public.has_premium(uid uuid default auth.uid())
@@ -147,6 +148,7 @@ as $$
         join public.companies co on co.id = m.company_id
         where m.user_id = uid
           and co.premium = true
+          and co.active = true            -- inactive company (ended trial) grants nothing
       )
     ),
     false
@@ -154,7 +156,7 @@ as $$
 $$;
 
 comment on function public.has_premium(uuid) is
-  'Premium entitlement: profiles.is_premium OR stripe_subscriptions.status in (active, trialing) OR member of a companies.premium company.';
+  'Premium entitlement: profiles.is_premium OR stripe_subscriptions.status in (active, trialing) OR member of a company with premium = true and active = true.';
 
 -- 3c. Admin RPC: create/update an AI draft. Creates the companies row (unpublished,
 --     premium unchanged/default false) when p_company_id is null.

@@ -37,7 +37,10 @@ interface PricingProps {
 }
 
 export function Pricing({ onNavigate }: PricingProps) {
-  const { user, isPremium, isAdmin, refreshPremium, profileReady } = useAuth();
+  const { user, isPremium, premiumSource, company, isAdmin, refreshPremium, profileReady } = useAuth();
+  // Premium through a company seat: no personal Stripe billing to manage, no checkout.
+  const viaCompany = isPremium && premiumSource === 'company';
+  const companyLabel = company?.name ?? 'your company';
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
@@ -281,6 +284,10 @@ export function Pricing({ onNavigate }: PricingProps) {
                 <Shield className="w-4 h-4" />
                 Admin — All Access
               </div>
+            ) : viaCompany ? (
+              <div className="btn-secondary w-full cursor-default justify-center">
+                Included with {companyLabel}
+              </div>
             ) : isPremium ? (
               <button
                 onClick={handleManageBilling}
@@ -322,9 +329,11 @@ export function Pricing({ onNavigate }: PricingProps) {
             <div className="mb-6">
               <span className="font-display text-4xl font-bold text-white">$19.99</span>
               <span className="text-steel-400 text-sm ml-1">/month</span>
-              <p className="mt-2 text-sm text-premium-300">
-                Beta: 75% off with code <span className="font-mono font-semibold text-white">75OFF</span>
-              </p>
+              {!viaCompany && (
+                <p className="mt-2 text-sm text-premium-300">
+                  Beta: 75% off with code <span className="font-mono font-semibold text-white">75OFF</span>
+                </p>
+              )}
             </div>
             <ul className="space-y-3 mb-8 flex-1">
               {[
@@ -373,6 +382,16 @@ export function Pricing({ onNavigate }: PricingProps) {
               <div className="flex items-center justify-center gap-2 text-accent-300 font-semibold py-2.5">
                 <Shield className="w-5 h-5" />
                 Admin — All Access
+              </div>
+            ) : viaCompany ? (
+              <div className="p-3 rounded-lg bg-success-500/10 border border-success-500/20 text-center">
+                <div className="flex items-center justify-center gap-2 text-sm text-success-300 font-semibold">
+                  <Check className="w-4 h-4" />
+                  Premium Active via {companyLabel}
+                </div>
+                <p className="text-xs text-steel-400 mt-1">
+                  Your company seat includes every Premium feature. Nothing to purchase or manage here.
+                </p>
               </div>
             ) : isPremium ? (
               <button

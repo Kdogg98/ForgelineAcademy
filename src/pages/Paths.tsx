@@ -110,7 +110,9 @@ export function Paths({ courses, progressMap, onNavigate, focusPath, showWelcome
               <div>
                 <h3 className="font-semibold text-white text-sm mb-0.5">Start here — free plant-floor training</h3>
                 <p className="text-sm text-steel-400">
-                  You have full access to free Mechanical and Electrical courses. Upgrade later only if you want I&amp;E, Engineering, and AI Tutor.
+                  {isPremium || isAdmin
+                    ? 'You have Premium access to all four stages, including I&E, Engineering, and the AI Tutor.'
+                    : <>You have full access to free Mechanical and Electrical courses. Upgrade later only if you want I&amp;E, Engineering, and AI Tutor.</>}
                 </p>
               </div>
             </div>
@@ -278,12 +280,14 @@ export function Paths({ courses, progressMap, onNavigate, focusPath, showWelcome
               Browse All Courses
               <ArrowRight className="w-4 h-4" />
             </button>
-            <button
-              onClick={() => onNavigate({ name: 'pricing' })}
-              className="btn-secondary"
-            >
-              View Premium Plans
-            </button>
+            {!isPremium && !isAdmin && (
+              <button
+                onClick={() => onNavigate({ name: 'pricing' })}
+                className="btn-secondary"
+              >
+                View Premium Plans
+              </button>
+            )}
           </div>
         </div>
       </div>

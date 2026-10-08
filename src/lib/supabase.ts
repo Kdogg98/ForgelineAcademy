@@ -10,3 +10,13 @@ export const supabase = createClient(url, anonKey, {
     detectSessionInUrl: true,
   },
 });
+
+/**
+ * Signed-in user's id from the local session (no network).
+ * Use it to scope "my rows" queries explicitly: RLS also lets company managers
+ * and master admins read other users' progress/certificates.
+ */
+export async function currentUserId(): Promise<string | null> {
+  const { data } = await supabase.auth.getSession();
+  return data.session?.user?.id ?? null;
+}

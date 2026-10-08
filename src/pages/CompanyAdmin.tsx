@@ -15,15 +15,17 @@ import {
   ArrowLeft,
   Settings,
   BarChart3,
-  BookOpen,
-  Award,
   Clock,
   ChevronRight,
+  LayoutDashboard,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
-import type { Company, RetakeRequest, MemberQuizAttempt } from '@/lib/types';
+import type { Company, RetakeRequest } from '@/lib/types';
 import type { Route } from '@/components/Nav';
+import { CompanyOverview } from '@/components/CompanyOverview';
+import { TeamTracking } from '@/components/TeamTracking';
+import { brandFromCompany, brandStyle } from '@/lib/companyBrand';
 
 interface MemberRow {
   member_id: string;
@@ -34,28 +36,6 @@ interface MemberRow {
   full_name: string | null;
 }
 
-interface ProgressRow {
-  user_id: string;
-  email: string | null;
-  full_name: string | null;
-  role: 'owner' | 'admin' | 'member';
-  lessons_completed: number;
-  courses_started: number;
-  certificates_count: number;
-  last_activity: string | null;
-}
-
-interface LessonProgressRow {
-  progress_id: string;
-  lesson_id: string;
-  course_id: string;
-  course_title: string | null;
-  lesson_title: string | null;
-  completed: boolean;
-  quiz_score: number | null;
-  completed_at: string | null;
-}
-
 interface CompanyAdminProps {
   onNavigate: (r: Route) => void;
   companyId?: string;
@@ -63,11 +43,10 @@ interface CompanyAdminProps {
 
 export function CompanyAdmin({ onNavigate, companyId }: CompanyAdminProps) {
   const { user, company: userCompany, companyRole, isCompanyAdmin, isAdmin, refreshPremium } = useAuth();
-  const [activeTab, setActiveTab] = useState<'settings' | 'members' | 'progress' | 'retakes'>('settings');
+  const [activeTab, setActiveTab] = useState<'overview' | 'settings' | 'members' | 'progress' | 'retakes'>('overview');
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [allCompanies, setAllCompanies] = useState<Company[]>([]);
   const [members, setMembers] = useState<MemberRow[]>([]);
-  const [progressData, setProgressData] = useState<ProgressRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -78,16 +57,14 @@ export function CompanyAdmin({ onNavigate, companyId }: CompanyAdminProps) {
   const [editingName, setEditingName] = useState(false);
   const [companyName, setCompanyName] = useState('');
   const [expandedMember, setExpandedMember] = useState<string | null>(null);
-  const [memberDetail, setMemberDetail] = useState<LessonProgressRow[] | null>(null);
-  const [memberDetailLoading, setMemberDetailLoading] = useState(false);
-  const [detailMemberInfo, setDetailMemberInfo] = useState<ProgressRow | null>(null);
   const [retakeRequests, setRetakeRequests] = useState<RetakeRequest[]>([]);
   const [retakeLoading, setRetakeLoading] = useState(false);
-  const [memberQuizAttempts, setMemberQuizAttempts] = useState<MemberQuizAttempt[]>([]);
 
   // Determine which company we're managing
   const managingCompany = selectedCompany ?? userCompany;
   const canManage = isCompanyAdmin || isAdmin;
+  // Any linked member (company_members row) can see the branded overview.
+  const canView = canManage || companyRole !== null;
 
   // Super-admin company selection
   useEffect(() => {
@@ -134,27 +111,14 @@ export function CompanyAdmin({ onNavigate, companyId }: CompanyAdminProps) {
     }
   }, [managingCompany?.id, canManage]);
 
-  const loadProgress = useCallback(async () => {
-    if (!managingCompany?.id || !canManage) return;
-    try {
-      const { data, error: rpcErr } = await supabase.rpc('get_company_member_progress', {
-        target_company_id: managingCompany.id,
-      });
-      if (rpcErr) throw rpcErr;
-      setProgressData((data as ProgressRow[]) ?? []);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load progress');
-    }
-  }, [managingCompany?.id, canManage]);
-
   useEffect(() => {
     void loadMembers();
   }, [loadMembers]);
 
   useEffect(() => {
-    if (activeTab === 'progress') void loadProgress();
     if (activeTab === 'retakes') void loadRetakes();
-  }, [activeTab, loadProgress]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   const loadRetakes = useCallback(async () => {
     if (!managingCompany?.id || !canManage) return;
@@ -314,28 +278,6 @@ export function CompanyAdmin({ onNavigate, companyId }: CompanyAdminProps) {
     }
   }
 
-  async function handleViewMemberDetail(member: ProgressRow) {
-    if (!managingCompany) return;
-    setDetailMemberInfo(member);
-    setMemberDetail(null);
-    setMemberQuizAttempts([]);
-    setMemberDetailLoading(true);
-    try {
-      const [lessonRes, quizRes] = await Promise.all([
-        supabase.rpc('get_member_lesson_progress', { target_company_id: managingCompany.id, target_user_id: member.user_id }),
-        supabase.rpc('get_member_quiz_attempts', { target_company_id: managingCompany.id, target_user_id: member.user_id }),
-      ]);
-      if (lessonRes.error) throw lessonRes.error;
-      if (quizRes.error) throw quizRes.error;
-      setMemberDetail((lessonRes.data as LessonProgressRow[]) ?? []);
-      setMemberQuizAttempts((quizRes.data as MemberQuizAttempt[]) ?? []);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load member detail');
-    } finally {
-      setMemberDetailLoading(false);
-    }
-  }
-
   if (!user) {
     return (
       <div className="pt-24 min-h-screen flex items-center justify-center px-4">
@@ -348,13 +290,13 @@ export function CompanyAdmin({ onNavigate, companyId }: CompanyAdminProps) {
     );
   }
 
-  if (!canManage) {
+  if (!canView) {
     return (
       <div className="pt-24 min-h-screen flex items-center justify-center px-4">
         <div className="max-w-md text-center">
           <Building2 className="w-12 h-12 text-steel-600 mx-auto mb-4" />
           <h1 className="text-xl font-bold text-white mb-2">No Company Access</h1>
-          <p className="text-steel-400 mb-5">You need to be a company owner or admin to access this page.</p>
+          <p className="text-steel-400 mb-5">Your account isn't linked to a company yet. Ask your company admin to add you.</p>
           <button onClick={() => onNavigate({ name: 'dashboard' })} className="btn-primary">Back to Dashboard</button>
         </div>
       </div>
@@ -441,17 +383,35 @@ export function CompanyAdmin({ onNavigate, companyId }: CompanyAdminProps) {
   };
   const roleLabel = (role: string) => role === 'owner' ? 'Owner' : role === 'admin' ? 'Admin' : 'Member';
 
+  const brand = brandFromCompany(managingCompany);
+  // Unpublished branding is only shown to master admins.
+  const showBranding = Boolean(managingCompany.published) || isAdmin;
+  const pageStyle = showBranding
+    ? {
+        ...brandStyle(brand),
+        backgroundImage: `radial-gradient(ellipse at top, color-mix(in srgb, ${brand.primary} 55%, transparent) 0%, transparent 60%)`,
+      }
+    : undefined;
+  const tabs = ([
+    { key: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { key: 'settings', label: 'Settings', icon: Settings },
+    { key: 'members', label: 'Members', icon: Users },
+    { key: 'progress', label: 'Team Progress', icon: BarChart3 },
+    { key: 'retakes', label: 'Retakes', icon: Clock },
+  ] as const).filter((t) => canManage || t.key === 'overview');
+  const tab = canManage ? activeTab : 'overview';
+
   return (
-    <div className="pt-20 pb-16 min-h-screen">
+    <div className="pt-20 pb-16 min-h-screen" style={pageStyle}>
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-lg bg-rok-500/20 flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-rok-400" />
+            <div className="w-10 h-10 rounded-lg bg-rok-500/20 flex items-center justify-center" style={showBranding ? { background: 'var(--brand-accent)' } : undefined}>
+              <Building2 className="w-5 h-5 text-rok-400" style={showBranding ? { color: 'var(--brand-on-accent)' } : undefined} />
             </div>
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-white">{managingCompany.name}</h1>
-              <p className="text-sm text-steel-400">Company & Team Management</p>
+              <p className="text-sm text-steel-400">{canManage ? 'Company & Team Management' : 'Company Training Dashboard'}</p>
             </div>
             {isAdmin && selectedCompany && userCompany?.id !== selectedCompany.id && (
               <button onClick={() => { setSelectedCompany(null); }} className="btn-ghost text-sm">
@@ -463,25 +423,21 @@ export function CompanyAdmin({ onNavigate, companyId }: CompanyAdminProps) {
 
         {/* Tabs */}
         <div className="flex gap-1 mb-6 border-b border-steel-700/60">
-          {([
-            { key: 'settings', label: 'Settings', icon: Settings },
-            { key: 'members', label: 'Members', icon: Users },
-            { key: 'progress', label: 'Progress', icon: BarChart3 },
-            { key: 'retakes', label: 'Retakes', icon: Clock },
-          ] as const).map((tab) => {
-            const Icon = tab.icon;
+          {tabs.map((t) => {
+            const Icon = t.icon;
             const pendingCount = retakeRequests.filter((r) => r.status === 'pending').length;
             return (
               <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
+                key={t.key}
+                onClick={() => setActiveTab(t.key)}
                 className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
-                  activeTab === tab.key ? 'text-white border-rok-500' : 'text-steel-400 border-transparent hover:text-steel-200'
+                  tab === t.key ? 'text-white border-rok-500' : 'text-steel-400 border-transparent hover:text-steel-200'
                 }`}
+                style={tab === t.key && showBranding ? { borderColor: 'var(--brand-accent)' } : undefined}
               >
                 <Icon className="w-4 h-4" />
-                {tab.label}
-                {tab.key === 'retakes' && pendingCount > 0 && (
+                {t.label}
+                {t.key === 'retakes' && pendingCount > 0 && (
                   <span className="ml-0.5 px-1.5 py-0.5 rounded-full bg-warning-500/20 border border-warning-500/40 text-warning-400 text-[10px] font-bold">
                     {pendingCount}
                   </span>
@@ -505,8 +461,40 @@ export function CompanyAdmin({ onNavigate, companyId }: CompanyAdminProps) {
           </div>
         )}
 
+        {/* Overview tab: branded company dashboard */}
+        {tab === 'overview' && (
+          showBranding ? (
+            <CompanyOverview
+              brand={brand}
+              badge={managingCompany.published ? null : 'Unpublished · admin preview'}
+              onOpenCourse={(courseId) => onNavigate({ name: 'course', courseId })}
+              data={{
+                name: managingCompany.name,
+                logoUrl: managingCompany.logo_url,
+                domain: managingCompany.domain,
+                industry: managingCompany.industry,
+                summary: managingCompany.profile?.summary,
+                locations: managingCompany.profile?.locations,
+                equipment: managingCompany.profile?.equipment,
+                processes: managingCompany.profile?.processes,
+                tracks: managingCompany.profile?.suggested_tracks,
+                premium: managingCompany.premium,
+              }}
+            />
+          ) : (
+            <div className="card p-8 text-center">
+              <Building2 className="w-10 h-10 text-steel-600 mx-auto mb-3" />
+              <p className="text-sm text-steel-300 font-medium">Your company page is being set up.</p>
+              {managingCompany.premium && (
+                <p className="text-xs text-steel-500 mt-2">Your team already has full premium access to every course.</p>
+              )}
+              <button onClick={() => onNavigate({ name: 'catalog' })} className="btn-primary mt-4">Browse courses</button>
+            </div>
+          )
+        )}
+
         {/* Settings tab */}
-        {activeTab === 'settings' && (
+        {tab === 'settings' && (
           <div className="card p-6">
             <h2 className="text-sm font-semibold text-steel-300 uppercase tracking-wider mb-4">Company Info</h2>
             <div className="flex items-center gap-5 mb-5">
@@ -564,7 +552,7 @@ export function CompanyAdmin({ onNavigate, companyId }: CompanyAdminProps) {
         )}
 
         {/* Members tab */}
-        {activeTab === 'members' && (
+        {tab === 'members' && (
           <div className="card p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold text-steel-300 uppercase tracking-wider">Team Members ({members.length})</h2>
@@ -641,157 +629,13 @@ export function CompanyAdmin({ onNavigate, companyId }: CompanyAdminProps) {
           </div>
         )}
 
-        {/* Progress tab */}
-        {activeTab === 'progress' && (
-          <div className="space-y-4">
-            {detailMemberInfo ? (
-              <div className="card p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <button onClick={() => { setDetailMemberInfo(null); setMemberDetail(null); }} className="btn-ghost text-sm">
-                    <ArrowLeft className="w-4 h-4" /> Back
-                  </button>
-                  <div>
-                    <h2 className="text-lg font-bold text-white">{detailMemberInfo.full_name || detailMemberInfo.email || 'Member'}</h2>
-                    <p className="text-xs text-steel-500">{detailMemberInfo.email}</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-3 mb-5">
-                  <div className="rounded-lg bg-navy-950/40 border border-steel-700/40 p-3 text-center">
-                    <BookOpen className="w-5 h-5 text-rok-400 mx-auto mb-1" />
-                    <div className="text-xl font-bold text-white">{detailMemberInfo.lessons_completed}</div>
-                    <div className="text-[10px] text-steel-500 uppercase tracking-wider">Lessons</div>
-                  </div>
-                  <div className="rounded-lg bg-navy-950/40 border border-steel-700/40 p-3 text-center">
-                    <BarChart3 className="w-5 h-5 text-accent-400 mx-auto mb-1" />
-                    <div className="text-xl font-bold text-white">{detailMemberInfo.courses_started}</div>
-                    <div className="text-[10px] text-steel-500 uppercase tracking-wider">Courses Started</div>
-                  </div>
-                  <div className="rounded-lg bg-navy-950/40 border border-steel-700/40 p-3 text-center">
-                    <Award className="w-5 h-5 text-premium-400 mx-auto mb-1" />
-                    <div className="text-xl font-bold text-white">{detailMemberInfo.certificates_count}</div>
-                    <div className="text-[10px] text-steel-500 uppercase tracking-wider">Certificates</div>
-                  </div>
-                </div>
-
-                <h3 className="text-sm font-semibold text-steel-300 uppercase tracking-wider mb-3">Lesson Progress</h3>
-                {memberDetailLoading ? (
-                  <div className="flex items-center justify-center py-8"><Loader2 className="w-6 h-6 text-rok-400 animate-spin" /></div>
-                ) : !memberDetail || memberDetail.length === 0 ? (
-                  <p className="text-sm text-steel-500 text-center py-8">No lesson progress yet.</p>
-                ) : (
-                  <div className="space-y-1.5">
-                    {memberDetail.map((lp) => (
-                      <div key={lp.progress_id} className="flex items-center gap-3 p-3 rounded-lg border border-steel-700/40 bg-navy-950/30">
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-white truncate">{lp.lesson_title ?? 'Unknown lesson'}</div>
-                          <div className="text-xs text-steel-500 truncate">{lp.course_title ?? 'Unknown course'}</div>
-                        </div>
-                        {lp.completed ? (
-                          <span className="flex items-center gap-1 text-xs text-success-400 font-medium">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> Completed
-                          </span>
-                        ) : (
-                          <span className="text-xs text-steel-500">In progress</span>
-                        )}
-                        {lp.quiz_score != null && (
-                          <span className="text-xs text-steel-400">{lp.quiz_score}%</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Quiz attempt stats */}
-                <h3 className="text-sm font-semibold text-steel-300 uppercase tracking-wider mb-3 mt-6">Quiz Attempts</h3>
-                {memberDetailLoading ? (
-                  <div className="flex items-center justify-center py-4"><Loader2 className="w-5 h-5 text-rok-400 animate-spin" /></div>
-                ) : memberQuizAttempts.length === 0 ? (
-                  <p className="text-sm text-steel-500 text-center py-4">No quiz attempts yet.</p>
-                ) : (
-                  <div className="space-y-1.5">
-                    {memberQuizAttempts.map((qa) => (
-                      <div key={qa.lesson_id} className="flex items-center gap-3 p-3 rounded-lg border border-steel-700/40 bg-navy-950/30">
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-white truncate">{qa.lesson_title ?? 'Unknown lesson'}</div>
-                          <div className="text-xs text-steel-500 truncate">{qa.course_title ?? 'Unknown course'}</div>
-                        </div>
-                        <div className="flex items-center gap-3 shrink-0 text-xs">
-                          <span className="text-steel-400">{qa.total_attempts} taken</span>
-                          {qa.failed_count > 0 && <span className="text-error-400">{qa.failed_count} failed</span>}
-                          {qa.best_score != null && <span className="text-steel-400">Best: {qa.best_score}%</span>}
-                          {qa.lock_status && (
-                            <span className="px-1.5 py-0.5 rounded-full bg-warning-500/15 border border-warning-500/30 text-warning-400 text-[10px] font-semibold">Locked</span>
-                          )}
-                          {qa.passed && !qa.lock_status && (
-                            <span className="flex items-center gap-0.5 text-success-400"><CheckCircle2 className="w-3 h-3" /> Passed</span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="card p-6">
-                <h2 className="text-sm font-semibold text-steel-300 uppercase tracking-wider mb-4">Team Progress</h2>
-                {progressData.length === 0 ? (
-                  <div className="text-center py-10">
-                    <BarChart3 className="w-10 h-10 text-steel-600 mx-auto mb-3" />
-                    <p className="text-sm text-steel-500">Members haven't started training yet.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-1.5">
-                    <div className="hidden sm:grid grid-cols-4 gap-3 px-3 pb-2 text-[10px] font-semibold text-steel-500 uppercase tracking-wider">
-                      <div>Member</div>
-                      <div className="text-center">Lessons</div>
-                      <div className="text-center">Courses</div>
-                      <div className="text-center">Certificates</div>
-                    </div>
-                    {progressData.map((p) => (
-                      <button
-                        key={p.user_id}
-                        onClick={() => handleViewMemberDetail(p)}
-                        className="w-full flex items-center gap-3 p-3 rounded-lg border border-steel-700/40 bg-navy-950/30 hover:border-rok-500/40 hover:bg-navy-800/40 transition-colors text-left"
-                      >
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-steel-600 to-steel-700 flex items-center justify-center text-white text-sm font-bold shrink-0">
-                          {(p.email?.[0] ?? p.full_name?.[0] ?? '?').toUpperCase()}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-white truncate">{p.full_name || p.email || 'Unknown'}</span>
-                            {roleIcon(p.role)}
-                          </div>
-                          {p.last_activity && (
-                            <p className="text-[10px] text-steel-500">Last active: {new Date(p.last_activity).toLocaleDateString()}</p>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-4 sm:gap-6 shrink-0">
-                          <div className="text-center">
-                            <div className="text-sm font-bold text-white sm:hidden">{p.lessons_completed}</div>
-                            <div className="text-lg font-bold text-rok-400 hidden sm:block">{p.lessons_completed}</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-sm font-bold text-white sm:hidden">{p.courses_started}</div>
-                            <div className="text-lg font-bold text-accent-400 hidden sm:block">{p.courses_started}</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-sm font-bold text-white sm:hidden">{p.certificates_count}</div>
-                            <div className="text-lg font-bold text-premium-400 hidden sm:block">{p.certificates_count}</div>
-                          </div>
-                          <ChevronRight className="w-4 h-4 text-steel-500" />
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+        {/* Team progress tab: RLS-scoped manager tracking + CSV export */}
+        {tab === 'progress' && (
+          <TeamTracking companyId={managingCompany.id} companyName={managingCompany.name} />
         )}
 
         {/* Retakes tab */}
-        {activeTab === 'retakes' && (
+        {tab === 'retakes' && (
           <div className="card p-6">
             <h2 className="text-sm font-semibold text-steel-300 uppercase tracking-wider mb-4">Retake Approval Requests</h2>
             {retakeLoading ? (

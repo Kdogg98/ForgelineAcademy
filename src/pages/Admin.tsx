@@ -20,6 +20,7 @@ import {
   Calendar,
   Building2,
   Wrench,
+  Sparkles,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
@@ -30,6 +31,7 @@ import { CustomCourseBuilder } from '@/components/CustomCourseBuilder';
 import { PromoManager } from '@/components/PromoManager';
 import { BookingsManager } from '@/components/BookingsManager';
 import { CompanyManager } from '@/components/CompanyManager';
+import { CompanyBuilder } from '@/components/CompanyBuilder';
 import { ServiceRequestsManager } from '@/components/ServiceRequestsManager';
 import type { Route } from '@/components/Nav';
 
@@ -55,7 +57,7 @@ interface ModuleWithCourse {
 
 export function Admin({ onNavigate }: { onNavigate: (r: { name: string }) => void }) {
   const { user, isAdmin, loading: authLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState<'videos' | 'custom' | 'promos' | 'bookings' | 'companies' | 'services'>('videos');
+  const [activeTab, setActiveTab] = useState<'videos' | 'custom' | 'promos' | 'bookings' | 'companies' | 'builder' | 'services'>('videos');
   const [courses, setCourses] = useState<Course[]>([]);
   const [modules, setModules] = useState<ModuleWithCourse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -362,6 +364,17 @@ export function Admin({ onNavigate }: { onNavigate: (r: { name: string }) => voi
             Companies
           </button>
           <button
+            onClick={() => setActiveTab('builder')}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+              activeTab === 'builder'
+                ? 'text-white border-accent-500'
+                : 'text-steel-400 border-transparent hover:text-steel-200'
+            }`}
+          >
+            <Sparkles className="w-4 h-4" />
+            Company Builder
+          </button>
+          <button
             onClick={() => setActiveTab('services')}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
               activeTab === 'services'
@@ -382,6 +395,8 @@ export function Admin({ onNavigate }: { onNavigate: (r: { name: string }) => voi
           <BookingsManager />
         ) : activeTab === 'companies' ? (
           <CompanyManager onNavigate={onNavigate as (r: Route) => void} />
+        ) : activeTab === 'builder' ? (
+          <CompanyBuilder />
         ) : activeTab === 'services' ? (
           <ServiceRequestsManager />
         ) : (

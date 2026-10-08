@@ -127,6 +127,23 @@ export function difficultyLabel(d: Difficulty): string {
   return d.charAt(0).toUpperCase() + d.slice(1);
 }
 
+export interface CompanyTrack {
+  course_id: string;
+  title: string;
+  reason?: string;
+  stage?: string;
+  tier?: string;
+}
+
+/** Published profile stored in companies.profile (jsonb). */
+export interface CompanyProfileData {
+  summary?: string;
+  locations?: string[];
+  equipment?: string[];
+  processes?: string[];
+  suggested_tracks?: CompanyTrack[];
+}
+
 export interface Company {
   id: string;
   name: string;
@@ -135,6 +152,33 @@ export interface Company {
   active: boolean;
   created_by: string | null;
   created_at: string;
+  // Company builder (migration 20261008150000). Optional until the migration is applied.
+  domain?: string | null;
+  industry?: string | null;
+  brand_primary?: string | null;
+  brand_secondary?: string | null;
+  brand_accent?: string | null;
+  profile?: CompanyProfileData | null;
+  published?: boolean;
+  published_at?: string | null;
+  updated_at?: string | null;
+}
+
+/** AI/admin working copy stored in company_drafts.draft (admin-only). */
+export interface CompanyDraft {
+  name: string;
+  domain: string;
+  logo_url: string;
+  logo_fallbacks?: string[];
+  industry: string;
+  summary: string;
+  locations: string[];
+  equipment: string[];
+  processes: string[];
+  brand_colors: { primary: string; secondary: string; accent: string };
+  suggested_tracks: CompanyTrack[];
+  confidence?: 'low' | 'medium' | 'high';
+  notes?: string;
 }
 
 export interface CompanyMember {

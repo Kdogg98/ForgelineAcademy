@@ -44,7 +44,7 @@ export function Nav({ route, onNavigate }: NavProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
 
-  const { user, isPremium, isAdmin, signOut, company, isCompanyAdmin } = useAuth();
+  const { user, isPremium, isAdmin, signOut, company, companyRole } = useAuth();
   const showCompanyChip = Boolean(company && !/^test$/i.test((company.name || '').trim()));
 
   useEffect(() => {
@@ -189,7 +189,7 @@ export function Nav({ route, onNavigate }: NavProps) {
                             <Shield className="w-4 h-4" /> Admin
                           </button>
                         )}
-                        {isCompanyAdmin && (
+                        {companyRole !== null && (
                           <button
                             onClick={() => { onNavigate({ name: 'company' }); setUserMenu(false); }}
                             className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-steel-200 hover:bg-navy-700 hover:text-white"
@@ -269,7 +269,7 @@ export function Nav({ route, onNavigate }: NavProps) {
                   </button>
                 </div>
               )}
-              {isCompanyAdmin && (
+              {companyRole !== null && (
                 <button
                   onClick={() => { onNavigate({ name: 'company' }); setMobileOpen(false); }}
                   className="w-full text-left px-3 py-2.5 rounded-md text-sm font-medium text-steel-300 hover:bg-navy-800 flex items-center gap-2"

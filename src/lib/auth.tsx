@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useRef, useState, type ReactNode 
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import type { Company } from '@/lib/types';
+import { computeEntitlement, fetchOwnSubscriptionStatus, type PremiumSource } from '@/lib/entitlements';
 
 interface AuthState {
   session: Session | null;
@@ -9,11 +10,14 @@ interface AuthState {
   loading: boolean;
   /** False until the first profiles row fetch for this session finishes (success or fail). */
   profileReady: boolean;
+  /** Central entitlement (see lib/entitlements): personal OR active Stripe sub OR premium company. */
   isPremium: boolean;
+  premiumSource: PremiumSource;
   isAdmin: boolean;
   fullName: string | null;
   company: Company | null;
   companyRole: 'owner' | 'admin' | 'member' | null;
+  /** Company owner/admin ("manager"): can see their own company's team progress. */
   isCompanyAdmin: boolean;
   assessmentCompleted: boolean;
   refreshPremium: () => Promise<void>;
@@ -38,6 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [profileReady, setProfileReady] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
+  const [premiumSource, setPremiumSource] = useState<PremiumSource>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [fullName, setFullName] = useState<string | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
@@ -59,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const gen = ++loadGen.current;
     if (!uid) {
       setIsPremium(false);
+      setPremiumSource(null);
       setIsAdmin(false);
       setFullName(null);
       setCompany(null);
@@ -91,11 +97,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (gen !== loadGen.current) return;
 
-    setIsPremium(Boolean(data?.is_premium));
     setIsAdmin(Boolean(data?.is_admin));
     setFullName(data?.full_name ?? null);
     setAssessmentCompleted(Boolean(data?.assessment_completed));
 
+    let loadedCompany: Company | null = null;
+    let loadedRole: 'owner' | 'admin' | 'member' | null = null;
     if (data?.company_id) {
       const { data: companyData } = await supabase
         .from('companies')
@@ -103,7 +110,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq('id', data.company_id)
         .maybeSingle();
       if (gen !== loadGen.current) return;
-      setCompany(companyData as Company | null);
+      loadedCompany = (companyData as Company | null) ?? null;
+      setCompany(loadedCompany);
 
       const { data: memberData } = await supabase
         .from('company_members')
@@ -112,11 +120,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq('user_id', uid)
         .maybeSingle();
       if (gen !== loadGen.current) return;
-      setCompanyRole((memberData?.role as 'owner' | 'admin' | 'member') ?? null);
+      loadedRole = (memberData?.role as 'owner' | 'admin' | 'member') ?? null;
+      setCompanyRole(loadedRole);
     } else {
       setCompany(null);
       setCompanyRole(null);
     }
+
+    const subscriptionStatus = await fetchOwnSubscriptionStatus();
+    if (gen !== loadGen.current) return;
+    const ent = computeEntitlement({
+      profileIsPremium: data?.is_premium,
+      subscriptionStatus,
+      companyPremium: loadedCompany?.premium,
+      // Trust company_members (admin-managed), not the user-editable profiles.company_id.
+      isCompanyMember: loadedRole !== null,
+    });
+    setIsPremium(ent.isPremium);
+    setPremiumSource(ent.source);
 
     setProfileReady(true);
   }
@@ -185,6 +206,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function signOut() {
     await supabase.auth.signOut();
     setIsPremium(false);
+    setPremiumSource(null);
     setIsAdmin(false);
     setFullName(null);
     setCompany(null);
@@ -200,7 +222,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: session?.user ?? null,
         loading,
         profileReady,
-        isPremium: isPremium || (company?.premium ?? false),
+        isPremium,
+        premiumSource,
         isAdmin,
         fullName,
         company,

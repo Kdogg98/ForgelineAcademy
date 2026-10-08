@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabase, currentUserId } from '@/lib/supabase';
 import type { UserProgress, Certificate } from '@/lib/types';
 
 export type AssessmentLevel = 'novice' | 'intermediate' | 'advanced' | 'expert';
@@ -200,9 +200,11 @@ export async function checkRetakeEligibility(
   }
 
   // Count lessons completed since assessment
+  const uid = await currentUserId();
   const { data: progress } = await supabase
     .from('user_progress')
     .select('completed, completed_at, course_id')
+    .eq('user_id', uid ?? '')
     .eq('completed', true)
     .gte('completed_at', assessedAt);
 
@@ -212,6 +214,7 @@ export async function checkRetakeEligibility(
   const { data: certs } = await supabase
     .from('certificates')
     .select('issued_at')
+    .eq('user_id', uid ?? '')
     .gte('issued_at', assessedAt);
 
   const coursesSince = certs?.length ?? 0;

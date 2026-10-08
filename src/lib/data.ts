@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase, currentUserId } from '@/lib/supabase';
 import type {
   Course,
   LessonWithModule,
@@ -99,16 +99,22 @@ export async function fetchLessonContent(lessonId: string): Promise<string | nul
 }
 
 export async function fetchProgress(courseId: string): Promise<UserProgress[]> {
+  const uid = await currentUserId();
+  if (!uid) return [];
   const { data, error } = await supabase
     .from('user_progress')
     .select('*')
+    .eq('user_id', uid)
     .eq('course_id', courseId);
   if (error) throw error;
   return data ?? [];
 }
 
 export async function fetchAllProgress(): Promise<UserProgress[]> {
-  const { data, error } = await supabase.from('user_progress').select('*');
+  const uid = await currentUserId();
+  if (!uid) return [];
+  // Explicit user filter: managers/admins can read other users' rows via RLS.
+  const { data, error } = await supabase.from('user_progress').select('*').eq('user_id', uid);
   if (error) throw error;
   return data ?? [];
 }
@@ -135,9 +141,12 @@ export async function upsertProgress(
 }
 
 export async function fetchCertificates(): Promise<Certificate[]> {
+  const uid = await currentUserId();
+  if (!uid) return [];
   const { data, error } = await supabase
     .from('certificates')
     .select('*, course:courses(*)')
+    .eq('user_id', uid)
     .order('issued_at', { ascending: false });
   if (error) throw error;
   return data ?? [];

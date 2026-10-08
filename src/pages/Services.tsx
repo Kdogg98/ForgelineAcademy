@@ -142,7 +142,9 @@ export function Services({ onNavigate }: ServicesProps) {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
-        {/* Two service cards */}
+        {/* Two service cards + format strip: on-site only, hidden on online seat/trial requests */}
+        {!seatsMode && (
+        <>
         <div className="grid md:grid-cols-2 gap-6 mb-12">
           {/* On-Site Training */}
           <div className="card p-7 border-rok-500/20 relative overflow-hidden">
@@ -244,13 +246,17 @@ export function Services({ onNavigate }: ServicesProps) {
             );
           })}
         </div>
+        </>
+        )}
 
         {/* Scope / disclaimer */}
         <div className="mb-12 rounded-lg border border-steel-700/40 bg-navy-950/30 p-5">
           <h3 className="text-sm font-semibold text-steel-300 mb-2">Scope &amp; Disclaimer</h3>
           <ul className="space-y-1.5 text-xs text-steel-500 leading-relaxed">
             <li>Training is educational and does not replace required licenses, employer qualifications, or site procedures.</li>
-            <li>On-site and troubleshooting support are advisory and performed under the customer&apos;s lockout/tagout, permits, and supervision.</li>
+            {!seatsMode && (
+              <li>On-site and troubleshooting support are advisory and performed under the customer&apos;s lockout/tagout, permits, and supervision.</li>
+            )}
             <li>No guarantee of specific production outcomes.</li>
           </ul>
         </div>

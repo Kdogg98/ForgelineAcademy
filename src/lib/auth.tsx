@@ -49,6 +49,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [companyRole, setCompanyRole] = useState<'owner' | 'admin' | 'member' | null>(null);
   const [assessmentCompleted, setAssessmentCompleted] = useState(true);
   const loadGen = useRef(0);
+  /** User id of the latest auth event; profile loads for any other user are stale. */
+  const authUserId = useRef<string | null>(null);
+  /** User whose profile is currently loaded (later loads for them refresh silently). */
+  const loadedFor = useRef<string | null>(null);
+  /** Last load got no profile row (e.g. JWT not attached yet): retry on the next auth event. */
+  const profileMissing = useRef(false);
+  const [reloadKey, setReloadKey] = useState(0);
+  const userId = session?.user?.id ?? null;
 
   async function fetchProfileRow(uid: string): Promise<ProfileRow | null> {
     const { data, error } = await supabase
@@ -60,21 +68,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return data as ProfileRow | null;
   }
 
-  async function loadProfile(uid: string | undefined) {
+  function resetProfileState() {
+    loadedFor.current = null;
+    profileMissing.current = false;
+    setIsPremium(false);
+    setPremiumSource(null);
+    setIsAdmin(false);
+    setFullName(null);
+    setCompany(null);
+    setCompanyRole(null);
+    setAssessmentCompleted(true);
+    setProfileReady(true);
+  }
+
+  /** silent: refresh the already-loaded user without flipping profileReady (no theme flicker). */
+  async function loadProfile(uid: string | undefined | null, silent = false) {
     const gen = ++loadGen.current;
     if (!uid) {
-      setIsPremium(false);
-      setPremiumSource(null);
-      setIsAdmin(false);
-      setFullName(null);
-      setCompany(null);
-      setCompanyRole(null);
-      setAssessmentCompleted(true);
-      setProfileReady(true);
+      resetProfileState();
       return;
     }
 
-    setProfileReady(false);
+    if (!silent) setProfileReady(false);
 
     let data: ProfileRow | null = null;
     try {
@@ -96,6 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     if (gen !== loadGen.current) return;
+    profileMissing.current = !data;
 
     setIsAdmin(Boolean(data?.is_admin));
     setFullName(data?.full_name ?? null);
@@ -140,6 +156,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsPremium(ent.isPremium);
     setPremiumSource(ent.source);
 
+    loadedFor.current = uid;
     setProfileReady(true);
   }
 
@@ -158,24 +175,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await loadProfile(session?.user?.id);
   }
 
+  // Auth events only update React state. No Supabase queries in this callback: supabase-js
+  // awaits it while holding its auth state, so querying here can deadlock or run before the
+  // new JWT is used. Profile/company/entitlement loading is driven by the effect below.
   useEffect(() => {
-    let cancelled = false;
+    const { data: sub } = supabase.auth.onAuthStateChange((event, newSession) => {
+      const nextId = newSession?.user?.id ?? null;
+      const userChanged = nextId !== authUserId.current;
+      authUserId.current = nextId;
+      setSession(newSession);
 
-    // Prefer onAuthStateChange (fires INITIAL_SESSION) so the client JWT is attached
-    // before we hit profiles. Avoid racing getSession().then(loadProfile).
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      void (async () => {
-        setSession(newSession);
-        await loadProfile(newSession?.user?.id);
-        if (!cancelled) setLoading(false);
-      })();
+      if (!nextId) {
+        // SIGNED_OUT (or INITIAL_SESSION without a session): drop in-flight loads, back to defaults.
+        loadGen.current++;
+        resetProfileState();
+        setLoading(false);
+        return;
+      }
+      if (userChanged) {
+        // SIGNED_IN / INITIAL_SESSION for a new user: hide the previous user's company and
+        // entitlement in this same render so the wrong company never flashes.
+        loadGen.current++;
+        loadedFor.current = null;
+        setProfileReady(false);
+        setIsPremium(false);
+        setPremiumSource(null);
+        setIsAdmin(false);
+        setCompany(null);
+        setCompanyRole(null);
+      } else if (event === 'USER_UPDATED' || profileMissing.current) {
+        // Same user: refresh on USER_UPDATED, or retry SIGNED_IN / TOKEN_REFRESHED when the
+        // last load got no profile row.
+        setReloadKey((k) => k + 1);
+      }
     });
 
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  // (Re)load profile, company and entitlement whenever the signed-in user changes, deferred
+  // out of the auth callback. Stale loads are ignored via loadGen / authUserId.
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      void loadProfile(userId, loadedFor.current === userId).finally(() => {
+        if (!cancelled && authUserId.current === userId) setLoading(false);
+      });
+    }, 0);
     return () => {
       cancelled = true;
-      sub.subscription.unsubscribe();
+      clearTimeout(timer);
     };
-  }, []);
+    // loadProfile only reads refs and setters
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, reloadKey]);
 
   async function signIn(email: string, password: string) {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -206,14 +260,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function signOut() {
     await supabase.auth.signOut();
-    setIsPremium(false);
-    setPremiumSource(null);
-    setIsAdmin(false);
-    setFullName(null);
-    setCompany(null);
-    setCompanyRole(null);
-    setAssessmentCompleted(true);
-    setProfileReady(true);
+    loadGen.current++;
+    resetProfileState();
   }
 
   return (

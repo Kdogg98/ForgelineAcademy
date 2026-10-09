@@ -6,9 +6,12 @@ import {
   bootTheme,
   brandedTitle,
   buildStoredTheme,
+  clearAllCachedThemes,
   clearCachedTheme,
   clearPreview,
   companyQualifies,
+  persistedSessionUserId,
+  readCachedTheme,
   themeCompanyFromRow,
   verifyFavicon,
   writeCachedTheme,
@@ -32,10 +35,26 @@ export function CompanyThemeProvider({ children }: { children: ReactNode }) {
   const { user, loading, profileReady, isAdmin, company, companyRole } = useAuth();
   const [debug] = useState<StoredTheme | null>(() => debugTheme());
   const [boot] = useState(() => bootTheme());
+  const [bootUserId] = useState(() => persistedSessionUserId());
   const [preview, setPreview] = useState<StoredTheme | null>(() => (boot?.source === 'preview' ? boot.theme : null));
   const lastUserId = useRef<string | null>(null);
+  /** Boot theme is only for the first auth resolution; later sign-ins must not reuse it. */
+  const [settled, setSettled] = useState(false);
 
   const resolved = !loading && (!user || profileReady);
+  const userId = user?.id ?? null;
+  useEffect(() => {
+    if (resolved) setSettled(true);
+  }, [resolved]);
+
+  // While a (new) user's profile loads: only that user's own cached theme, never another user's.
+  const pendingTheme = useMemo(() => {
+    if (resolved) return null;
+    if (!settled && boot && (boot.source === 'preview' || !userId || userId === bootUserId)) return boot;
+    if (user && isAdmin && preview) return { theme: preview, source: 'preview' as const };
+    const cached = userId ? readCachedTheme(userId) : null;
+    return cached ? { theme: cached, source: 'member' as const } : null;
+  }, [resolved, settled, boot, bootUserId, userId, user, isAdmin, preview]);
 
   const memberTheme = useMemo(() => {
     if (!user || !companyRole || !companyQualifies(company)) return null;
@@ -47,8 +66,8 @@ export function CompanyThemeProvider({ children }: { children: ReactNode }) {
   if (debug) {
     [active, source] = [debug, 'debug'];
   } else if (!resolved) {
-    // Auth still loading: keep what the boot script applied (no flash).
-    [active, source] = boot ? [boot.theme, boot.source] : [null, null];
+    // Auth/profile still loading: keep the boot / cached theme of this same user (no flash).
+    [active, source] = pendingTheme ? [pendingTheme.theme, pendingTheme.source] : [null, null];
   } else if (user && isAdmin && preview) {
     [active, source] = [preview, 'preview'];
   } else if (memberTheme) {
@@ -69,7 +88,8 @@ export function CompanyThemeProvider({ children }: { children: ReactNode }) {
         setPreview(null);
       }
     } else {
-      if (lastUserId.current) clearCachedTheme(lastUserId.current);
+      // Signed out: drop every cached member theme (boot script must not re-apply it).
+      clearAllCachedThemes();
       lastUserId.current = null;
       if (preview) {
         clearPreview();

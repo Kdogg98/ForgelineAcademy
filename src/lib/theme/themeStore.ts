@@ -116,6 +116,17 @@ function storage(kind: 'local' | 'session'): Storage | null {
 export const readCachedTheme = (userId: string) => safeParse(storage('local')?.getItem(CACHE_PREFIX + userId) ?? null);
 export const writeCachedTheme = (userId: string, t: StoredTheme) => storage('local')?.setItem(CACHE_PREFIX + userId, JSON.stringify(t));
 export const clearCachedTheme = (userId: string) => storage('local')?.removeItem(CACHE_PREFIX + userId);
+/** Remove every cached member theme (sign-out: no user's company should survive). */
+export function clearAllCachedThemes() {
+  const ls = storage('local');
+  if (!ls) return;
+  const keys: string[] = [];
+  for (let i = 0; i < ls.length; i++) {
+    const key = ls.key(i);
+    if (key?.startsWith(CACHE_PREFIX)) keys.push(key);
+  }
+  keys.forEach((k) => ls.removeItem(k));
+}
 export const readPreview = () => safeParse(storage('session')?.getItem(PREVIEW_KEY) ?? null);
 export const writePreview = (t: StoredTheme) => storage('session')?.setItem(PREVIEW_KEY, JSON.stringify(t));
 export const clearPreview = () => storage('session')?.removeItem(PREVIEW_KEY);
@@ -172,6 +183,13 @@ export function applyTheme(theme: StoredTheme | null) {
     if (link?.dataset.defaultHref) {
       link.setAttribute('href', link.dataset.defaultHref);
       link.setAttribute('type', 'image/svg+xml');
+    }
+    // Restore a meta theme-color if anything themed it (data-default-content marks the original).
+    const meta = document.head.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    if (meta?.dataset.defaultContent !== undefined) {
+      if (meta.dataset.defaultContent) meta.setAttribute('content', meta.dataset.defaultContent);
+      else meta.remove();
+      delete meta.dataset.defaultContent;
     }
     return;
   }

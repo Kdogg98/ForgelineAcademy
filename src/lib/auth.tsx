@@ -115,6 +115,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (gen !== loadGen.current) return;
     profileMissing.current = !data;
 
+    // Pending company invite for this user's verified email? Join it now
+    // (claim_my_company_invites, migration 20261014180000). No-op / ignored if
+    // there is none, the email is unverified, or the RPC is not deployed yet.
+    if (data && !data.company_id) {
+      try {
+        const { data: claim } = await supabase.rpc('claim_my_company_invites');
+        if (gen !== loadGen.current) return;
+        if ((claim as { joined?: boolean } | null)?.joined) data = (await fetchProfileRow(uid)) ?? data;
+      } catch {
+        // ignore: joining by invite is best-effort on sign-in
+      }
+      if (gen !== loadGen.current) return;
+    }
+
     setIsAdmin(Boolean(data?.is_admin));
     setFullName(data?.full_name ?? null);
     setAssessmentCompleted(Boolean(data?.assessment_completed));

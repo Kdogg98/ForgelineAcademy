@@ -1,11 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Activity, AlertCircle, ArrowLeft, Award, BarChart3, BookOpen, Building2, CheckCircle2, ChevronRight,
-  ClipboardCheck, Library, Loader2, Trash2, UserPlus, Users, X,
+  ClipboardCheck, ClipboardList, Download, Library, Loader2, Printer, Timer, Trash2, UserPlus, Users, X,
 } from 'lucide-react';
 import type { Company } from '@/lib/types';
 import type { Route } from '@/components/Nav';
-import { supabaseManagerData, type ManagerDataSource, type TeamSnapshot, type RosterMember } from '@/lib/managerData';
+import {
+  supabaseManagerData, inviteUrl, type AssignmentRow, type InviteRow, type ManagerDataSource, type TeamSnapshot, type RosterMember,
+} from '@/lib/managerData';
+import {
+  AssignDialog, AssignmentsPanel, InvitesPanel, OverdueBanner, StatusPill, buildAuditRows, computeAssignments,
+  downloadAuditCsv, fmtDue, printAuditReport, type AssignmentView,
+} from '@/components/manager/ManagerExtras';
 
 /**
  * Company Manager Dashboard: landing + /dashboard view for owners/admins of an
@@ -45,14 +51,25 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
   const [email, setEmail] = useState('');
   const [busy, setBusy] = useState(false);
   const [mutationsOff, setMutationsOff] = useState(false);
+  // undefined = migration 20261014180000 not applied yet: hide those panels
+  const [assignmentRows, setAssignmentRows] = useState<AssignmentRow[] | undefined>(undefined);
+  const [invites, setInvites] = useState<InviteRow[] | undefined>(undefined);
+  const [assignFor, setAssignFor] = useState<string | null | false>(false);
+  const [lastLink, setLastLink] = useState<{ email: string; url: string; emailed: boolean; reason?: string } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [t, lim] = await Promise.all([dataSource.loadTeam(company.id), dataSource.loadSeatLimit(company.id)]);
+      const [t, lim, asg, inv] = await Promise.all([
+        dataSource.loadTeam(company.id), dataSource.loadSeatLimit(company.id),
+        dataSource.loadAssignments(company.id).catch(() => undefined),
+        dataSource.loadInvites(company.id).catch(() => undefined),
+      ]);
       setTeam(t);
       setSeatLimit(lim);
+      setAssignmentRows(asg);
+      setInvites(inv);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load your team');
     } finally {
@@ -63,7 +80,12 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
   useEffect(() => { void load(); }, [load]);
 
   const members = useMemo(() => team?.members ?? [], [team]);
-  const seatsUsed = members.length;
+  const pendingInvites = useMemo(() => {
+    const now = new Date().toISOString();
+    return (invites ?? []).filter((i) => i.status === 'pending' && i.expires_at > now).length;
+  }, [invites]);
+  // pending invites hold a seat (same rule as the server)
+  const seatsUsed = members.length + pendingInvites;
   const hasLimit = typeof seatLimit === 'number';
   const atLimit = hasLimit && seatsUsed >= (seatLimit as number);
   const byId = useMemo(() => new Map(members.map((m) => [m.user_id, m])), [members]);
@@ -109,6 +131,12 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
     avgQuiz: team && team.quizzes.length ? Math.round(team.quizzes.reduce((n, q) => n + q.score, 0) / team.quizzes.length) : null,
   }), [summaries, team]);
 
+  const assignments: AssignmentView[] = useMemo(
+    () => (team && assignmentRows ? computeAssignments(assignmentRows, team) : []),
+    [team, assignmentRows],
+  );
+  const overdue = assignments.filter((a) => a.status === 'overdue').length;
+
   const activity: ActivityItem[] = useMemo(() => {
     if (!team) return [];
     const items: ActivityItem[] = [];
@@ -142,6 +170,57 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
     await load();
   }
 
+  async function assignCourse(courseId: string, userId: string | null, due: string | null) {
+    setBusy(true); setError(null); setNotice(null);
+    const r = await dataSource.assignCourse(company.id, courseId, userId, due);
+    setBusy(false);
+    if (!r.ok) { setError(r.error); return; }
+    setAssignFor(false);
+    setNotice(`Assigned “${team?.courseTitles[courseId] ?? 'course'}” to ${userId ? displayName(byId.get(userId)) : 'everyone on the team'}${due ? `, due ${fmtDue(due)}` : ''}.`);
+    await load();
+  }
+
+  async function removeAssignment(a: AssignmentView) {
+    if (!window.confirm(`Remove the “${team?.courseTitles[a.course_id] ?? 'course'}” assignment for ${displayName(byId.get(a.user_id))}? Their progress is kept.`)) return;
+    setBusy(true); setError(null); setNotice(null);
+    const r = await dataSource.removeAssignment(a.id);
+    setBusy(false);
+    if (!r.ok) { setError(r.error); return; }
+    await load();
+  }
+
+  async function createInvite(addr: string): Promise<boolean> {
+    setBusy(true); setError(null); setNotice(null); setLastLink(null);
+    const r = await dataSource.createInvite(company.id, addr);
+    if (!r.ok) { setBusy(false); setError(r.error); return false; }
+    const url = inviteUrl(r.token);
+    const mail = await dataSource.sendInviteEmail(r.id);
+    setBusy(false);
+    setLastLink({ email: addr.toLowerCase(), url, emailed: mail.sent, reason: mail.sent ? undefined : mail.reason });
+    await load();
+    return true;
+  }
+
+  async function revokeInvite(inv: InviteRow) {
+    if (!window.confirm(`Revoke the invite for ${inv.email}? The link stops working and the seat is freed.`)) return;
+    setBusy(true); setError(null); setNotice(null);
+    const r = await dataSource.revokeInvite(inv.id);
+    setBusy(false);
+    if (!r.ok) { setError(r.error); return; }
+    setNotice(`Invite for ${inv.email} revoked.`);
+    if (lastLink?.email === inv.email) setLastLink(null);
+    await load();
+  }
+
+  function exportCsv() {
+    if (!team) return;
+    downloadAuditCsv(company.name, buildAuditRows(team, assignments));
+  }
+  function exportPrint() {
+    if (!team) return;
+    if (!printAuditReport(company.name, buildAuditRows(team, assignments))) setError('Allow pop-ups for this site to open the printable report.');
+  }
+
   const canRemove = (m: RosterMember) => m.user_id !== currentUserId && m.role !== 'owner';
   const sel = selected ? summaries.find((s) => s.m.user_id === selected) ?? null : null;
 
@@ -162,9 +241,17 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
             <h1 className="font-display text-2xl sm:text-3xl font-bold text-white truncate">{company.name}</h1>
             <p className="text-sm text-steel-400">Signed in as {currentRole === 'owner' ? 'owner' : 'admin'} · you can see your own team only</p>
           </div>
-          <button onClick={() => onNavigate({ name: 'catalog' })} className="btn-secondary flex items-center gap-2 self-start sm:self-auto">
-            <Library className="w-4 h-4" /> What your team can take
-          </button>
+          <div className="flex flex-wrap gap-2 self-start sm:self-auto">
+            <button onClick={exportCsv} disabled={!team} className="btn-secondary flex items-center gap-2 text-sm" title="Employees, completions, quiz scores, certificates and assignments as CSV">
+              <Download className="w-4 h-4" /> Export audit CSV
+            </button>
+            <button onClick={exportPrint} disabled={!team} className="btn-ghost flex items-center gap-2 text-sm" title="Printable report (save as PDF)">
+              <Printer className="w-4 h-4" /> Print / PDF
+            </button>
+            <button onClick={() => onNavigate({ name: 'catalog' })} className="btn-secondary flex items-center gap-2 text-sm">
+              <Library className="w-4 h-4" /> What your team can take
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -184,13 +271,15 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
         ) : (
           <>
             {/* Stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
+            <div className={`grid grid-cols-2 ${assignmentRows ? 'lg:grid-cols-6' : 'lg:grid-cols-5'} gap-3 mb-6`}>
               <Stat icon={<Users className="w-4 h-4" />} label="Seats used" value={`${seatsUsed} of ${hasLimit ? seatLimit : 'Unlimited'}`} warn={atLimit} />
               <Stat icon={<BookOpen className="w-4 h-4" />} label="Courses in progress" value={String(totals.inProgress)} />
               <Stat icon={<CheckCircle2 className="w-4 h-4" />} label="Courses completed" value={String(totals.completed)} />
               <Stat icon={<Award className="w-4 h-4" />} label="Certificates" value={String(totals.certs)} />
               <Stat icon={<ClipboardCheck className="w-4 h-4" />} label="Avg quiz score" value={totals.avgQuiz != null ? `${totals.avgQuiz}%` : '—'} />
+              {assignmentRows && <Stat icon={<Timer className="w-4 h-4" />} label="Overdue" value={String(overdue)} warn={overdue > 0} />}
             </div>
+            {assignmentRows && <OverdueBanner count={overdue} onShow={() => { setSelected(null); setTimeout(() => document.getElementById('assignments')?.scrollIntoView({ behavior: 'smooth' }), 0); }} />}
 
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_22rem] gap-6">
               <div className="min-w-0">
@@ -200,13 +289,15 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
                     rows={courseRows(sel.m.user_id)}
                     team={team as TeamSnapshot}
                     onBack={() => setSelected(null)}
+                    assignments={assignmentRows ? assignments.filter((a) => a.user_id === sel.m.user_id) : undefined}
+                    onAssign={() => setAssignFor(sel.m.user_id)}
                   />
                 ) : (
                   <div className="card p-4 sm:p-5">
                     <div className="flex flex-wrap items-center gap-3 mb-4">
                       <h2 className="font-display text-lg font-semibold text-white flex items-center gap-2"><Users className="w-5 h-5 text-accent-400" /> Employees</h2>
                       <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${atLimit ? 'border-warning-500/50 text-warning-400 bg-warning-500/10' : 'border-steel-600 text-steel-300'}`}>
-                        Seats used {seatsUsed} of {hasLimit ? seatLimit : 'Unlimited'}
+                        Seats used {seatsUsed} of {hasLimit ? seatLimit : 'Unlimited'}{pendingInvites > 0 ? ` · ${pendingInvites} pending` : ''}
                       </span>
                       <div className="flex-1" />
                       <button
@@ -275,6 +366,17 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
                     )}
                   </div>
                 )}
+                {!sel && assignmentRows && team && (
+                  <div id="assignments">
+                    <AssignmentsPanel items={assignments} byId={byId} courseTitles={team.courseTitles} busy={busy}
+                      onAssign={() => setAssignFor(null)} onRemove={(a) => void removeAssignment(a)} onSelect={setSelected} />
+                  </div>
+                )}
+                {!sel && invites && (
+                  <InvitesPanel invites={invites} busy={busy} lastLink={lastLink}
+                    seatsLeft={hasLimit ? (seatLimit as number) - seatsUsed : null}
+                    onInvite={createInvite} onRevoke={(i) => void revokeInvite(i)} />
+                )}
               </div>
 
               {/* Activity feed */}
@@ -303,6 +405,10 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
           </>
         )}
       </div>
+      {assignFor !== false && team && (
+        <AssignDialog members={members} courseTitles={team.courseTitles} busy={busy} initialUserId={assignFor}
+          onCancel={() => setAssignFor(false)} onAssign={(c, u, d) => void assignCourse(c, u, d)} />
+      )}
     </div>
   );
 }
@@ -322,11 +428,13 @@ interface DetailRow {
   cert: { certificate_number: string; issued_at: string } | null;
 }
 
-function EmployeeDetail({ s, rows, team, onBack }: {
+function EmployeeDetail({ s, rows, team, onBack, assignments, onAssign }: {
   s: { m: RosterMember; courses: number; completed: number; certs: number; avgQuiz: number | null };
   rows: DetailRow[];
   team: TeamSnapshot;
   onBack: () => void;
+  assignments?: AssignmentView[];
+  onAssign: () => void;
 }) {
   const quizzes = team.quizzes.filter((q) => q.user_id === s.m.user_id).sort((a, b) => b.created_at.localeCompare(a.created_at));
   const certs = team.certs.filter((c) => c.user_id === s.m.user_id).sort((a, b) => b.issued_at.localeCompare(a.issued_at));
@@ -339,6 +447,25 @@ function EmployeeDetail({ s, rows, team, onBack }: {
         <Mini label="Courses" value={s.courses} /><Mini label="Completed" value={s.completed} />
         <Mini label="Certificates" value={s.certs} /><Mini label="Avg quiz" value={s.avgQuiz != null ? `${s.avgQuiz}%` : '—'} />
       </div>
+
+      {assignments && (
+        <>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-semibold text-white flex items-center gap-2"><ClipboardList className="w-4 h-4 text-accent-400" /> Assigned courses</h3>
+            <button onClick={onAssign} className="text-xs text-accent-300 hover:text-accent-200 font-semibold">+ Assign course</button>
+          </div>
+          {assignments.length === 0 ? <p className="text-sm text-steel-500 mb-5">Nothing assigned.</p> : (
+            <ul className="mb-5 divide-y divide-steel-700/40 rounded-lg border border-steel-700/40">
+              {assignments.map((a) => (
+                <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm">
+                  <span className="text-white">{team.courseTitles[a.course_id] ?? 'Course'}</span>
+                  <span className="flex items-center gap-2 text-[11px] text-steel-400">{a.due_date ? `Due ${fmtDue(a.due_date)}` : 'No due date'} <StatusPill status={a.status} /></span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      )}
 
       <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2"><BarChart3 className="w-4 h-4 text-accent-400" /> Course progress</h3>
       {rows.length === 0 ? <p className="text-sm text-steel-500 mb-5">Hasn't started a course yet.</p> : (

@@ -25,6 +25,7 @@ import type { Route } from '@/components/Nav';
 import { LatestAnnouncements } from '@/components/LatestAnnouncements';
 import { useCompanyTheme } from '@/lib/theme/useCompanyTheme';
 import { CompanyWelcomeHero } from '@/components/brand/CompanyBrand';
+import { AssignedToYou } from '@/components/AssignedToYou';
 
 interface DashboardProps {
   courses: Course[];
@@ -217,6 +218,8 @@ export function Dashboard({ courses, onNavigate, progressMap, certs }: Dashboard
           )}
         </div>
       </section>
+
+      <AssignedToYou userId={user?.id} courses={courses} progressMap={courseProgressMap} certs={certs} onNavigate={onNavigate} />
 
       {/* Career ladder progress */}
         <section>

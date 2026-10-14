@@ -3,6 +3,7 @@
 --   20261008150000_company_builder_entitlements_manager_rls.sql
 --   20261008150100_protect_profile_privileged_columns.sql
 --   20261014120000_company_manager_roster_rpcs.sql
+--   20261014180000_company_assignments_invites.sql   (section 8)
 --
 -- Proves: manager A cannot see company B rows, employees cannot see each
 -- other, company premium grants premium (only while the company is active), drafts are admin-only, and users can
@@ -16,6 +17,13 @@
 -- Must be run as a superuser/postgres (to insert fixtures into auth.users).
 -- =============================================================================
 begin;
+
+-- live auth.users has email_confirmed_at; minimal local stubs may not
+do $$ begin
+  if not exists (select 1 from information_schema.columns where table_schema = 'auth' and table_name = 'users' and column_name = 'email_confirmed_at') then
+    alter table auth.users add column email_confirmed_at timestamptz;
+  end if;
+end $$;
 
 -- ---------- fixtures (as postgres, bypasses RLS) ----------
 -- ids: aa.. = company A, bb.. = company B, ad = master admin, 50 = solo, 5b = subscriber
@@ -309,6 +317,234 @@ select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000
 set local role authenticated;
 do $$ begin
   assert (public.manager_add_company_member('0000000a-0000-0000-0000-000000000000', 'free-3@test.local')->>'success')::boolean, 'unlimited company refused add';
+end $$;
+reset role;
+
+-- ---------- 8. Course assignments + invites (migration 20261014180000) ----------
+-- state: A has 6 members (a0 owner, a1, a2, a3 admin, f2, f3), seat_limit null. B: b0 owner, b1.
+insert into public.courses (id, title) values
+  ('c0000000-0000-0000-0000-000000000001', 'Assign Test Course 1'),
+  ('c0000000-0000-0000-0000-000000000002', 'Assign Test Course 2');
+insert into auth.users (id, email, email_confirmed_at) values
+  ('00000000-0000-0000-0000-0000000000e1', 'invitee-1@test.local', now()),
+  ('00000000-0000-0000-0000-0000000000e2', 'invitee-2@test.local', null),
+  ('00000000-0000-0000-0000-0000000000e3', 'invitee-3@test.local', now());
+insert into public.profiles (id, email) values
+  ('00000000-0000-0000-0000-0000000000e2', 'invitee-2@test.local');
+
+-- 8a. manager A0 assigns: one employee, then everyone; cannot touch B
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a0","role":"authenticated"}', true);
+set local role authenticated;
+do $$
+declare r jsonb;
+begin
+  r := public.manager_assign_course('0000000a-0000-0000-0000-000000000000', 'c0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-0000000000a1', '2026-10-01');
+  assert (r->>'success')::boolean and (r->>'assigned')::int = 1, 'assign one failed: ' || r::text;
+  r := public.manager_assign_course('0000000a-0000-0000-0000-000000000000', 'c0000000-0000-0000-0000-000000000002', null, null);
+  assert (r->>'assigned')::int = 6, 'assign all should hit 6 members: ' || r::text;
+  -- re-assign updates due date (upsert)
+  r := public.manager_assign_course('0000000a-0000-0000-0000-000000000000', 'c0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-0000000000a1', '2026-12-01');
+  assert (select due_date from public.course_assignments where user_id = '00000000-0000-0000-0000-0000000000a1' and course_id = 'c0000000-0000-0000-0000-000000000001') = '2026-12-01', 'due date not updated';
+  -- cannot assign to a B employee via own company id
+  begin
+    perform public.manager_assign_course('0000000a-0000-0000-0000-000000000000', 'c0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-0000000000b1', null);
+    raise exception 'TEST FAIL: assigned other-company employee';
+  exception when others then if sqlerrm like 'TEST FAIL%' then raise; end if; end;
+  -- cannot assign in company B
+  begin
+    perform public.manager_assign_course('0000000b-0000-0000-0000-000000000000', 'c0000000-0000-0000-0000-000000000001', null, null);
+    raise exception 'TEST FAIL: assigned in other company';
+  exception when others then if sqlerrm like 'TEST FAIL%' then raise; end if; end;
+  -- direct insert into B rejected by RLS
+  begin
+    insert into public.course_assignments (company_id, user_id, course_id) values ('0000000b-0000-0000-0000-000000000000', '00000000-0000-0000-0000-0000000000b1', 'c0000000-0000-0000-0000-000000000001');
+    raise exception 'TEST FAIL: direct insert into B';
+  exception when others then if sqlerrm like 'TEST FAIL%' then raise; end if; end;
+  -- direct insert of a B employee under company A rejected
+  begin
+    insert into public.course_assignments (company_id, user_id, course_id) values ('0000000a-0000-0000-0000-000000000000', '00000000-0000-0000-0000-0000000000b1', 'c0000000-0000-0000-0000-000000000001');
+    raise exception 'TEST FAIL: direct insert of B employee under A';
+  exception when others then if sqlerrm like 'TEST FAIL%' then raise; end if; end;
+  assert (select count(*) from public.course_assignments) = 7, 'manager A should see exactly A rows (7)';
+end $$;
+reset role;
+
+-- B manager assigns one to b1 (fixture for isolation)
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b0","role":"authenticated"}', true);
+set local role authenticated;
+do $$ begin
+  perform public.manager_assign_course('0000000b-0000-0000-0000-000000000000', 'c0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-0000000000b1', null);
+  assert (select count(*) from public.course_assignments) = 1, 'manager B should see only B rows';
+  update public.course_assignments set due_date = '2030-01-01' where company_id = '0000000a-0000-0000-0000-000000000000';
+  delete from public.course_assignments where company_id = '0000000a-0000-0000-0000-000000000000';
+end $$;
+reset role;
+do $$ begin
+  assert (select count(*) from public.course_assignments where company_id = '0000000a-0000-0000-0000-000000000000') = 7, 'manager B changed A assignments';
+  assert not exists (select 1 from public.course_assignments where due_date = '2030-01-01'), 'manager B updated A rows';
+end $$;
+
+-- 8b. employee a1: sees own rows only, cannot self-assign / edit / delete / invite
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+set local role authenticated;
+do $$ begin
+  assert (select count(*) from public.course_assignments) = 2, 'employee should see only own 2 assignments';
+  assert (select count(*) from public.course_assignments where user_id <> auth.uid()) = 0, 'employee sees colleagues assignments';
+  begin
+    insert into public.course_assignments (company_id, user_id, course_id) values ('0000000a-0000-0000-0000-000000000000', auth.uid(), 'c0000000-0000-0000-0000-000000000002');
+    raise exception 'TEST FAIL: employee self-assigned';
+  exception when others then if sqlerrm like 'TEST FAIL%' then raise; end if; end;
+  begin
+    perform public.manager_assign_course('0000000a-0000-0000-0000-000000000000', 'c0000000-0000-0000-0000-000000000001', auth.uid(), null);
+    raise exception 'TEST FAIL: employee self-assigned via RPC';
+  exception when others then if sqlerrm like 'TEST FAIL%' then raise; end if; end;
+  update public.course_assignments set due_date = null where user_id = auth.uid();
+  delete from public.course_assignments where user_id = auth.uid();
+  begin
+    perform public.manager_create_invite('0000000a-0000-0000-0000-000000000000', 'someone@test.local');
+    raise exception 'TEST FAIL: employee created an invite';
+  exception when others then if sqlerrm like 'TEST FAIL%' then raise; end if; end;
+  begin
+    insert into public.company_invites (company_id, email) values ('0000000a-0000-0000-0000-000000000000', 'someone@test.local');
+    raise exception 'TEST FAIL: employee inserted an invite directly';
+  exception when others then if sqlerrm like 'TEST FAIL%' then raise; end if; end;
+  begin
+    perform public._claim_company_invites_for(auth.uid());
+    raise exception 'TEST FAIL: internal claim callable';
+  exception when others then if sqlerrm like 'TEST FAIL%' then raise; end if; end;
+end $$;
+reset role;
+do $$ begin
+  assert (select due_date from public.course_assignments where user_id = '00000000-0000-0000-0000-0000000000a1' and course_id = 'c0000000-0000-0000-0000-000000000001') = '2026-12-01', 'employee edited own due date';
+  assert (select count(*) from public.course_assignments where user_id = '00000000-0000-0000-0000-0000000000a1') = 2, 'employee deleted own assignment';
+end $$;
+
+-- 8c. seat limit counts pending invites. A: 6 members, limit 8.
+update public.companies set seat_limit = 8 where id = '0000000a-0000-0000-0000-000000000000';
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a3","role":"authenticated"}', true);
+set local role authenticated;
+do $$
+declare r jsonb; r2 jsonb;
+begin
+  r := public.manager_create_invite('0000000a-0000-0000-0000-000000000000', ' Invitee-1@Test.local ');
+  assert (r->>'success')::boolean and length(r->>'token') >= 32, 'invite 1 failed: ' || r::text;
+  r := public.manager_create_invite('0000000a-0000-0000-0000-000000000000', 'invitee-1@test.local');
+  assert not (r->>'success')::boolean, 'duplicate pending invite allowed';
+  r2 := public.manager_create_invite('0000000a-0000-0000-0000-000000000000', 'invitee-2@test.local');
+  assert (r2->>'success')::boolean, 'invite 2 failed: ' || r2::text;
+  assert public.company_seats_used('0000000a-0000-0000-0000-000000000000') = 8, 'seats used should be 6 members + 2 invites';
+  -- 9th seat: invite refused, direct add refused
+  r := public.manager_create_invite('0000000a-0000-0000-0000-000000000000', 'invitee-3@test.local');
+  assert not (r->>'success')::boolean and r->>'error' like '%seats%', 'invite past seat limit allowed: ' || r::text;
+  r := public.manager_add_company_member('0000000a-0000-0000-0000-000000000000', 'free-1@test.local');
+  assert not (r->>'success')::boolean and r->>'error' like '%seats%', 'add past limit (pending invites) allowed: ' || r::text;
+  -- other company: cannot invite or revoke
+  begin
+    perform public.manager_create_invite('0000000b-0000-0000-0000-000000000000', 'x@test.local');
+    raise exception 'TEST FAIL: invited into other company';
+  exception when others then if sqlerrm like 'TEST FAIL%' then raise; end if; end;
+  assert (select count(*) from public.company_invites) = 2, 'manager A should see its 2 invites';
+  -- revoke frees a seat
+  perform public.manager_revoke_invite((r2->>'invite_id')::uuid);
+  assert public.company_seats_used('0000000a-0000-0000-0000-000000000000') = 7, 'revoke did not free a seat';
+  r := public.manager_create_invite('0000000a-0000-0000-0000-000000000000', 'invitee-3@test.local');
+  assert (r->>'success')::boolean, 'freed seat not reusable for invite: ' || r::text;
+end $$;
+reset role;
+
+-- B manager: cannot see or revoke A invites
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b0","role":"authenticated"}', true);
+set local role authenticated;
+do $$
+declare v uuid := (select id from public.company_invites limit 1);
+begin
+  assert v is null, 'manager B sees A invites';
+end $$;
+reset role;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b0","role":"authenticated"}', true);
+set local role authenticated;
+do $$ begin
+  begin
+    perform public.manager_revoke_invite((select id from public.company_invites where email = 'invitee-1@test.local' and false));
+    raise exception 'TEST FAIL: revoke with null id allowed';
+  exception when others then if sqlerrm like 'TEST FAIL%' then raise; end if; end;
+end $$;
+reset role;
+-- pass the real A invite id in as postgres-built literal
+select set_config('fl.inv1', (select id::text from public.company_invites where email = 'invitee-1@test.local'), true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b0","role":"authenticated"}', true);
+set local role authenticated;
+do $$ begin
+  begin
+    perform public.manager_revoke_invite(current_setting('fl.inv1')::uuid);
+    raise exception 'TEST FAIL: manager B revoked A invite';
+  exception when others then if sqlerrm like 'TEST FAIL%' then raise; end if; end;
+end $$;
+reset role;
+do $$ begin
+  assert (select status from public.company_invites where email = 'invitee-1@test.local') = 'pending', 'A invite changed by B';
+end $$;
+
+-- 8d. joining: verified email joins on profile creation (trigger); unverified does not
+insert into public.profiles (id, email) values ('00000000-0000-0000-0000-0000000000e1', 'invitee-1@test.local');
+do $$ begin
+  assert exists (select 1 from public.company_members where user_id = '00000000-0000-0000-0000-0000000000e1' and company_id = '0000000a-0000-0000-0000-000000000000' and role = 'member'), 'verified invitee did not join on profile creation';
+  assert (select company_id from public.profiles where id = '00000000-0000-0000-0000-0000000000e1') = '0000000a-0000-0000-0000-000000000000', 'profile.company_id not set';
+  assert (select status from public.company_invites where email = 'invitee-1@test.local') = 'accepted', 'invite not marked accepted';
+  assert public.company_seats_used('0000000a-0000-0000-0000-000000000000') = 8, 'accepted invite double counted';
+end $$;
+-- invitee-2 (unverified, invite revoked) and a fresh pending invite for an unverified email
+update public.companies set seat_limit = null where id = '0000000a-0000-0000-0000-000000000000';
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a0","role":"authenticated"}', true);
+set local role authenticated;
+do $$ begin
+  assert (public.manager_create_invite('0000000a-0000-0000-0000-000000000000', 'invitee-2@test.local')->>'success')::boolean, 're-invite after revoke failed';
+end $$;
+reset role;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000e2","role":"authenticated"}', true);
+set local role authenticated;
+do $$ begin
+  assert not (public.claim_my_company_invites()->>'joined')::boolean, 'unverified email joined';
+end $$;
+reset role;
+update auth.users set email_confirmed_at = now() where id = '00000000-0000-0000-0000-0000000000e2';
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000e2","role":"authenticated"}', true);
+set local role authenticated;
+do $$ begin
+  assert (public.claim_my_company_invites()->>'joined')::boolean, 'verified sign-in did not join';
+  assert not (public.claim_my_company_invites()->>'joined')::boolean, 'claim is not idempotent';
+end $$;
+reset role;
+-- expired invites do not count and cannot be claimed
+update public.company_invites set expires_at = now() - interval '1 minute' where email = 'invitee-3@test.local';
+insert into public.profiles (id, email) values ('00000000-0000-0000-0000-0000000000e3', 'invitee-3@test.local');
+do $$ begin
+  assert not exists (select 1 from public.company_members where user_id = '00000000-0000-0000-0000-0000000000e3'), 'expired invite was claimed';
+end $$;
+
+-- 8e. removing a member deletes their assignments in that company
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a0","role":"authenticated"}', true);
+set local role authenticated;
+do $$ begin
+  perform public.manager_remove_company_member('0000000a-0000-0000-0000-000000000000', '00000000-0000-0000-0000-0000000000f2');
+end $$;
+reset role;
+do $$ begin
+  assert not exists (select 1 from public.course_assignments where user_id = '00000000-0000-0000-0000-0000000000f2'), 'assignments not cleaned up on removal';
+end $$;
+
+-- 8f. anon gets nothing
+select set_config('request.jwt.claims', '', true);
+set local role anon;
+do $$ begin
+  begin
+    perform 1 from public.course_assignments;
+    assert (select count(*) from public.course_assignments) = 0, 'anon sees assignments';
+  exception when insufficient_privilege then null; end;
+  begin
+    perform 1 from public.company_invites;
+    raise exception 'TEST FAIL: anon can read invites';
+  exception when insufficient_privilege then null; end;
 end $$;
 reset role;
 

@@ -8,6 +8,9 @@ import { supabase } from '@/lib/supabase';
  *    is_company_manager_of() policies from migration 20261008150000
  *  - add / remove: manager_add_company_member / manager_remove_company_member
  *    from migration 20261014120000 (degrades if not applied yet)
+ *  - assignments / invites: course_assignments + company_invites tables and the
+ *    manager_assign_course / manager_create_invite / manager_revoke_invite RPCs
+ *    from migration 20261014180000 (features hide themselves until applied)
  */
 
 export interface RosterMember {
@@ -43,6 +46,11 @@ export interface TeamSnapshot {
   lessonTotals: Record<string, number>;
 }
 
+export interface AssignmentRow { id: string; company_id: string; user_id: string; course_id: string; due_date: string | null; created_at: string }
+export interface InviteRow { id: string; email: string; token: string; status: 'pending' | 'accepted' | 'revoked'; created_at: string; expires_at: string; accepted_at: string | null }
+export interface CreatedInvite { id: string; token: string; expires_at: string }
+export type InviteEmailResult = { sent: true } | { sent: false; reason: string };
+
 export type MutationResult = { ok: true } | { ok: false; error: string; unavailable?: boolean };
 
 export interface ManagerDataSource {
@@ -51,6 +59,27 @@ export interface ManagerDataSource {
   loadSeatLimit(companyId: string): Promise<number | null | undefined>;
   addMember(companyId: string, email: string): Promise<MutationResult>;
   removeMember(companyId: string, userId: string): Promise<MutationResult>;
+  /** undefined = feature not available yet (migration not applied). */
+  loadAssignments(companyId: string): Promise<AssignmentRow[] | undefined>;
+  /** userId null = every current member of the company. */
+  assignCourse(companyId: string, courseId: string, userId: string | null, dueDate: string | null): Promise<MutationResult>;
+  removeAssignment(assignmentId: string): Promise<MutationResult>;
+  /** undefined = feature not available yet (migration not applied). */
+  loadInvites(companyId: string): Promise<InviteRow[] | undefined>;
+  createInvite(companyId: string, email: string): Promise<({ ok: true } & CreatedInvite) | { ok: false; error: string; unavailable?: boolean }>;
+  revokeInvite(inviteId: string): Promise<MutationResult>;
+  /** Ask the (optional) send-company-invite edge function to email the link. Never throws. */
+  sendInviteEmail(inviteId: string): Promise<InviteEmailResult>;
+}
+
+/** Link the manager can copy and send. Joining is matched on the invitee's verified email. */
+export function inviteUrl(token: string, origin = typeof window !== 'undefined' ? window.location.origin : ''): string {
+  return `${origin}/auth?invite=${encodeURIComponent(token)}`;
+}
+
+function isMissingTable(err: { code?: string; message?: string } | null): boolean {
+  if (!err) return false;
+  return err.code === '42P01' || err.code === 'PGRST205' || /could not find the table|does not exist/i.test(err.message ?? '');
 }
 
 /** PostgREST "function not found" / Postgres undefined_function. */
@@ -119,5 +148,61 @@ export const supabaseManagerData: ManagerDataSource = {
     if (isMissingRpc(error)) return { ok: false, error: UNAVAILABLE, unavailable: true };
     if (error) return { ok: false, error: error.message };
     return { ok: true };
+  },
+
+  async loadAssignments(companyId) {
+    const { data, error } = await supabase.from('course_assignments')
+      .select('id, company_id, user_id, course_id, due_date, created_at').eq('company_id', companyId);
+    if (error) { if (isMissingTable(error)) return undefined; throw error; }
+    return (data as AssignmentRow[]) ?? [];
+  },
+
+  async assignCourse(companyId, courseId, userId, dueDate) {
+    const { data, error } = await supabase.rpc('manager_assign_course', {
+      p_company_id: companyId, p_course_id: courseId, p_user_id: userId, p_due_date: dueDate,
+    });
+    if (isMissingRpc(error)) return { ok: false, error: 'Assigning courses is not switched on yet.', unavailable: true };
+    if (error) return { ok: false, error: error.message };
+    const r = data as { success?: boolean; error?: string } | null;
+    return r?.success ? { ok: true } : { ok: false, error: r?.error ?? 'Could not assign that course.' };
+  },
+
+  async removeAssignment(assignmentId) {
+    const { error } = await supabase.from('course_assignments').delete().eq('id', assignmentId);
+    return error ? { ok: false, error: error.message } : { ok: true };
+  },
+
+  async loadInvites(companyId) {
+    const { data, error } = await supabase.from('company_invites')
+      .select('id, email, token, status, created_at, expires_at, accepted_at')
+      .eq('company_id', companyId).order('created_at', { ascending: false });
+    if (error) { if (isMissingTable(error)) return undefined; throw error; }
+    return (data as InviteRow[]) ?? [];
+  },
+
+  async createInvite(companyId, email) {
+    const { data, error } = await supabase.rpc('manager_create_invite', { p_company_id: companyId, p_email: email });
+    if (isMissingRpc(error)) return { ok: false, error: 'Email invites are not switched on yet.', unavailable: true };
+    if (error) return { ok: false, error: error.message };
+    const r = data as { success?: boolean; error?: string; invite_id?: string; token?: string; expires_at?: string } | null;
+    if (!r?.success || !r.invite_id || !r.token) return { ok: false, error: r?.error ?? 'Could not create the invite.' };
+    return { ok: true, id: r.invite_id, token: r.token, expires_at: r.expires_at ?? '' };
+  },
+
+  async revokeInvite(inviteId) {
+    const { data, error } = await supabase.rpc('manager_revoke_invite', { p_invite_id: inviteId });
+    if (error) return { ok: false, error: error.message };
+    return (data as { success?: boolean } | null)?.success ? { ok: true } : { ok: false, error: 'That invite is no longer pending.' };
+  },
+
+  async sendInviteEmail(inviteId) {
+    try {
+      const { data, error } = await supabase.functions.invoke('send-company-invite', { body: { invite_id: inviteId } });
+      if (error) return { sent: false, reason: 'Automatic email is not available.' };
+      const r = data as { email_sent?: boolean; reason?: string } | null;
+      return r?.email_sent ? { sent: true } : { sent: false, reason: r?.reason ?? 'Automatic email is not configured.' };
+    } catch {
+      return { sent: false, reason: 'Automatic email is not available.' };
+    }
   },
 };

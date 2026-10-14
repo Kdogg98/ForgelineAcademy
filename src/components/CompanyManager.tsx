@@ -16,6 +16,7 @@ import {
 import { supabase } from '@/lib/supabase';
 import type { Company } from '@/lib/types';
 import type { Route } from '@/components/Nav';
+import { SeatLimitEditor } from '@/components/SeatLimitEditor';
 
 interface CompanyStat extends Company {
   member_count?: number;
@@ -238,6 +239,10 @@ export function CompanyManager({ onNavigate }: CompanyManagerProps) {
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
+              </div>
+
+              <div className="mt-3 pt-3 border-t border-steel-700/40">
+                <SeatLimitEditor companyId={c.id} onSaved={(m) => setSuccess(m)} />
               </div>
 
               {addMemberForCompany === c.id && (

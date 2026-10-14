@@ -10,6 +10,8 @@ interface CourseCardProps {
   hasCertificate?: boolean;
   locked?: boolean;
   onClick?: () => void;
+  /** Manager catalog: informational card, not clickable, no start/progress affordance. */
+  readOnly?: boolean;
 }
 
 /** Stage-matched industrial background photos (Unsplash — free to use) */
@@ -41,14 +43,16 @@ export function CourseCard({
   hasCertificate = false,
   locked = false,
   onClick,
+  readOnly = false,
 }: CourseCardProps) {
+  const Root = readOnly ? 'div' : 'button';
   const cover = STAGE_COVER[course.stage];
   const overlay = STAGE_OVERLAY[course.stage];
 
   return (
-    <button
-      onClick={onClick}
-      className="group relative flex flex-col text-left card card-hover w-[300px] shrink-0 overflow-hidden"
+    <Root
+      onClick={readOnly ? undefined : onClick}
+      className={`group relative flex flex-col text-left card ${readOnly ? '' : 'card-hover'} w-[300px] shrink-0 overflow-hidden`}
     >
       {/* Header with matching background photo */}
       <div className="relative h-28 overflow-hidden bg-navy-950">
@@ -119,6 +123,7 @@ export function CourseCard({
           </div>
         )}
 
+        {!readOnly && (
         <div className="flex items-center justify-between pt-3 border-t border-steel-700/40">
           <span className="text-xs font-medium text-steel-400">
             {progress === 100
@@ -129,7 +134,8 @@ export function CourseCard({
           </span>
           <ChevronRight className="w-4 h-4 text-steel-500 group-hover:text-accent-400 group-hover:translate-x-0.5 transition-all" />
         </div>
+        )}
       </div>
-    </button>
+    </Root>
   );
 }

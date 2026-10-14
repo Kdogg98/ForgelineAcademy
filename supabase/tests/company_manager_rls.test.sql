@@ -2,6 +2,7 @@
 -- RLS / entitlement test plan for migrations
 --   20261008150000_company_builder_entitlements_manager_rls.sql
 --   20261008150100_protect_profile_privileged_columns.sql
+--   20261014120000_company_manager_roster_rpcs.sql
 --
 -- Proves: manager A cannot see company B rows, employees cannot see each
 -- other, company premium grants premium (only while the company is active), drafts are admin-only, and users can
@@ -187,6 +188,127 @@ begin
   perform public.publish_company_profile(cid);
   assert (select published and brand_accent = '#FF6600' and domain = 'built.example' and not premium from public.companies where id = cid), 'publish did not copy draft / changed premium';
   assert (select count(*) from public.user_progress where user_id = '00000000-0000-0000-0000-0000000000b1') = 1, 'master admin support read failed';
+end $$;
+reset role;
+
+-- ---------- 7. Manager roster RPCs + seat limit (migration 20261014120000) ----------
+-- extra fixtures: a3 = admin of A, f1/f2/f3 = accounts with no company
+insert into auth.users (id, email) values
+  ('00000000-0000-0000-0000-0000000000a3', 'adm-a3@test.local'),
+  ('00000000-0000-0000-0000-0000000000f1', 'free-1@test.local'),
+  ('00000000-0000-0000-0000-0000000000f2', 'free-2@test.local'),
+  ('00000000-0000-0000-0000-0000000000f3', 'free-3@test.local');
+insert into public.profiles (id, email) values
+  ('00000000-0000-0000-0000-0000000000a3', 'adm-a3@test.local'),
+  ('00000000-0000-0000-0000-0000000000f1', 'free-1@test.local'),
+  ('00000000-0000-0000-0000-0000000000f2', 'free-2@test.local'),
+  ('00000000-0000-0000-0000-0000000000f3', 'free-3@test.local');
+insert into public.company_members (company_id, user_id, role) values
+  ('0000000a-0000-0000-0000-000000000000', '00000000-0000-0000-0000-0000000000a3', 'admin');
+-- A now has 4 members (a0 owner, a1, a2, a3 admin)
+
+-- 7a. master admin sets seat_limit (trigger lets is_admin through)
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000ad","role":"authenticated"}', true);
+set local role authenticated;
+update public.companies set seat_limit = 5 where id = '0000000a-0000-0000-0000-000000000000';
+do $$ begin
+  assert (select seat_limit from public.companies where id = '0000000a-0000-0000-0000-000000000000') = 5, 'master admin cannot set seat_limit';
+end $$;
+reset role;
+
+-- 7b. owner A0: cannot raise own seat_limit via direct API update
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a0","role":"authenticated"}', true);
+set local role authenticated;
+update public.companies set seat_limit = 999 where id = '0000000a-0000-0000-0000-000000000000';
+reset role;
+do $$ begin
+  assert (select seat_limit from public.companies where id = '0000000a-0000-0000-0000-000000000000') = 5, 'owner changed own seat_limit';
+end $$;
+-- even if an UPDATE policy for owners existed, the trigger pins seat_limit
+create policy tmp_owner_update on public.companies for update to authenticated
+  using (public.is_manager_of_company(id)) with check (true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a0","role":"authenticated"}', true);
+set local role authenticated;
+update public.companies set seat_limit = 999, name = 'RLS Test Co A' where id = '0000000a-0000-0000-0000-000000000000';
+reset role;
+do $$ begin
+  assert (select seat_limit from public.companies where id = '0000000a-0000-0000-0000-000000000000') = 5, 'trigger did not pin seat_limit';
+end $$;
+drop policy tmp_owner_update on public.companies;
+
+-- 7c. admin A3 adds / removes within company A
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a3","role":"authenticated"}', true);
+set local role authenticated;
+do $$
+declare r jsonb;
+begin
+  -- add to own company: ok (5th of 5 seats)
+  r := public.manager_add_company_member('0000000a-0000-0000-0000-000000000000', 'FREE-1@test.local');
+  assert (r->>'success')::boolean, 'manager add failed: ' || r::text;
+  -- seat limit reached: refused server-side
+  r := public.manager_add_company_member('0000000a-0000-0000-0000-000000000000', 'free-2@test.local');
+  assert not (r->>'success')::boolean and r->>'error' like '%seats%', 'seat limit not enforced: ' || r::text;
+  -- duplicate / other-company user refused
+  r := public.manager_add_company_member('0000000a-0000-0000-0000-000000000000', 'emp-b1@test.local');
+  assert not (r->>'success')::boolean, 'added a user from another company';
+  -- other company: denied
+  begin
+    perform public.manager_add_company_member('0000000b-0000-0000-0000-000000000000', 'free-3@test.local');
+    raise exception 'TEST FAIL: added to other company';
+  exception when others then if sqlerrm like 'TEST FAIL%' then raise; end if; end;
+  begin
+    perform public.manager_remove_company_member('0000000b-0000-0000-0000-000000000000', '00000000-0000-0000-0000-0000000000b1');
+    raise exception 'TEST FAIL: removed from other company';
+  exception when others then if sqlerrm like 'TEST FAIL%' then raise; end if; end;
+  -- own company id but other-company target: denied
+  begin
+    perform public.manager_remove_company_member('0000000a-0000-0000-0000-000000000000', '00000000-0000-0000-0000-0000000000b1');
+    raise exception 'TEST FAIL: removed other-company user via own company id';
+  exception when others then if sqlerrm like 'TEST FAIL%' then raise; end if; end;
+  -- self removal: denied
+  begin
+    perform public.manager_remove_company_member('0000000a-0000-0000-0000-000000000000', auth.uid());
+    raise exception 'TEST FAIL: manager removed self';
+  exception when others then if sqlerrm like 'TEST FAIL%' then raise; end if; end;
+  -- owner removal: denied
+  begin
+    perform public.manager_remove_company_member('0000000a-0000-0000-0000-000000000000', '00000000-0000-0000-0000-0000000000a0');
+    raise exception 'TEST FAIL: manager removed the owner';
+  exception when others then if sqlerrm like 'TEST FAIL%' then raise; end if; end;
+  -- remove a member: ok, then seat frees up
+  r := public.manager_remove_company_member('0000000a-0000-0000-0000-000000000000', '00000000-0000-0000-0000-0000000000f1');
+  assert (r->>'success')::boolean, 'manager remove failed';
+  r := public.manager_add_company_member('0000000a-0000-0000-0000-000000000000', 'free-2@test.local');
+  assert (r->>'success')::boolean, 'freed seat not reusable';
+end $$;
+reset role;
+do $$ begin
+  assert (select count(*) from public.company_members where company_id = '0000000a-0000-0000-0000-000000000000') = 5, 'A member count wrong';
+  assert (select company_id from public.profiles where id = '00000000-0000-0000-0000-0000000000f1') is null, 'removed user profile.company_id not cleared';
+  assert (select count(*) from public.company_members where company_id = '0000000b-0000-0000-0000-000000000000') = 2, 'B membership changed';
+end $$;
+
+-- 7d. plain member and outsider cannot use the RPCs
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+set local role authenticated;
+do $$ begin
+  begin
+    perform public.manager_remove_company_member('0000000a-0000-0000-0000-000000000000', '00000000-0000-0000-0000-0000000000a2');
+    raise exception 'TEST FAIL: member removed a colleague';
+  exception when others then if sqlerrm like 'TEST FAIL%' then raise; end if; end;
+  begin
+    perform public.manager_add_company_member('0000000a-0000-0000-0000-000000000000', 'free-3@test.local');
+    raise exception 'TEST FAIL: member added someone';
+  exception when others then if sqlerrm like 'TEST FAIL%' then raise; end if; end;
+end $$;
+reset role;
+
+-- 7e. NULL seat_limit = unlimited
+update public.companies set seat_limit = null where id = '0000000a-0000-0000-0000-000000000000';
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a0","role":"authenticated"}', true);
+set local role authenticated;
+do $$ begin
+  assert (public.manager_add_company_member('0000000a-0000-0000-0000-000000000000', 'free-3@test.local')->>'success')::boolean, 'unlimited company refused add';
 end $$;
 reset role;
 

@@ -162,6 +162,8 @@ export interface Company {
   published?: boolean;
   published_at?: string | null;
   updated_at?: string | null;
+  /** Max company_members rows; null/undefined = unlimited (migration 20261014120000). Master-admin only. */
+  seat_limit?: number | null;
 }
 
 /** AI/admin working copy stored in company_drafts.draft (admin-only). */

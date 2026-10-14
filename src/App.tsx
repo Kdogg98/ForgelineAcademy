@@ -25,9 +25,14 @@ import { Services } from '@/pages/Services';
 import { CompanyAdmin } from '@/pages/CompanyAdmin';
 import { SkillAssessment } from '@/pages/SkillAssessment';
 import { Announcements } from '@/pages/Announcements';
+import { ManagerDashboard } from '@/components/manager/ManagerDashboard';
 
 function AppContent() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, profileReady, isCompanyManager, company, companyRole } = useAuth();
+  // Owner/admin of an active company: landing + Dashboard become the Company Manager Dashboard.
+  const managerView = Boolean(user && isCompanyManager && company && (companyRole === 'owner' || companyRole === 'admin'));
+  // Signed-in user whose profile/company is still loading: don't flash the learner view at a manager.
+  const awaitingRole = Boolean(user && !profileReady);
   const { courses, loading: coursesLoading } = useCourses();
   const [route, setRoute] = useState<Route>(() => pathToRoute(window.location.pathname, window.location.search));
   const [progress, setProgress] = useState<UserProgress[]>([]);
@@ -135,7 +140,18 @@ function AppContent() {
       <SeoHead route={route} courses={courses} />
       <Nav route={route} onNavigate={navigate} />
       <main className="flex-1">
-        {route.name === 'home' && (
+        {(route.name === 'home' || route.name === 'dashboard') && awaitingRole && (
+          <div className="pt-32 flex justify-center"><div className="w-8 h-8 rounded-full border-2 border-accent-500/30 border-t-accent-500 animate-spin" /></div>
+        )}
+        {(route.name === 'home' || route.name === 'dashboard') && !awaitingRole && managerView && company && user && (
+          <ManagerDashboard
+            company={company}
+            currentUserId={user.id}
+            currentRole={companyRole === 'owner' ? 'owner' : 'admin'}
+            onNavigate={navigate}
+          />
+        )}
+        {route.name === 'home' && !awaitingRole && !managerView && (
           <Home
             courses={courses}
             loading={coursesLoading}
@@ -151,6 +167,7 @@ function AppContent() {
             progressMap={courseProgressMap}
             certCourseIds={certCourseIds}
             onNavigate={navigate}
+            managerView={managerView}
           />
         )}
         {route.name === 'paths' && (
@@ -173,7 +190,7 @@ function AppContent() {
         {route.name === 'games' && (
           <CourseGames courseId={route.courseId} onNavigate={navigate} />
         )}
-        {route.name === 'dashboard' && (
+        {route.name === 'dashboard' && !awaitingRole && !managerView && (
           <Dashboard courses={courses} onNavigate={navigate} progressMap={courseProgressMap} certs={certs} />
         )}
         {route.name === 'certificates' && <Certificates onNavigate={navigate} certificates={certs} />}
@@ -203,6 +220,7 @@ function AppContent() {
             certCourseIds={certCourseIds}
             onNavigate={navigate}
             initialQuery={route.query}
+            managerView={managerView}
           />
         )}
       </main>

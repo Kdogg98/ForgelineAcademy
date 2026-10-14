@@ -14,6 +14,8 @@ interface CatalogProps {
   certCourseIds: Set<string>;
   onNavigate: (r: Route) => void;
   initialQuery?: string;
+  /** Company manager: read-only 'What your team can take' framing, no start/enroll. */
+  managerView?: boolean;
 }
 
 type StageFilter = Stage | 'all';
@@ -27,6 +29,7 @@ export function Catalog({
   certCourseIds,
   onNavigate,
   initialQuery = '',
+  managerView = false,
 }: CatalogProps) {
   const { isPremium, isAdmin, profileReady } = useAuth();
   const [query, setQuery] = useState(initialQuery);
@@ -69,16 +72,28 @@ export function Catalog({
       {/* Header */}
       <div className="border-b border-steel-700/60 bg-navy-950/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+          {managerView && (
+            <button onClick={() => onNavigate({ name: 'dashboard' })} className="text-sm text-steel-400 hover:text-white mb-3">
+              ← Back to team dashboard
+            </button>
+          )}
           <h1 className="font-display text-3xl sm:text-4xl font-bold text-white mb-2">
-            Course Catalog
+            {managerView ? 'What your team can take' : 'Course Catalog'}
           </h1>
+          {managerView && (
+            <p className="text-steel-300 max-w-2xl mb-1">
+              A read-only view of the courses available to your employees. Employees start courses from their own accounts.
+            </p>
+          )}
           <p className="text-steel-400 max-w-2xl">
             {courses.length || 78} courses across the four-stage ladder. Mechanical 22 free
             · Electrical 22 free · I&amp;E 18 · Engineering 16.
           </p>
-          <div className="mt-6 max-w-3xl">
-            <PlantFloorLinks />
-          </div>
+          {!managerView && (
+            <div className="mt-6 max-w-3xl">
+              <PlantFloorLinks />
+            </div>
+          )}
         </div>
       </div>
 
@@ -211,10 +226,11 @@ export function Catalog({
               <CourseCard
                 key={c.id}
                 course={c}
-                progress={progressMap[c.id] ?? 0}
-                hasCertificate={certCourseIds.has(c.id)}
-                locked={c.tier === 'premium' && profileReady && !isPremium && !isAdmin}
-                onClick={() => onNavigate({ name: 'course', courseId: c.id })}
+                progress={managerView ? 0 : progressMap[c.id] ?? 0}
+                hasCertificate={!managerView && certCourseIds.has(c.id)}
+                locked={!managerView && c.tier === 'premium' && profileReady && !isPremium && !isAdmin}
+                readOnly={managerView}
+                onClick={managerView ? undefined : () => onNavigate({ name: 'course', courseId: c.id })}
               />
             ))}
           </div>

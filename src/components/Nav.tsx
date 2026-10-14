@@ -39,6 +39,14 @@ const NAV_LINKS: { label: string; route: Route }[] = [
   { label: 'Message Board', route: { name: 'announcements' } },
 ];
 
+// Company managers (owner/admin of an active company) get a team-focused nav, no learner links.
+const MANAGER_NAV_LINKS: { label: string; route: Route }[] = [
+  { label: 'Team Dashboard', route: { name: 'dashboard' } },
+  { label: 'What your team can take', route: { name: 'catalog' } },
+  { label: 'Book a Meeting', route: { name: 'book' } },
+  { label: 'Services', route: { name: 'services' } },
+];
+
 export function Nav({ route, onNavigate }: NavProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -46,7 +54,8 @@ export function Nav({ route, onNavigate }: NavProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
 
-  const { user, isPremium, isAdmin, signOut, company, companyRole } = useAuth();
+  const { user, isPremium, isAdmin, signOut, company, companyRole, isCompanyManager } = useAuth();
+  const navLinks = user && isCompanyManager ? MANAGER_NAV_LINKS : NAV_LINKS;
   const { company: themeCompany } = useCompanyTheme();
   const showCompanyChip = !themeCompany && Boolean(company && !/^test$/i.test((company.name || '').trim()));
 
@@ -96,7 +105,7 @@ export function Nav({ route, onNavigate }: NavProps) {
                 </>
               )}
               <nav className="hidden lg:flex items-center gap-0.5">
-                {NAV_LINKS.map((link) => (
+                {navLinks.map((link) => (
                   <button
                     key={link.label}
                     onClick={() => { setUserMenu(false); onNavigate(link.route); }}
@@ -168,15 +177,17 @@ export function Nav({ route, onNavigate }: NavProps) {
                           onClick={() => { onNavigate({ name: 'dashboard' }); setUserMenu(false); }}
                           className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-steel-200 hover:bg-navy-700 hover:text-white"
                         >
-                          <LayoutDashboard className="w-4 h-4" /> My Learning
+                          <LayoutDashboard className="w-4 h-4" /> {isCompanyManager ? 'Team Dashboard' : 'My Learning'}
                         </button>
+                        {!isCompanyManager && (
                         <button
                           onClick={() => { onNavigate({ name: 'certificates' }); setUserMenu(false); }}
                           className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-steel-200 hover:bg-navy-700 hover:text-white"
                         >
                           <Award className="w-4 h-4" /> Certificates
                         </button>
-                        {!isPremium && (
+                        )}
+                        {!isPremium && !isCompanyManager && (
                           <button
                             onClick={() => { onNavigate({ name: 'pricing' }); setUserMenu(false); }}
                             className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-premium-400 hover:bg-navy-700"
@@ -251,7 +262,7 @@ export function Nav({ route, onNavigate }: NavProps) {
                   className="input text-sm"
                 />
               </form>
-              {NAV_LINKS.map((link) => (
+              {navLinks.map((link) => (
                 <button
                   key={link.label}
                   onClick={() => { onNavigate(link.route); setMobileOpen(false); }}

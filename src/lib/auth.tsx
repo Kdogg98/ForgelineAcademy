@@ -19,6 +19,8 @@ interface AuthState {
   companyRole: 'owner' | 'admin' | 'member' | null;
   /** Company owner/admin ("manager"): can see their own company's team progress. */
   isCompanyAdmin: boolean;
+  /** Owner/admin of an ACTIVE company: gets the Company Manager Dashboard instead of the learner views. */
+  isCompanyManager: boolean;
   assessmentCompleted: boolean;
   refreshPremium: () => Promise<void>;
   updateFullName: (name: string) => Promise<{ error: string | null }>;
@@ -278,6 +280,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         company,
         companyRole,
         isCompanyAdmin: companyRole === 'owner' || companyRole === 'admin',
+        isCompanyManager: (companyRole === 'owner' || companyRole === 'admin') && company?.active === true,
         assessmentCompleted,
         refreshPremium,
         updateFullName,

@@ -4,7 +4,7 @@ import { CompanyThemeProvider } from '@/lib/theme/CompanyThemeProvider';
 import { useCourses, fetchAllProgress, fetchCertificates } from '@/lib/data';
 import { supabase } from '@/lib/supabase';
 import { trackPageView } from '@/lib/analytics';
-import { pathToRoute, routeToPath } from '@/lib/routing';
+import { legacyCourseRedirect, pathToRoute, routeToPath } from '@/lib/routing';
 import { NotFound } from '@/pages/NotFound';
 import type { UserProgress, Certificate } from '@/lib/types';
 import { Nav, type Route } from '@/components/Nav';
@@ -63,6 +63,12 @@ function AppContent() {
   useEffect(() => {
     trackPageView(route.name);
   }, [route.name]);
+
+  // Old in-app links landed on /courses/<slug> (the static SEO page path): move the app to /course/<slug>.
+  useEffect(() => {
+    const to = legacyCourseRedirect(window.location.pathname);
+    if (to) window.history.replaceState(window.history.state, '', to + window.location.search + window.location.hash);
+  }, [route]);
 
   useEffect(() => {
     const onPop = () => setRoute(pathToRoute(window.location.pathname, window.location.search));

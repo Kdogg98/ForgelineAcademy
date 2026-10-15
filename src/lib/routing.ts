@@ -1,5 +1,23 @@
 import type { Route } from '@/components/Nav';
-import { prettyCoursePath, slugToCourseId } from '@/lib/seo/courseSlugs';
+import { courseIdToSlug, slugToCourseId } from '@/lib/seo/courseSlugs';
+
+/** /course/<slug> for catalog courses, /course/<id> for custom/unknown ones. */
+export function appCoursePath(courseId: string): string {
+  const slug = courseIdToSlug(courseId);
+  return `/course/${slug ?? encodeURIComponent(courseId)}`;
+}
+/** /course/<slug-or-id> segment -> course id (old /course/<uuid> links keep working). */
+function courseKeyToId(seg: string): string {
+  const raw = decodeURIComponent(seg);
+  return slugToCourseId(raw) ?? raw;
+}
+/** App reached at the static SEO path /courses/<slug> (client nav, old links): the app URL for it. */
+export function legacyCourseRedirect(pathname: string): string | null {
+  const m = pathname.match(/^\/courses\/([^/]+)\/?$/);
+  if (!m) return null;
+  const id = slugToCourseId(m[1]);
+  return id ? appCoursePath(id) : null;
+}
 
 export function routeToPath(r: Route): string {
   switch (r.name) {
@@ -12,11 +30,12 @@ export function routeToPath(r: Route): string {
     case 'catalog':
       return '/catalog';
     case 'course': {
-      const pretty = prettyCoursePath(r.courseId);
-      return pretty ?? `/course/${encodeURIComponent(r.courseId)}`;
+      // In-app course route is /course/<slug> (reload/share opens the app). /courses/<slug> is the
+      // static SEO outline (public/courses/*, _redirects) and stays the canonical URL.
+      return appCoursePath(r.courseId);
     }
     case 'games':
-      return `/course/${encodeURIComponent(r.courseId)}/games`;
+      return `${appCoursePath(r.courseId)}/games`;
     case 'dashboard':
       return '/dashboard';
     case 'certificates':
@@ -72,9 +91,9 @@ export function pathToRoute(pathname: string, search = ''): Route {
   if (p === '/assessment') return { name: 'assessment' };
   if (p === '/announcements') return { name: 'announcements' };
   const games = p.match(/^\/course\/([^/]+)\/games$/);
-  if (games) return { name: 'games', courseId: decodeURIComponent(games[1]) };
+  if (games) return { name: 'games', courseId: courseKeyToId(games[1]) };
   const course = p.match(/^\/course\/([^/]+)$/);
-  if (course) return { name: 'course', courseId: decodeURIComponent(course[1]) };
+  if (course) return { name: 'course', courseId: courseKeyToId(course[1]) };
   const prettyCourse = p.match(/^\/courses\/([^/]+)$/);
   if (prettyCourse) {
     const id = slugToCourseId(prettyCourse[1]);

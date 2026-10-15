@@ -35,4 +35,7 @@
 /courses/:slug        /courses/:slug/index.html 200
 /courses/:slug/       /courses/:slug/index.html 200
 
+# App course player: /course/<slug-or-id> and /course/<id>/games are SPA routes (reload/share opens the app).
+/course/*             /index.html                  200
+
 /*                    /index.html                  200

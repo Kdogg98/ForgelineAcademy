@@ -21,6 +21,7 @@ import {
   Building2,
   Wrench,
   Sparkles,
+  GraduationCap,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
@@ -30,6 +31,7 @@ import { STAGE_LABEL } from '@/lib/types';
 import { CustomCourseBuilder } from '@/components/CustomCourseBuilder';
 import { PromoManager } from '@/components/PromoManager';
 import { BookingsManager } from '@/components/BookingsManager';
+import { TrainingRequestQueue } from '@/components/TrainingRequestQueue';
 import { CompanyManager } from '@/components/CompanyManager';
 import { CompanyBuilder } from '@/components/CompanyBuilder';
 import { ServiceRequestsManager } from '@/components/ServiceRequestsManager';
@@ -57,7 +59,7 @@ interface ModuleWithCourse {
 
 export function Admin({ onNavigate }: { onNavigate: (r: { name: string }) => void }) {
   const { user, isAdmin, loading: authLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState<'videos' | 'custom' | 'promos' | 'bookings' | 'companies' | 'builder' | 'services'>('videos');
+  const [activeTab, setActiveTab] = useState<'videos' | 'custom' | 'promos' | 'bookings' | 'companies' | 'builder' | 'services' | 'training'>('videos');
   const [courses, setCourses] = useState<Course[]>([]);
   const [modules, setModules] = useState<ModuleWithCourse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -385,6 +387,15 @@ export function Admin({ onNavigate }: { onNavigate: (r: { name: string }) => voi
             <Wrench className="w-4 h-4" />
             Service Requests
           </button>
+          <button
+            onClick={() => setActiveTab('training')}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+              activeTab === 'training' ? 'text-white border-accent-500' : 'text-steel-400 border-transparent hover:text-steel-200'
+            }`}
+          >
+            <GraduationCap className="w-4 h-4" />
+            Training Requests
+          </button>
         </div>
 
         {activeTab === 'custom' ? (
@@ -399,6 +410,8 @@ export function Admin({ onNavigate }: { onNavigate: (r: { name: string }) => voi
           <CompanyBuilder />
         ) : activeTab === 'services' ? (
           <ServiceRequestsManager />
+        ) : activeTab === 'training' ? (
+          <TrainingRequestQueue />
         ) : (
           <>
         {error && (

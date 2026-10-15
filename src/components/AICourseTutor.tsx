@@ -12,6 +12,7 @@ import { useAuth } from '@/lib/auth';
 import { chatWithTutor, type ChatMessage, type CourseContext } from '@/lib/openai';
 import type { Stage } from '@/lib/types';
 import { STAGE_LABEL } from '@/lib/types';
+import { ManagerAssistantLoader } from '@/components/manager/ManagerAssistantLoader';
 
 interface AICourseTutorProps {
   courseTitle: string;
@@ -28,7 +29,8 @@ export function AICourseTutor({
   lessonContent,
   onUpgrade,
 }: AICourseTutorProps) {
-  const { isPremium, isAdmin, fullName } = useAuth();
+  const { isPremium, isAdmin, fullName, isCompanyManager, company } = useAuth();
+  const [mode, setMode] = useState<'tutor' | 'manager'>('tutor');
   const canUseTutor = isPremium || isAdmin;
   const firstName = fullName?.split(' ')[0] ?? null;
 
@@ -124,6 +126,18 @@ export function AICourseTutor({
 
           {/* Panel */}
           <div className="relative w-full max-w-md h-full bg-navy-900 border-l border-steel-700/60 shadow-2xl flex flex-col animate-slide-in">
+            {isCompanyManager && company && (
+              <div className="flex gap-1 p-1.5 border-b border-steel-700/60 bg-navy-950/60 text-xs font-semibold">
+                <button onClick={() => setMode('tutor')} className={`flex-1 py-1.5 rounded ${mode === 'tutor' ? 'bg-rok-500/20 text-white' : 'text-steel-400'}`}>Course Tutor</button>
+                <button onClick={() => setMode('manager')} className={`flex-1 py-1.5 rounded ${mode === 'manager' ? 'bg-rok-500/20 text-white' : 'text-steel-400'}`}>Manager Assistant</button>
+              </div>
+            )}
+            {mode === 'manager' && isCompanyManager && company && (
+              <div className="absolute inset-x-0 bottom-0 top-[44px] z-10 bg-navy-900 overflow-y-auto p-3">
+                <button onClick={() => setOpen(false)} className="mb-2 text-xs text-steel-400 hover:text-white flex items-center gap-1"><X className="w-3.5 h-3.5" /> Close</button>
+                <ManagerAssistantLoader companyId={company.id} />
+              </div>
+            )}
             {/* Header */}
             <div className="flex items-center justify-between gap-2 px-4 py-3.5 border-b border-steel-700/60 bg-navy-800/60">
               <div className="flex items-center gap-2.5 min-w-0">

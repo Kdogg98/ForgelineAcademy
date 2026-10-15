@@ -12,6 +12,14 @@ import {
   AssignDialog, AssignmentsPanel, InvitesPanel, OverdueBanner, StatusPill, buildAuditRows, computeAssignments,
   downloadAuditCsv, fmtDue, printAuditReport, type AssignmentView,
 } from '@/components/manager/ManagerExtras';
+import {
+  supabaseAccountsData, type AccountsDataSource, type AssignmentProposal, type BaseRole, type CompanyRole, type CompanyTrade,
+  type NewTrainingRequest, type Placement, type TeamMember, type TrainingProfile, type TrainingRequest,
+} from '@/lib/accountsData';
+import {
+  BulkInviteDialog, DailySummaryCard, EmployeeEditPanel, EmployeesTab, EndingSoonCard, GroupAssignDialog, ManagerAssistant,
+  PlacementsPanel, RequestTrainingPanel, RolesTradesSettings, TrainingProfilePanel, memberName, type AssistantMsg,
+} from '@/components/manager/AccountsPanels';
 
 /**
  * Company Manager Dashboard: landing + /dashboard view for owners/admins of an
@@ -22,9 +30,14 @@ import {
 interface Props {
   company: Company;
   currentUserId: string;
-  currentRole: 'owner' | 'admin';
+  currentRole: 'owner' | 'admin' | 'supervisor';
   onNavigate: (r: Route) => void;
   dataSource?: ManagerDataSource;
+  accounts?: AccountsDataSource;
+  initialTab?: Tab;
+  /** screenshot/demo only: seed the assistant conversation */
+  initialAssistant?: AssistantMsg[];
+  initialEditUserId?: string;
   /** Small banner text, e.g. "Sample data" in previews. */
   banner?: string;
 }
@@ -40,7 +53,25 @@ type ActivityItem = { at: string; userId: string; kind: 'lesson' | 'cert' | 'qui
 
 export const SEAT_REQUEST_HREF = '/request?seats=10';
 
-export function ManagerDashboard({ company, currentUserId, currentRole, onNavigate, dataSource = supabaseManagerData, banner }: Props) {
+export type Tab = 'overview' | 'employees' | 'clients' | 'training' | 'assistant' | 'settings';
+
+export function ManagerDashboard({ company, currentUserId, currentRole, onNavigate, dataSource = supabaseManagerData, accounts = supabaseAccountsData, banner, initialTab = 'overview', initialAssistant, initialEditUserId }: Props) {
+  const canManage = currentRole === 'owner' || currentRole === 'admin';
+  const [tab, setTab] = useState<Tab>(initialTab);
+  // v3 (migration 20261015120000); undefined = not applied, tabs hide themselves
+  const [v3Team, setV3Team] = useState<TeamMember[] | undefined>(undefined);
+  const [roles, setRoles] = useState<CompanyRole[]>([]);
+  const [trades, setTrades] = useState<CompanyTrade[]>([]);
+  const [placements, setPlacements] = useState<Placement[]>([]);
+  const [profile, setProfile] = useState<TrainingProfile | null>(null);
+  const [requests, setRequests] = useState<TrainingRequest[]>([]);
+  const [selfTrade, setSelfTrade] = useState(false);
+  const [editFor, setEditFor] = useState<string | null>(initialEditUserId ?? null);
+  const [groupAssign, setGroupAssign] = useState(false);
+  const [bulkInvite, setBulkInvite] = useState(false);
+  const [draft, setDraft] = useState<Partial<NewTrainingRequest> | null>(null);
+  const [draftKey, setDraftKey] = useState(0);
+  const [assistantSeed, setAssistantSeed] = useState<AssistantMsg[] | undefined>(initialAssistant);
   const [team, setTeam] = useState<TeamSnapshot | null>(null);
   const [seatLimit, setSeatLimit] = useState<number | null | undefined>(company.seat_limit);
   const [loading, setLoading] = useState(true);
@@ -68,6 +99,16 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
       ]);
       setTeam(t);
       setSeatLimit(lim);
+      const v3 = await accounts.loadTeam(company.id).catch(() => undefined);
+      setV3Team(v3);
+      if (v3) {
+        const [r, tr, pl, pr, rq, st] = await Promise.all([
+          accounts.loadRoles(company.id), accounts.loadTrades(company.id), accounts.loadPlacements(company.id),
+          accounts.loadProfile(company.id), canManage ? accounts.loadRequests(company.id) : Promise.resolve([]), accounts.loadSettings(company.id),
+        ]);
+        setRoles(r ?? []); setTrades(tr ?? []); setPlacements(pl ?? []); setProfile(pr ?? null); setRequests(rq ?? []);
+        setSelfTrade(!!st?.allow_employee_self_trade);
+      }
       setAssignmentRows(asg);
       setInvites(inv);
     } catch (e) {
@@ -75,7 +116,7 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
     } finally {
       setLoading(false);
     }
-  }, [company.id, dataSource]);
+  }, [company.id, dataSource, accounts, canManage]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -221,7 +262,43 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
     if (!printAuditReport(company.name, buildAuditRows(team, assignments))) setError('Allow pop-ups for this site to open the printable report.');
   }
 
-  const canRemove = (m: RosterMember) => m.user_id !== currentUserId && m.role !== 'owner';
+  const canRemove = (m: RosterMember) => canManage && m.user_id !== currentUserId && m.role !== 'owner';
+
+  async function run(fn: () => Promise<{ ok: boolean; error?: string }>, okMsg?: string): Promise<boolean> {
+    setBusy(true); setError(null); setNotice(null);
+    const r = await fn();
+    setBusy(false);
+    if (!r.ok) { setError((r as { error?: string }).error ?? 'Something went wrong.'); return false; }
+    if (okMsg) setNotice(okMsg);
+    await load();
+    return true;
+  }
+  async function confirmProposals(ps: AssignmentProposal[]) {
+    for (const p of ps) {
+      const r = await dataSource.assignCourse(company.id, p.course_id, p.user_id, p.due_date);
+      if (!r.ok) { setError(r.error); await load(); return false; }
+    }
+    setNotice(`Assigned ${ps.length} course${ps.length === 1 ? '' : 's'} from the Manager Assistant.`);
+    await load();
+    return true;
+  }
+  async function bulkInviteRows(rows: { email: string; trade: string | null; role: 'supervisor' | 'employee' | null }[]) {
+    const out: { email: string; ok: boolean; error?: string }[] = [];
+    for (const row of rows) {
+      const r = await dataSource.createInvite(company.id, row.email);
+      if (!r.ok) { out.push({ email: row.email, ok: false, error: r.error }); continue; }
+      if (row.trade || row.role) await accounts.setInviteExtras(r.id, row.trade, row.role);
+      void dataSource.sendInviteEmail(r.id);
+      out.push({ email: row.email, ok: true });
+    }
+    await load();
+    return out;
+  }
+  const progressById = useMemo(() => Object.fromEntries(summaries.map((s) => [s.m.user_id, { courses: s.courses, completed: s.completed }])), [summaries]);
+  const editMember = editFor && v3Team ? v3Team.find((m) => m.user_id === editFor) ?? null : null;
+  const tabs: [Tab, string][] = v3Team
+    ? ([['overview', 'Overview'], ['employees', 'Employees'], ['clients', 'Clients & sites'], ...(canManage ? [['training', 'Custom training']] : []), ['assistant', 'Manager Assistant'], ...(canManage ? [['settings', 'Roles & trades']] : [])] as [Tab, string][])
+    : [];
   const sel = selected ? summaries.find((s) => s.m.user_id === selected) ?? null : null;
 
   return (
@@ -239,7 +316,7 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
           <div className="flex-1 min-w-0">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-accent-400">Company Manager Dashboard</p>
             <h1 className="font-display text-2xl sm:text-3xl font-bold text-white truncate">{company.name}</h1>
-            <p className="text-sm text-steel-400">Signed in as {currentRole === 'owner' ? 'owner' : 'admin'} · you can see your own team only</p>
+            <p className="text-sm text-steel-400">Signed in as {currentRole} · you can see your own team only</p>
           </div>
           <div className="flex flex-wrap gap-2 self-start sm:self-auto">
             <button onClick={exportCsv} disabled={!team} className="btn-secondary flex items-center gap-2 text-sm" title="Employees, completions, quiz scores, certificates and assignments as CSV">
@@ -266,8 +343,55 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
           </div>
         )}
 
+        {tabs.length > 0 && (
+          <div className="mb-5 -mx-1 flex gap-1 overflow-x-auto border-b border-steel-700/60" role="tablist">
+            {tabs.map(([k, label]) => (
+              <button key={k} role="tab" aria-selected={tab === k} onClick={() => { setTab(k); setSelected(null); }}
+                className={`px-3 py-2 text-sm font-semibold whitespace-nowrap border-b-2 -mb-px ${tab === k ? 'border-accent-500 text-white' : 'border-transparent text-steel-400 hover:text-white'}`}>{label}</button>
+            ))}
+          </div>
+        )}
+
         {loading && !team ? (
           <div className="card p-12 flex justify-center"><Loader2 className="w-6 h-6 text-accent-400 animate-spin" /></div>
+        ) : sel && v3Team && tab !== 'overview' ? (
+          <EmployeeDetail s={sel} rows={courseRows(sel.m.user_id)} team={team as TeamSnapshot} onBack={() => setSelected(null)}
+            assignments={assignmentRows ? assignments.filter((a) => a.user_id === sel.m.user_id) : undefined} onAssign={() => setAssignFor(sel.m.user_id)} />
+        ) : v3Team && tab === 'employees' ? (
+          <EmployeesTab team={v3Team} placements={placements} roles={roles} currentUserId={currentUserId} canManage={canManage && !mutationsOff}
+            progress={progressById} busy={busy} onEdit={setEditFor}
+            onGroupAssign={assignmentRows ? () => setGroupAssign(true) : undefined}
+            onBulkInvite={canManage && invites ? () => setBulkInvite(true) : undefined}
+            onRemove={(m) => { const r = members.find((x) => x.user_id === m.user_id); if (r) void removeEmployee(r); }} />
+        ) : v3Team && tab === 'clients' ? (
+          <PlacementsPanel placements={placements} team={v3Team} canEdit={canManage}
+            onSave={(p) => run(() => accounts.savePlacement({ ...p, company_id: company.id }), 'Client site saved.')}
+            onDelete={(p) => { if (window.confirm(`Delete ${p.client_name}? Employees placed there keep their contract details.`)) void run(() => accounts.deletePlacement(p.id)); }} />
+        ) : v3Team && tab === 'training' && canManage ? (
+          <div className="grid grid-cols-1 xl:grid-cols-[1fr_24rem] gap-6">
+            <RequestTrainingPanel key={draftKey} companyId={company.id} profile={profile} placements={placements} requests={requests} initialDraft={draft}
+              onSubmit={async (r, files) => {
+                setBusy(true); setError(null); setNotice(null);
+                const res = await accounts.submitRequest(r, files);
+                setBusy(false);
+                if (!res.ok) { setError(res.error); return false; }
+                setNotice(`Request sent to ForgeLine.${res.emailed ? ' Kris was emailed.' : ''}${res.uploadErrors ? ` ${res.uploadErrors} attachment(s) could not be uploaded; email them to kris@forgelineacademy.com.` : ''}`);
+                setDraft(null); await load(); return true;
+              }} />
+            <TrainingProfilePanel profile={profile} companyId={company.id} canEdit={canManage}
+              onSave={(p) => run(() => accounts.saveProfile(p), 'Training profile saved.')} />
+          </div>
+        ) : v3Team && tab === 'assistant' && team ? (
+          <ManagerAssistant ds={accounts} companyId={company.id} team={v3Team} courseTitles={team.courseTitles} initial={assistantSeed}
+            onConfirmAssignments={confirmProposals}
+            onUseDraft={(d) => { setDraft({ ...d, source: 'assistant' }); setDraftKey((k) => k + 1); setTab('training'); }} />
+        ) : v3Team && tab === 'settings' && canManage ? (
+          <RolesTradesSettings roles={roles} trades={trades} allowSelfTrade={selfTrade}
+            onAddRole={(n, b) => void run(() => accounts.addRole(company.id, n, b), `Role “${n}” added.`)}
+            onDeleteRole={(r) => void run(() => accounts.deleteRole(r.id))}
+            onAddTrade={(n) => void run(() => accounts.addTrade(company.id, n), `Trade “${n}” added.`)}
+            onDeleteTrade={(t) => void run(() => accounts.deleteTrade(t.id))}
+            onSelfTrade={(v) => void run(() => accounts.setSelfTrade(company.id, v))} />
         ) : (
           <>
             {/* Stats */}
@@ -292,6 +416,12 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
                     assignments={assignmentRows ? assignments.filter((a) => a.user_id === sel.m.user_id) : undefined}
                     onAssign={() => setAssignFor(sel.m.user_id)}
                   />
+                ) : v3Team ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <DailySummaryCard ds={accounts} companyId={company.id}
+                      onProposals={(p, text) => { setAssistantSeed([{ role: 'user', content: 'Daily summary' }, { role: 'assistant', content: text, proposals: p }]); }} />
+                    <EndingSoonCard team={v3Team} placements={placements} onOpen={setEditFor} />
+                  </div>
                 ) : (
                   <div className="card p-4 sm:p-5">
                     <div className="flex flex-wrap items-center gap-3 mb-4">
@@ -372,7 +502,7 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
                       onAssign={() => setAssignFor(null)} onRemove={(a) => void removeAssignment(a)} onSelect={setSelected} />
                   </div>
                 )}
-                {!sel && invites && (
+                {!sel && invites && canManage && (
                   <InvitesPanel invites={invites} busy={busy} lastLink={lastLink}
                     seatsLeft={hasLimit ? (seatLimit as number) - seatsUsed : null}
                     onInvite={createInvite} onRevoke={(i) => void revokeInvite(i)} />
@@ -405,6 +535,29 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
           </>
         )}
       </div>
+      {editMember && v3Team && (
+        <EmployeeEditPanel member={editMember} team={v3Team} placements={placements} roles={roles} trades={trades}
+          currentUserId={currentUserId} callerRole={currentRole as BaseRole} onClose={() => setEditFor(null)}
+          onViewProgress={() => { setSelected(editMember.user_id); setEditFor(null); if (tab === 'overview') setTab('employees'); }}
+          onSaveRole={(r, c) => run(() => accounts.setRole(company.id, editMember.user_id, r, c), `Role updated for ${memberName(editMember)}.`)}
+          onSaveDetails={(d) => run(() => accounts.saveDetails(company.id, editMember.user_id, d), `Saved ${memberName(editMember)}.`)} />
+      )}
+      {groupAssign && team && (
+        <GroupAssignDialog courseTitles={team.courseTitles} trades={trades.map((t) => t.name)} roles={roles} busy={busy}
+          onCancel={() => setGroupAssign(false)}
+          onAssign={async (c, tr, ro, due) => {
+            setBusy(true); setError(null);
+            const r = await accounts.assignToGroup(company.id, c, tr, ro, due);
+            setBusy(false);
+            if (!r.ok) { setError(r.error); return; }
+            setGroupAssign(false);
+            setNotice(`Assigned “${team.courseTitles[c] ?? 'course'}” to ${r.assigned} ${[tr, ro].filter(Boolean).join(' / ')} employee${r.assigned === 1 ? '' : 's'}.`);
+            await load();
+          }} />
+      )}
+      {bulkInvite && (
+        <BulkInviteDialog seatsLeft={hasLimit ? Math.max(0, (seatLimit as number) - seatsUsed) : null} onCancel={() => setBulkInvite(false)} onInvite={bulkInviteRows} />
+      )}
       {assignFor !== false && team && (
         <AssignDialog members={members} courseTitles={team.courseTitles} busy={busy} initialUserId={assignFor}
           onCancel={() => setAssignFor(false)} onAssign={(c, u, d) => void assignCourse(c, u, d)} />

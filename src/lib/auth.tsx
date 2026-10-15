@@ -16,7 +16,7 @@ interface AuthState {
   isAdmin: boolean;
   fullName: string | null;
   company: Company | null;
-  companyRole: 'owner' | 'admin' | 'member' | null;
+  companyRole: 'owner' | 'admin' | 'supervisor' | 'employee' | 'member' | null;
   /** Company owner/admin ("manager"): can see their own company's team progress. */
   isCompanyAdmin: boolean;
   /** Owner/admin of an ACTIVE company: gets the Company Manager Dashboard instead of the learner views. */
@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [fullName, setFullName] = useState<string | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
-  const [companyRole, setCompanyRole] = useState<'owner' | 'admin' | 'member' | null>(null);
+  const [companyRole, setCompanyRole] = useState<'owner' | 'admin' | 'supervisor' | 'employee' | 'member' | null>(null);
   const [assessmentCompleted, setAssessmentCompleted] = useState(true);
   const loadGen = useRef(0);
   /** User id of the latest auth event; profile loads for any other user are stale. */
@@ -134,7 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAssessmentCompleted(Boolean(data?.assessment_completed));
 
     let loadedCompany: Company | null = null;
-    let loadedRole: 'owner' | 'admin' | 'member' | null = null;
+    let loadedRole: 'owner' | 'admin' | 'supervisor' | 'employee' | 'member' | null = null;
     if (data?.company_id) {
       const { data: companyData } = await supabase
         .from('companies')
@@ -152,7 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq('user_id', uid)
         .maybeSingle();
       if (gen !== loadGen.current) return;
-      loadedRole = (memberData?.role as 'owner' | 'admin' | 'member') ?? null;
+      loadedRole = (memberData?.role as 'owner' | 'admin' | 'supervisor' | 'employee' | 'member') ?? null;
       setCompanyRole(loadedRole);
     } else {
       setCompany(null);
@@ -294,7 +294,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         company,
         companyRole,
         isCompanyAdmin: companyRole === 'owner' || companyRole === 'admin',
-        isCompanyManager: (companyRole === 'owner' || companyRole === 'admin') && company?.active === true,
+        isCompanyManager: (companyRole === 'owner' || companyRole === 'admin' || companyRole === 'supervisor') && company?.active === true,
         assessmentCompleted,
         refreshPremium,
         updateFullName,

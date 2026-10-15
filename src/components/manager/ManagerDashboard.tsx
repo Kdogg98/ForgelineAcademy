@@ -54,8 +54,14 @@ type ActivityItem = { at: string; userId: string; kind: 'lesson' | 'cert' | 'qui
 export const SEAT_REQUEST_HREF = '/request?seats=10';
 
 export type Tab = 'overview' | 'employees' | 'clients' | 'training' | 'assistant' | 'settings';
+const TABS: Tab[] = ['overview', 'employees', 'clients', 'training', 'assistant', 'settings'];
+/** Deep link: /dashboard?tab=employees */
+function urlTab(): Tab {
+  const t = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('tab') : null;
+  return TABS.includes(t as Tab) ? (t as Tab) : 'overview';
+}
 
-export function ManagerDashboard({ company, currentUserId, currentRole, onNavigate, dataSource = supabaseManagerData, accounts = supabaseAccountsData, banner, initialTab = 'overview', initialAssistant, initialEditUserId }: Props) {
+export function ManagerDashboard({ company, currentUserId, currentRole, onNavigate, dataSource = supabaseManagerData, accounts = supabaseAccountsData, banner, initialTab = urlTab(), initialAssistant, initialEditUserId }: Props) {
   const canManage = currentRole === 'owner' || currentRole === 'admin';
   const [tab, setTab] = useState<Tab>(initialTab);
   // v3 (migration 20261015120000); undefined = not applied, tabs hide themselves

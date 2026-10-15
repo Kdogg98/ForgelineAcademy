@@ -57,10 +57,10 @@ export function TrainingRequestQueue({ ds = supabaseAccountsData }: { ds?: Accou
               )}
               <div className="mt-3 flex flex-col sm:flex-row gap-2">
                 <input className="input flex-1 text-xs" placeholder="Kris notes (visible to ForgeLine only)" value={notes[r.id] ?? r.admin_notes ?? ''} onChange={(e) => setNotes({ ...notes, [r.id]: e.target.value })} />
-                <select aria-label="Status" className="input text-xs" value={r.status} onChange={(e) => void setStatus(r, e.target.value as RequestStatus)}>
+                <select aria-label="Status" className="input !w-auto text-xs" value={r.status} onChange={(e) => void setStatus(r, e.target.value as RequestStatus)}>
                   {REQUEST_STATUSES.map((s) => <option key={s} value={s}>{STATUS_TEXT[s]}</option>)}
                 </select>
-                <button onClick={() => void setStatus(r, r.status)} className="btn-secondary text-xs px-3">Save notes</button>
+                <button onClick={() => void setStatus(r, r.status)} className="btn-secondary text-xs px-3 whitespace-nowrap">Save notes</button>
               </div>
             </div>
           ))}

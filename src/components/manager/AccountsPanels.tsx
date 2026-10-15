@@ -144,7 +144,7 @@ export function EmployeesTab({ team, placements, roles, currentUserId, canManage
   const groups: [string, TeamMember[]][] = group
     ? Array.from(rows.reduce((acc, m) => { const k = pl.get(m.details?.placement_id ?? '')?.client_name ?? 'No client placement'; acc.set(k, [...(acc.get(k) ?? []), m]); return acc; }, new Map<string, TeamMember[]>()))
     : [['', rows]];
-  const sel = 'input text-xs py-1.5 pr-7';
+  const sel = 'input !w-auto text-xs py-1.5 pr-7';
   const cols = 'md:grid-cols-[minmax(10rem,1.4fr)_6.5rem_7rem_minmax(8rem,1.2fr)_minmax(7rem,1fr)_6.5rem_4rem_2rem]';
   return (
     <div className="card p-4 sm:p-5">

@@ -30,7 +30,7 @@ import { ManagerDashboard } from '@/components/manager/ManagerDashboard';
 function AppContent() {
   const { user, loading: authLoading, profileReady, isCompanyManager, company, companyRole } = useAuth();
   // Owner/admin of an active company: landing + Dashboard become the Company Manager Dashboard.
-  const managerView = Boolean(user && isCompanyManager && company && (companyRole === 'owner' || companyRole === 'admin'));
+  const managerView = Boolean(user && isCompanyManager && company && (companyRole === 'owner' || companyRole === 'admin' || companyRole === 'supervisor'));
   // Signed-in user whose profile/company is still loading: don't flash the learner view at a manager.
   const awaitingRole = Boolean(user && !profileReady);
   const { courses, loading: coursesLoading } = useCourses();
@@ -147,7 +147,7 @@ function AppContent() {
           <ManagerDashboard
             company={company}
             currentUserId={user.id}
-            currentRole={companyRole === 'owner' ? 'owner' : 'admin'}
+            currentRole={companyRole === 'owner' ? 'owner' : companyRole === 'supervisor' ? 'supervisor' : 'admin'}
             onNavigate={navigate}
           />
         )}

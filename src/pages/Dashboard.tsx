@@ -26,6 +26,7 @@ import { LatestAnnouncements } from '@/components/LatestAnnouncements';
 import { useCompanyTheme } from '@/lib/theme/useCompanyTheme';
 import { CompanyWelcomeHero } from '@/components/brand/CompanyBrand';
 import { AssignedToYou } from '@/components/AssignedToYou';
+import { MyPlacement } from '@/components/MyPlacement';
 
 interface DashboardProps {
   courses: Course[];
@@ -42,7 +43,7 @@ const STAGE_ICON: Record<Stage, typeof Wrench> = {
 };
 
 export function Dashboard({ courses, onNavigate, progressMap, certs }: DashboardProps) {
-  const { user, isPremium, isAdmin, fullName, updateFullName, profileReady } = useAuth();
+  const { user, isPremium, isAdmin, fullName, updateFullName, profileReady, company } = useAuth();
   const { company: themeCompany } = useCompanyTheme();
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState('');
@@ -219,6 +220,7 @@ export function Dashboard({ courses, onNavigate, progressMap, certs }: Dashboard
         </div>
       </section>
 
+      <MyPlacement userId={user?.id} companyId={company?.id} />
       <AssignedToYou userId={user?.id} courses={courses} progressMap={courseProgressMap} certs={certs} onNavigate={onNavigate} />
 
       {/* Career ladder progress */}

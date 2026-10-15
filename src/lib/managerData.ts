@@ -15,7 +15,7 @@ import { supabase } from '@/lib/supabase';
 
 export interface RosterMember {
   user_id: string;
-  role: 'owner' | 'admin' | 'member';
+  role: 'owner' | 'admin' | 'supervisor' | 'employee' | 'member';
   email: string | null;
   full_name: string | null;
   created_at: string | null;
@@ -92,7 +92,9 @@ const UNAVAILABLE = 'Adding and removing employees from this dashboard is not sw
 
 export const supabaseManagerData: ManagerDataSource = {
   async loadTeam(companyId) {
-    const { data: memberData, error: mErr } = await supabase.rpc('get_company_members_details', { target_company_id: companyId });
+    // get_company_team (migration 20261015120000) also works for supervisors; fall back to the old RPC.
+    let { data: memberData, error: mErr } = await supabase.rpc('get_company_team', { p_company_id: companyId });
+    if (isMissingRpc(mErr)) ({ data: memberData, error: mErr } = await supabase.rpc('get_company_members_details', { target_company_id: companyId }));
     if (mErr) throw mErr;
     const members = ((memberData as RosterMember[]) ?? []).map((m) => ({
       user_id: m.user_id, role: m.role, email: m.email, full_name: m.full_name, created_at: m.created_at ?? null,

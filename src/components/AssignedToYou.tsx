@@ -45,7 +45,7 @@ export function AssignedToYou({ userId, courses, progressMap, certs, onNavigate 
           <button key={a.id} onClick={() => onNavigate({ name: 'course', courseId: a.course_id })}
             className={`card card-hover p-4 flex items-center gap-4 text-left ${a.status === 'overdue' ? 'border-error-500/50' : ''}`}>
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold text-white truncate">{a.course?.title ?? 'Assigned course'}</div>
+              <div className="text-sm font-semibold text-white line-clamp-2">{a.course?.title ?? 'Assigned course'}</div>
               <div className={`text-xs mt-0.5 ${a.status === 'overdue' ? 'text-error-400 font-semibold' : 'text-steel-400'}`}>
                 {a.due_date ? `Due ${fmtDue(a.due_date)}` : 'No due date'} · {a.pct}% complete
               </div>

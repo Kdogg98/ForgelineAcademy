@@ -1,5 +1,6 @@
+import { Modal } from '@/components/ui/Modal';
 import { useMemo, useState } from 'react';
-import { AlertTriangle, CalendarClock, Check, ClipboardList, Copy, Loader2, Mail, Trash2, X } from 'lucide-react';
+import { AlertTriangle, CalendarClock, Check, ClipboardList, Copy, Loader2, Mail, Trash2 } from 'lucide-react';
 import type { AssignmentRow, InviteRow, RosterMember, TeamSnapshot } from '@/lib/managerData';
 import { inviteUrl } from '@/lib/managerData';
 
@@ -77,33 +78,27 @@ export function AssignDialog({ members, courseTitles, busy, onCancel, onAssign, 
   const [due, setDue] = useState('');
   const count = who === 'all' ? members.length : 1;
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" role="dialog" aria-modal="true" aria-labelledby="assign-title">
-      <div className="card w-full sm:max-w-lg p-5 rounded-b-none sm:rounded-b-xl">
-        <div className="flex items-center justify-between mb-4">
-          <h2 id="assign-title" className="font-display text-lg font-semibold text-white flex items-center gap-2"><ClipboardList className="w-5 h-5 text-accent-400" /> Assign a course</h2>
-          <button onClick={onCancel} aria-label="Close" className="text-steel-400 hover:text-white"><X className="w-5 h-5" /></button>
-        </div>
-        <label className="block text-xs font-semibold text-steel-300 mb-1" htmlFor="assign-course">Course</label>
-        <select id="assign-course" className="input w-full mb-3" value={courseId} onChange={(e) => setCourseId(e.target.value)}>
-          <option value="">Choose a course…</option>
-          {courses.map(([id, t]) => <option key={id} value={id}>{t}</option>)}
-        </select>
-        <label className="block text-xs font-semibold text-steel-300 mb-1" htmlFor="assign-who">Assign to</label>
-        <select id="assign-who" className="input w-full mb-3" value={who} onChange={(e) => setWho(e.target.value)}>
-          <option value="all">Everyone on the team ({members.length})</option>
-          {members.map((m) => <option key={m.user_id} value={m.user_id}>{nameOf(m)}</option>)}
-        </select>
-        <label className="block text-xs font-semibold text-steel-300 mb-1" htmlFor="assign-due">Due date <span className="font-normal text-steel-500">(optional)</span></label>
-        <input id="assign-due" type="date" className="input w-full mb-4" value={due} min={todayISO()} onChange={(e) => setDue(e.target.value)} />
-        <p className="text-[11px] text-steel-500 mb-4">Assigning a course someone already has updates its due date. It counts as done when they finish every lesson or earn the certificate.</p>
-        <div className="flex justify-end gap-2">
-          <button onClick={onCancel} className="btn-ghost text-sm">Cancel</button>
-          <button disabled={!courseId || busy} onClick={() => onAssign(courseId, who === 'all' ? null : who, due || null)} className="btn-primary text-sm px-4 disabled:opacity-40">
-            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : `Assign to ${count} ${count === 1 ? 'person' : 'people'}`}
-          </button>
-        </div>
-      </div>
-    </div>
+    <Modal title="Assign a course" icon={<ClipboardList className="w-5 h-5 text-accent-400" />} onClose={onCancel}
+      footer={<>
+        <button onClick={onCancel} className="btn-ghost text-sm">Cancel</button>
+        <button disabled={!courseId || busy} onClick={() => onAssign(courseId, who === 'all' ? null : who, due || null)} className="btn-primary text-sm px-4 disabled:opacity-40">
+          {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : `Assign to ${count} ${count === 1 ? 'person' : 'people'}`}
+        </button>
+      </>}>
+      <label className="block text-xs font-semibold text-steel-300 mb-1" htmlFor="assign-course">Course</label>
+      <select id="assign-course" name="course" className="input w-full mb-3" value={courseId} onChange={(e) => setCourseId(e.target.value)}>
+        <option value="">Choose a course…</option>
+        {courses.map(([id, t]) => <option key={id} value={id}>{t}</option>)}
+      </select>
+      <label className="block text-xs font-semibold text-steel-300 mb-1" htmlFor="assign-who">Assign to</label>
+      <select id="assign-who" name="assignee" className="input w-full mb-3" value={who} onChange={(e) => setWho(e.target.value)}>
+        <option value="all">Everyone on the team ({members.length})</option>
+        {members.map((m) => <option key={m.user_id} value={m.user_id}>{nameOf(m)}</option>)}
+      </select>
+      <label className="block text-xs font-semibold text-steel-300 mb-1" htmlFor="assign-due">Due date <span className="font-normal text-steel-500">(optional)</span></label>
+      <input id="assign-due" name="due" type="date" className="input w-full mb-4" value={due} min={todayISO()} onChange={(e) => setDue(e.target.value)} />
+      <p className="text-[11px] text-steel-500">Assigning a course someone already has updates its due date. It counts as done when they finish every lesson or earn the certificate.</p>
+    </Modal>
   );
 }
 
@@ -196,7 +191,7 @@ export function InvitesPanel({ invites, seatsLeft, busy, onInvite, onRevoke, las
         <span className="text-xs text-steel-400">{pending.length} pending · {seatsLeft === null ? 'unlimited seats' : `${Math.max(0, seatsLeft)} seat${seatsLeft === 1 ? '' : 's'} left`}</span>
       </div>
       <div className="flex flex-col sm:flex-row gap-2">
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="new.hire@company.com" className="input flex-1" disabled={full}
+        <input type="email" name="invite-email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="new.hire@company.com" className="input flex-1" disabled={full}
           onKeyDown={(e) => { if (e.key === 'Enter') void submit(); }} aria-label="Invite email" />
         <button onClick={() => void submit()} disabled={busy || !email.trim() || full} className="btn-primary text-sm px-4 disabled:opacity-40">
           {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create invite'}

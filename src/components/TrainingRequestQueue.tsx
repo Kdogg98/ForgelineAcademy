@@ -10,12 +10,12 @@ export function TrainingRequestQueue({ ds = supabaseAccountsData }: { ds?: Accou
   const [rows, setRows] = useState<TrainingRequest[] | undefined | null>(null);
   const [filter, setFilter] = useState<RequestStatus | ''>('');
   const [notes, setNotes] = useState<Record<string, string>>({});
-  const [msg, setMsg] = useState<string | null>(null);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const load = useCallback(async () => { setRows(await ds.loadRequests(null)); }, [ds]);
   useEffect(() => { void load(); }, [load]);
   async function setStatus(r: TrainingRequest, status: RequestStatus) {
     const x = await ds.updateRequestStatus(r.id, status, notes[r.id] ?? r.admin_notes);
-    setMsg(x.ok ? `“${r.topic}” → ${STATUS_TEXT[status]}` : x.error);
+    setMsg(x.ok ? { ok: true, text: `“${r.topic}” → ${STATUS_TEXT[status]}` } : { ok: false, text: x.error ?? 'Could not update the request.' });
     void load();
   }
   if (rows === null) return <div className="py-10 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-accent-400" /></div>;
@@ -32,32 +32,32 @@ export function TrainingRequestQueue({ ds = supabaseAccountsData }: { ds?: Accou
           </button>
         ))}
       </div>
-      {msg && <p className="mb-3 text-xs text-success-400">{msg}</p>}
+      {msg && <p role="status" className={`mb-3 text-xs ${msg.ok ? 'text-success-400' : 'text-error-400'}`}>{msg.text}</p>}
       {shown.length === 0 ? <p className="text-sm text-steel-500 py-8 text-center">No requests.</p> : (
         <div className="space-y-3">
           {shown.map((r) => (
-            <div key={r.id} className="rounded-xl border border-steel-700/60 bg-navy-800/40 p-4">
+            <div key={r.id} id={`req-${r.id}`} className="rounded-xl border border-steel-700/60 bg-navy-800/40 p-4">
               <div className="flex flex-wrap items-start gap-2">
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold text-white">{r.topic} <span className="text-steel-400 font-normal">· {r.companies?.name ?? 'Company'}</span></div>
-                  <div className="text-[11px] text-steel-500">{new Date(r.created_at).toLocaleString()} · {r.worker_count ?? '?'} workers · {r.trades || 'any trade'} · {r.urgency} · {r.preferred_format.replace('_', '-')}{r.source === 'assistant' ? ' · drafted by AI assistant' : ''}</div>
+                  <div className="text-sm font-semibold text-white break-words">{r.topic} <span className="text-steel-400 font-normal">· {r.companies?.name ?? 'Company'}</span></div>
+                  <div className="text-[11px] text-steel-500 break-words">{new Date(r.created_at).toLocaleString()} · {r.worker_count ?? '?'} workers · {r.trades || 'any trade'} · {r.urgency} · {r.preferred_format.replace('_', '-')}{r.source === 'assistant' ? ' · drafted by AI assistant' : ''}</div>
                 </div>
                 <RequestStatusPill status={r.status} />
               </div>
-              {r.details && <p className="mt-2 text-sm text-steel-300 whitespace-pre-wrap">{r.details}</p>}
+              {r.details && <p className="mt-2 text-sm text-steel-300 whitespace-pre-wrap break-words">{r.details}</p>}
               <div className="mt-2 flex flex-wrap gap-1">
-                {[...r.topics, ...r.industries].map((t) => <span key={t} className="text-[10px] px-1.5 py-0.5 rounded bg-accent-500/10 text-accent-300">{t}</span>)}
-                {r.equipment.map((t) => <span key={t} className="text-[10px] px-1.5 py-0.5 rounded bg-navy-800 text-steel-300">{t}</span>)}
+                {[...r.topics, ...r.industries].map((t, i) => <span key={`${t}-${i}`} className="text-[10px] px-1.5 py-0.5 rounded bg-accent-500/10 text-accent-300">{t}</span>)}
+                {r.equipment.map((t, i) => <span key={`${t}-${i}`} className="text-[10px] px-1.5 py-0.5 rounded bg-navy-800 text-steel-300">{t}</span>)}
                 {r.research_ok && <span className="text-[10px] px-1.5 py-0.5 rounded bg-premium-500/10 text-premium-400">Research their company</span>}
               </div>
               {r.attachments.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2 text-xs">{r.attachments.map((a) => (
-                  <button key={a} onClick={async () => { const u = await ds.fileUrl(a); if (u) window.open(u, '_blank', 'noopener'); }} className="flex items-center gap-1 text-accent-300"><Paperclip className="w-3 h-3" />{a.split('/').pop()}</button>
+                  <button key={a} onClick={async () => { const w = window.open('', '_blank'); const u = await ds.fileUrl(a); if (u && w) { w.opener = null; w.location.href = u; } else { w?.close(); setMsg({ ok: false, text: `Could not open ${a.split('/').pop()}. The file link may have expired.` }); } }} className="flex items-center gap-1 text-accent-300 break-all text-left"><Paperclip className="w-3 h-3" />{a.split('/').pop()}</button>
                 ))}</div>
               )}
               <div className="mt-3 flex flex-col sm:flex-row gap-2">
-                <input className="input flex-1 text-xs" placeholder="Kris notes (visible to ForgeLine only)" value={notes[r.id] ?? r.admin_notes ?? ''} onChange={(e) => setNotes({ ...notes, [r.id]: e.target.value })} />
-                <select aria-label="Status" className="input !w-auto text-xs" value={r.status} onChange={(e) => void setStatus(r, e.target.value as RequestStatus)}>
+                <input aria-label={`Notes for ${r.topic}`} name={`notes-${r.id}`} className="input flex-1 min-w-0 text-xs" placeholder="Kris notes (visible to ForgeLine only)" value={notes[r.id] ?? r.admin_notes ?? ''} onChange={(e) => setNotes({ ...notes, [r.id]: e.target.value })} />
+                <select aria-label="Status" name={`status-${r.id}`} className="input sm:!w-auto text-xs" value={r.status} onChange={(e) => void setStatus(r, e.target.value as RequestStatus)}>
                   {REQUEST_STATUSES.map((s) => <option key={s} value={s}>{STATUS_TEXT[s]}</option>)}
                 </select>
                 <button onClick={() => void setStatus(r, r.status)} className="btn-secondary text-xs px-3 whitespace-nowrap">Save notes</button>

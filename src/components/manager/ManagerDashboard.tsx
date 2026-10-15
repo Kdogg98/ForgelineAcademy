@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { TRAINING_DRAFT_KEY } from '@/components/manager/ManagerAssistantLoader';
+import { useCallback, useRef, useEffect, useMemo, useState } from 'react';
 import {
   Activity, AlertCircle, ArrowLeft, Award, BarChart3, BookOpen, Building2, CheckCircle2, ChevronRight,
   ClipboardCheck, ClipboardList, Download, Library, Loader2, Printer, Timer, Trash2, UserPlus, Users, X,
@@ -75,7 +76,11 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
   const [editFor, setEditFor] = useState<string | null>(initialEditUserId ?? null);
   const [groupAssign, setGroupAssign] = useState(false);
   const [bulkInvite, setBulkInvite] = useState(false);
-  const [draft, setDraft] = useState<Partial<NewTrainingRequest> | null>(null);
+  const [draft, setDraft] = useState<Partial<NewTrainingRequest> | null>(() => {
+    // Draft handed over from the AI Tutor's Manager Assistant ("Review & submit").
+    try { const raw = sessionStorage.getItem(TRAINING_DRAFT_KEY); if (raw) { sessionStorage.removeItem(TRAINING_DRAFT_KEY); return { ...JSON.parse(raw), source: 'assistant' }; } } catch { /* ignore */ }
+    return null;
+  });
   const [draftKey, setDraftKey] = useState(0);
   const [assistantSeed, setAssistantSeed] = useState<AssistantMsg[] | undefined>(initialAssistant);
   const [team, setTeam] = useState<TeamSnapshot | null>(null);
@@ -93,6 +98,33 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
   const [invites, setInvites] = useState<InviteRow[] | undefined>(undefined);
   const [assignFor, setAssignFor] = useState<string | null | false>(false);
   const [lastLink, setLastLink] = useState<{ email: string; url: string; emailed: boolean; reason?: string } | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (!notice) return; const t = window.setTimeout(() => setNotice(null), 8000); return () => window.clearTimeout(t); }, [notice]);
+  const lastSelected = useRef<string | null>(null);
+
+  /** Switch tab: keep ?tab= in the URL (deep links / reload / back) and land at the top of the tab content. */
+  const goTab = useCallback((k: Tab, opts: { keepSelection?: boolean } = {}) => {
+    setTab(k);
+    if (!opts.keepSelection) setSelected(null);
+    const u = new URL(window.location.href);
+    if (k === 'overview') u.searchParams.delete('tab'); else u.searchParams.set('tab', k);
+    window.history.replaceState(window.history.state, '', u.pathname + u.search + u.hash);
+    requestAnimationFrame(() => scrollToTop(contentRef.current));
+  }, []);
+
+  // Opening an employee lands on the top of their detail card; "All employees" returns to their row.
+  useEffect(() => {
+    if (selected) {
+      lastSelected.current = selected;
+      requestAnimationFrame(() => scrollToTop(document.getElementById('employee-detail')));
+    } else if (lastSelected.current) {
+      const id = lastSelected.current; lastSelected.current = null;
+      requestAnimationFrame(() => {
+        const row = document.getElementById(`emp-${id}`);
+        if (row) { scrollToTop(row); row.classList.add('flash-ring'); window.setTimeout(() => row.classList.remove('flash-ring'), 1600); }
+      });
+    }
+  }, [selected]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -306,6 +338,21 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
     ? ([['overview', 'Overview'], ['employees', 'Employees'], ['clients', 'Clients & sites'], ...(canManage ? [['training', 'Custom training']] : []), ['assistant', 'Manager Assistant'], ...(canManage ? [['settings', 'Roles & trades']] : [])] as [Tab, string][])
     : [];
   const sel = selected ? summaries.find((s) => s.m.user_id === selected) ?? null : null;
+  function showAssignments() {
+    setSelected(null); lastSelected.current = null;
+    if (v3Team && tab !== 'overview') goTab('overview');
+    requestAnimationFrame(() => requestAnimationFrame(() => scrollToTop(document.getElementById('assignments'))));
+  }
+  function showRoster() {
+    if (v3Team) { goTab('employees'); return; }
+    setSelected(null); lastSelected.current = null;
+    requestAnimationFrame(() => scrollToTop(document.getElementById('roster')));
+  }
+  function showActivity() {
+    setSelected(null); lastSelected.current = null;
+    if (v3Team && tab !== 'overview') goTab('overview');
+    requestAnimationFrame(() => requestAnimationFrame(() => scrollToTop(document.getElementById('recent-activity'))));
+  }
 
   return (
     <div className="pt-20 pb-16 min-h-screen">
@@ -321,7 +368,7 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-accent-400">Company Manager Dashboard</p>
-            <h1 className="font-display text-2xl sm:text-3xl font-bold text-white truncate">{company.name}</h1>
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-white break-words">{company.name}</h1>
             <p className="text-sm text-steel-400">Signed in as {currentRole} · you can see your own team only</p>
           </div>
           <div className="flex flex-wrap gap-2 self-start sm:self-auto">
@@ -338,21 +385,22 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
         </div>
 
         {error && (
-          <div className="mb-4 flex items-start gap-2 rounded-lg border border-error-500/40 bg-error-500/10 px-3 py-2 text-sm text-error-400">
+          <div role="alert" className="sticky top-[4.5rem] z-30 mb-4 flex items-start gap-2 rounded-lg border border-error-500/40 bg-navy-900/95 backdrop-blur px-3 py-2 text-sm text-error-400 shadow-lg">
             <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" /> <span className="flex-1">{error}</span>
             <button onClick={() => setError(null)} aria-label="Dismiss"><X className="w-4 h-4" /></button>
           </div>
         )}
         {notice && (
-          <div className="mb-4 flex items-center gap-2 rounded-lg border border-success-500/40 bg-success-500/10 px-3 py-2 text-sm text-success-400">
-            <CheckCircle2 className="w-4 h-4" /> {notice}
+          <div role="status" className="sticky top-[4.5rem] z-30 mb-4 flex items-start gap-2 rounded-lg border border-success-500/40 bg-navy-900/95 backdrop-blur px-3 py-2 text-sm text-success-400 shadow-lg">
+            <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" /> <span className="flex-1 min-w-0 break-words">{notice}</span>
+            <button onClick={() => setNotice(null)} aria-label="Dismiss"><X className="w-4 h-4" /></button>
           </div>
         )}
 
         {tabs.length > 0 && (
-          <div className="mb-5 -mx-1 flex gap-1 overflow-x-auto border-b border-steel-700/60" role="tablist">
+          <div ref={contentRef} className="mb-5 flex flex-wrap gap-x-1 border-b border-steel-700/60" role="tablist" aria-label="Manager dashboard sections">
             {tabs.map(([k, label]) => (
-              <button key={k} role="tab" aria-selected={tab === k} onClick={() => { setTab(k); setSelected(null); }}
+              <button key={k} role="tab" aria-selected={tab === k} onClick={() => goTab(k)}
                 className={`px-3 py-2 text-sm font-semibold whitespace-nowrap border-b-2 -mb-px ${tab === k ? 'border-accent-500 text-white' : 'border-transparent text-steel-400 hover:text-white'}`}>{label}</button>
             ))}
           </div>
@@ -372,7 +420,7 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
         ) : v3Team && tab === 'clients' ? (
           <PlacementsPanel placements={placements} team={v3Team} canEdit={canManage}
             onSave={(p) => run(() => accounts.savePlacement({ ...p, company_id: company.id }), 'Client site saved.')}
-            onDelete={(p) => { if (window.confirm(`Delete ${p.client_name}? Employees placed there keep their contract details.`)) void run(() => accounts.deletePlacement(p.id)); }} />
+            onDelete={(p) => { if (window.confirm(`Delete ${p.client_name}? Employees placed there keep their contract details.`)) void run(() => accounts.deletePlacement(p.id), `${p.client_name} deleted.`); }} />
         ) : v3Team && tab === 'training' && canManage ? (
           <div className="grid grid-cols-1 xl:grid-cols-[1fr_24rem] gap-6">
             <RequestTrainingPanel key={draftKey} companyId={company.id} profile={profile} placements={placements} requests={requests} initialDraft={draft}
@@ -390,26 +438,26 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
         ) : v3Team && tab === 'assistant' && team ? (
           <ManagerAssistant ds={accounts} companyId={company.id} team={v3Team} courseTitles={team.courseTitles} initial={assistantSeed}
             onConfirmAssignments={confirmProposals}
-            onUseDraft={(d) => { setDraft({ ...d, source: 'assistant' }); setDraftKey((k) => k + 1); setTab('training'); }} />
+            onUseDraft={(d) => { setDraft({ ...d, source: 'assistant' }); setDraftKey((k) => k + 1); goTab('training'); }} />
         ) : v3Team && tab === 'settings' && canManage ? (
           <RolesTradesSettings roles={roles} trades={trades} allowSelfTrade={selfTrade}
             onAddRole={(n, b) => void run(() => accounts.addRole(company.id, n, b), `Role “${n}” added.`)}
-            onDeleteRole={(r) => void run(() => accounts.deleteRole(r.id))}
+            onDeleteRole={(r) => { if (window.confirm(`Delete the role “${r.name}”? People with it keep their base permission level.`)) void run(() => accounts.deleteRole(r.id), `Role “${r.name}” deleted.`); }}
             onAddTrade={(n) => void run(() => accounts.addTrade(company.id, n), `Trade “${n}” added.`)}
-            onDeleteTrade={(t) => void run(() => accounts.deleteTrade(t.id))}
-            onSelfTrade={(v) => void run(() => accounts.setSelfTrade(company.id, v))} />
+            onDeleteTrade={(t) => { if (window.confirm(`Delete the trade “${t.name}”?`)) void run(() => accounts.deleteTrade(t.id), `Trade “${t.name}” deleted.`); }}
+            onSelfTrade={(v) => void run(() => accounts.setSelfTrade(company.id, v), v ? 'Employees can now set their own trade.' : 'Only managers can set trades now.')} />
         ) : (
           <>
             {/* Stats */}
             <div className={`grid grid-cols-2 ${assignmentRows ? 'lg:grid-cols-6' : 'lg:grid-cols-5'} gap-3 mb-6`}>
-              <Stat icon={<Users className="w-4 h-4" />} label="Seats used" value={`${seatsUsed} of ${hasLimit ? seatLimit : 'Unlimited'}`} warn={atLimit} />
-              <Stat icon={<BookOpen className="w-4 h-4" />} label="Courses in progress" value={String(totals.inProgress)} />
-              <Stat icon={<CheckCircle2 className="w-4 h-4" />} label="Courses completed" value={String(totals.completed)} />
-              <Stat icon={<Award className="w-4 h-4" />} label="Certificates" value={String(totals.certs)} />
-              <Stat icon={<ClipboardCheck className="w-4 h-4" />} label="Avg quiz score" value={totals.avgQuiz != null ? `${totals.avgQuiz}%` : '—'} />
-              {assignmentRows && <Stat icon={<Timer className="w-4 h-4" />} label="Overdue" value={String(overdue)} warn={overdue > 0} />}
+              <Stat icon={<Users className="w-4 h-4" />} label="Seats used" value={`${seatsUsed} of ${hasLimit ? seatLimit : 'Unlimited'}`} warn={atLimit} onClick={showRoster} />
+              <Stat icon={<BookOpen className="w-4 h-4" />} label="Courses in progress" value={String(totals.inProgress)} onClick={showRoster} />
+              <Stat icon={<CheckCircle2 className="w-4 h-4" />} label="Courses completed" value={String(totals.completed)} onClick={showRoster} />
+              <Stat icon={<Award className="w-4 h-4" />} label="Certificates" value={String(totals.certs)} onClick={showActivity} />
+              <Stat icon={<ClipboardCheck className="w-4 h-4" />} label="Avg quiz score" value={totals.avgQuiz != null ? `${totals.avgQuiz}%` : '—'} onClick={showActivity} />
+              {assignmentRows && <Stat icon={<Timer className="w-4 h-4" />} label="Overdue" value={String(overdue)} warn={overdue > 0} onClick={showAssignments} />}
             </div>
-            {assignmentRows && <OverdueBanner count={overdue} onShow={() => { setSelected(null); setTimeout(() => document.getElementById('assignments')?.scrollIntoView({ behavior: 'smooth' }), 0); }} />}
+            {assignmentRows && <OverdueBanner count={overdue} onShow={showAssignments} />}
 
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_22rem] gap-6">
               <div className="min-w-0">
@@ -425,11 +473,12 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
                 ) : v3Team ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <DailySummaryCard ds={accounts} companyId={company.id}
-                      onProposals={(p, text) => { setAssistantSeed([{ role: 'user', content: 'Daily summary' }, { role: 'assistant', content: text, proposals: p }]); }} />
+                      onProposals={(p, text) => { setAssistantSeed([{ role: 'user', content: 'Daily summary' }, { role: 'assistant', content: text, proposals: p }]); }}
+                      onReview={() => goTab('assistant')} />
                     <EndingSoonCard team={v3Team} placements={placements} onOpen={setEditFor} />
                   </div>
                 ) : (
-                  <div className="card p-4 sm:p-5">
+                  <div id="roster" className="card p-4 sm:p-5">
                     <div className="flex flex-wrap items-center gap-3 mb-4">
                       <h2 className="font-display text-lg font-semibold text-white flex items-center gap-2"><Users className="w-5 h-5 text-accent-400" /> Employees</h2>
                       <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${atLimit ? 'border-warning-500/50 text-warning-400 bg-warning-500/10' : 'border-steel-600 text-steel-300'}`}>
@@ -454,7 +503,7 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
                     {showAdd && !atLimit && !mutationsOff && (
                       <div className="mb-4 rounded-lg border border-steel-700/60 bg-navy-950/40 p-3">
                         <div className="flex flex-col sm:flex-row gap-2">
-                          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="employee@company.com" className="input flex-1" autoFocus
+                          <input type="email" name="add-employee-email" aria-label="Employee email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="employee@company.com" className="input flex-1" autoFocus
                             onKeyDown={(e) => { if (e.key === 'Enter') void addEmployee(); }} />
                           <button onClick={() => void addEmployee()} disabled={busy || !email.trim()} className="btn-primary text-sm px-4">
                             {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Add'}
@@ -474,7 +523,7 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
                           <div className="text-center">Avg quiz</div><div className="text-center">Last active</div><div /><div />
                         </div>
                         {summaries.map((s) => (
-                          <div key={s.m.user_id} className="grid grid-cols-[1fr_auto_auto] md:grid-cols-[1fr_repeat(4,5rem)_2rem_1rem] gap-2 items-center p-3 rounded-lg border border-steel-700/40 bg-navy-950/30 hover:bg-navy-800/40 transition-colors">
+                          <div key={s.m.user_id} id={`emp-${s.m.user_id}`} className="grid grid-cols-[1fr_auto_auto] md:grid-cols-[1fr_repeat(4,5rem)_2rem_1rem] gap-2 items-center p-3 rounded-lg border border-steel-700/40 bg-navy-950/30 hover:bg-navy-800/40 transition-colors">
                             <button onClick={() => setSelected(s.m.user_id)} className="min-w-0 text-left">
                               <div className="text-sm font-medium text-white truncate">{displayName(s.m)}</div>
                               <div className="text-[11px] text-steel-500 truncate">
@@ -516,7 +565,7 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
               </div>
 
               {/* Activity feed */}
-              <div className="card p-4 sm:p-5 h-fit">
+              <div id="recent-activity" className="card p-4 sm:p-5 h-fit">
                 <h2 className="font-display text-lg font-semibold text-white flex items-center gap-2 mb-3"><Activity className="w-5 h-5 text-accent-400" /> Recent activity</h2>
                 {activity.length === 0 ? (
                   <p className="text-sm text-steel-500 py-6 text-center">No activity yet.</p>
@@ -528,7 +577,7 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
                           {a.kind === 'cert' ? <Award className="w-3.5 h-3.5" /> : a.kind === 'quiz' ? <ClipboardCheck className="w-3.5 h-3.5" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm text-steel-200"><button className="font-semibold text-white hover:text-accent-300" onClick={() => setSelected(a.userId)}>{displayName(byId.get(a.userId))}</button> {a.text}</p>
+                          <p className="text-sm text-steel-200"><button className="font-semibold text-white hover:text-accent-300 underline-offset-2 hover:underline" onClick={() => setSelected(a.userId)}>{displayName(byId.get(a.userId))}</button> {a.text}</p>
                           {a.detail && <p className="text-[11px] text-steel-500 truncate">{a.detail}</p>}
                           <p className="text-[11px] text-steel-600">{fmtDate(a.at)}</p>
                         </div>
@@ -544,7 +593,7 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
       {editMember && v3Team && (
         <EmployeeEditPanel member={editMember} team={v3Team} placements={placements} roles={roles} trades={trades}
           currentUserId={currentUserId} callerRole={currentRole as BaseRole} onClose={() => setEditFor(null)}
-          onViewProgress={() => { setSelected(editMember.user_id); setEditFor(null); if (tab === 'overview') setTab('employees'); }}
+          onViewProgress={() => { const id = editMember.user_id; setEditFor(null); if (tab !== 'employees') goTab('employees', { keepSelection: true }); setSelected(id); }}
           onSaveRole={(r, c) => run(() => accounts.setRole(company.id, editMember.user_id, r, c), `Role updated for ${memberName(editMember)}.`)}
           onSaveDetails={(d) => run(() => accounts.saveDetails(company.id, editMember.user_id, d), `Saved ${memberName(editMember)}.`)} />
       )}
@@ -572,13 +621,23 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
   );
 }
 
-function Stat({ icon, label, value, warn }: { icon: React.ReactNode; label: string; value: string; warn?: boolean }) {
-  return (
-    <div className={`card p-3 sm:p-4 ${warn ? 'border-warning-500/50' : ''}`}>
-      <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-steel-400 mb-1">{icon}{label}</div>
+function Stat({ icon, label, value, warn, onClick }: { icon: React.ReactNode; label: string; value: string; warn?: boolean; onClick?: () => void }) {
+  const cls = `card p-3 sm:p-4 text-left w-full ${warn ? 'border-warning-500/50' : ''} ${onClick ? 'hover:border-accent-500/60 hover:bg-navy-800 transition-colors' : ''}`;
+  const body = (
+    <>
+      <div className="flex items-start gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-steel-400 mb-1 leading-tight">{icon}<span className="min-w-0 break-words">{label}</span></div>
       <div className={`text-xl sm:text-2xl font-bold ${warn ? 'text-warning-400' : 'text-white'}`}>{value}</div>
-    </div>
+    </>
   );
+  return onClick ? <button type="button" onClick={onClick} className={cls}>{body}</button> : <div className={cls}>{body}</div>;
+}
+
+/** Scroll an element's top to just under the fixed nav (html has scroll-padding-top). */
+function scrollToTop(el: Element | null | undefined) {
+  if (!el) return;
+  // Instant, not smooth: content above can change height in the same frame (detail replaces cards),
+  // which made smooth scrolls stop short with the item's header under the nav.
+  el.scrollIntoView({ block: 'start', behavior: 'auto' });
 }
 
 interface DetailRow {
@@ -598,7 +657,7 @@ function EmployeeDetail({ s, rows, team, onBack, assignments, onAssign }: {
   const quizzes = team.quizzes.filter((q) => q.user_id === s.m.user_id).sort((a, b) => b.created_at.localeCompare(a.created_at));
   const certs = team.certs.filter((c) => c.user_id === s.m.user_id).sort((a, b) => b.issued_at.localeCompare(a.issued_at));
   return (
-    <div className="card p-4 sm:p-5">
+    <div id="employee-detail" className="card p-4 sm:p-5">
       <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-steel-400 hover:text-white mb-3"><ArrowLeft className="w-4 h-4" /> All employees</button>
       <h2 className="font-display text-xl font-semibold text-white">{displayName(s.m)}</h2>
       <p className="text-xs text-steel-500 mb-4">{s.m.full_name && s.m.email ? `${s.m.email} · ` : ''}{s.m.role}</p>

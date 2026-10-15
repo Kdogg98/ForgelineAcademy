@@ -341,11 +341,14 @@ export function Services({ onNavigate }: ServicesProps) {
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-steel-300 uppercase tracking-wider mb-1.5">
+                      <label htmlFor="req-name" className="block text-xs font-semibold text-steel-300 uppercase tracking-wider mb-1.5">
                         Name *
                       </label>
                       <input
                         type="text"
+                        id="req-name"
+                        name="name"
+                        autoComplete="name"
                         value={form.name}
                         onChange={(e) => setForm({ ...form, name: e.target.value })}
                         required
@@ -354,11 +357,14 @@ export function Services({ onNavigate }: ServicesProps) {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-steel-300 uppercase tracking-wider mb-1.5">
+                      <label htmlFor="req-company" className="block text-xs font-semibold text-steel-300 uppercase tracking-wider mb-1.5">
                         Company
                       </label>
                       <input
                         type="text"
+                        id="req-company"
+                        name="company"
+                        autoComplete="organization"
                         value={form.company}
                         onChange={(e) => setForm({ ...form, company: e.target.value })}
                         className="input"
@@ -369,11 +375,14 @@ export function Services({ onNavigate }: ServicesProps) {
 
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-steel-300 uppercase tracking-wider mb-1.5">
+                      <label htmlFor="req-email" className="block text-xs font-semibold text-steel-300 uppercase tracking-wider mb-1.5">
                         Email *
                       </label>
                       <input
                         type="email"
+                        id="req-email"
+                        name="email"
+                        autoComplete="email"
                         value={form.email}
                         onChange={(e) => setForm({ ...form, email: e.target.value })}
                         required
@@ -382,11 +391,14 @@ export function Services({ onNavigate }: ServicesProps) {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-steel-300 uppercase tracking-wider mb-1.5">
+                      <label htmlFor="req-phone" className="block text-xs font-semibold text-steel-300 uppercase tracking-wider mb-1.5">
                         Phone (optional)
                       </label>
                       <input
                         type="tel"
+                        id="req-phone"
+                        name="phone"
+                        autoComplete="tel"
                         value={form.phone}
                         onChange={(e) => setForm({ ...form, phone: e.target.value })}
                         className="input"
@@ -397,10 +409,10 @@ export function Services({ onNavigate }: ServicesProps) {
 
                   {!seatsMode && (
                   <div>
-                    <label className="block text-xs font-semibold text-steel-300 uppercase tracking-wider mb-1.5">
+                    <span id="req-service-type" className="block text-xs font-semibold text-steel-300 uppercase tracking-wider mb-1.5">
                       Service Type
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
+                    </span>
+                    <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-labelledby="req-service-type">
                       {([
                         { value: 'onsite_training', label: 'On-Site Training' },
                         { value: 'troubleshooting', label: 'Troubleshooting' },
@@ -409,8 +421,10 @@ export function Services({ onNavigate }: ServicesProps) {
                         <button
                           key={opt.value}
                           type="button"
+                          role="radio"
+                          aria-checked={form.service_type === opt.value}
                           onClick={() => setForm({ ...form, service_type: opt.value })}
-                          className={`px-3 py-2.5 rounded-lg border text-sm font-medium transition-colors ${
+                          className={`min-w-0 px-1.5 sm:px-3 py-2.5 rounded-lg border text-xs sm:text-sm font-medium leading-tight whitespace-normal break-words transition-colors ${
                             form.service_type === opt.value
                               ? 'border-rok-500 bg-rok-500/15 text-white'
                               : 'border-steel-700/40 bg-navy-950/30 text-steel-400 hover:text-steel-200'
@@ -424,10 +438,12 @@ export function Services({ onNavigate }: ServicesProps) {
                   )}
 
                   <div>
-                    <label className="block text-xs font-semibold text-steel-300 uppercase tracking-wider mb-1.5">
+                    <label htmlFor="req-message" className="block text-xs font-semibold text-steel-300 uppercase tracking-wider mb-1.5">
                       Message
                     </label>
                     <textarea
+                      id="req-message"
+                      name="message"
                       value={form.message}
                       onChange={(e) => setForm({ ...form, message: e.target.value })}
                       rows={4}

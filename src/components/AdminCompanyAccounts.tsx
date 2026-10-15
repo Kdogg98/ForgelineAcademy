@@ -39,14 +39,14 @@ export function AdminCompanyAccounts({ companyId, ds = supabaseAccountsData, def
           <div className="space-y-1">
             {team.map((m) => (
               <div key={m.user_id} className="flex flex-wrap items-center gap-2 rounded border border-steel-700/40 bg-navy-950/30 px-2.5 py-1.5 text-xs">
-                <span className="flex-1 min-w-[10rem] text-white truncate">{memberName(m)} <span className="text-steel-500">{m.email}</span></span>
+                <span className="flex-1 min-w-[10rem] text-white truncate" title={m.email ?? undefined}>{memberName(m)} <span className="text-steel-500">{m.email}</span></span>
                 <select aria-label={`Role for ${memberName(m)}`} className="input text-xs py-1" value={normRole(m.role)}
                   onChange={async (e) => { const r = await ds.setRole(companyId, m.user_id, e.target.value as BaseRole, null); onMessage?.(r.ok, r.ok ? 'Role updated.' : r.error); void load(); }}>
                   {(['owner', 'admin', 'supervisor', 'employee'] as BaseRole[]).map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
                 </select>
                 <span className="text-steel-300 w-24 truncate">{m.custom_role ?? ''} {m.details?.trade ?? ''}</span>
                 <span className="text-steel-400 w-32 truncate">{pl.get(m.details?.placement_id ?? '')?.client_name ?? '—'}</span>
-                <button onClick={() => setEdit(m.user_id)} className="text-accent-300">Edit</button>
+                <button onClick={() => setEdit(m.user_id)} className="text-accent-300 px-2 py-1 rounded hover:bg-accent-500/10">Edit</button>
               </div>
             ))}
           </div>

@@ -147,3 +147,8 @@ html[data-company-theme] body {
     radial-gradient(circle at 85% 20%, rgb(var(--fl-rok-500) / 0.18), transparent 45%),
     radial-gradient(circle at 10% 90%, rgb(var(--fl-accent-500) / 0.18), transparent 50%);
 }
+
+/* Anchor jumps and scrollIntoView land below the fixed Nav (h-16) instead of under it. */
+html { scroll-padding-top: 5.25rem; }
+/* Brief highlight on the row you came back to. */
+.flash-ring { box-shadow: 0 0 0 2px rgb(var(--fl-accent-500) / 0.7); transition: box-shadow 0.3s; }

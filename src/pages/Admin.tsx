@@ -309,10 +309,10 @@ export function Admin({ onNavigate }: { onNavigate: (r: { name: string }) => voi
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center gap-1 mb-6 border-b border-steel-700/60">
+        <div className="flex flex-wrap items-center gap-x-1 mb-6 border-b border-steel-700/60">
           <button
             onClick={() => setActiveTab('videos')}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+            className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
               activeTab === 'videos'
                 ? 'text-white border-accent-500'
                 : 'text-steel-400 border-transparent hover:text-steel-200'
@@ -323,7 +323,7 @@ export function Admin({ onNavigate }: { onNavigate: (r: { name: string }) => voi
           </button>
           <button
             onClick={() => setActiveTab('custom')}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+            className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
               activeTab === 'custom'
                 ? 'text-white border-accent-500'
                 : 'text-steel-400 border-transparent hover:text-steel-200'
@@ -334,7 +334,7 @@ export function Admin({ onNavigate }: { onNavigate: (r: { name: string }) => voi
           </button>
           <button
             onClick={() => setActiveTab('promos')}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+            className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
               activeTab === 'promos'
                 ? 'text-white border-accent-500'
                 : 'text-steel-400 border-transparent hover:text-steel-200'
@@ -345,7 +345,7 @@ export function Admin({ onNavigate }: { onNavigate: (r: { name: string }) => voi
           </button>
           <button
             onClick={() => setActiveTab('bookings')}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+            className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
               activeTab === 'bookings'
                 ? 'text-white border-accent-500'
                 : 'text-steel-400 border-transparent hover:text-steel-200'
@@ -356,7 +356,7 @@ export function Admin({ onNavigate }: { onNavigate: (r: { name: string }) => voi
           </button>
           <button
             onClick={() => setActiveTab('companies')}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+            className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
               activeTab === 'companies'
                 ? 'text-white border-accent-500'
                 : 'text-steel-400 border-transparent hover:text-steel-200'
@@ -367,7 +367,7 @@ export function Admin({ onNavigate }: { onNavigate: (r: { name: string }) => voi
           </button>
           <button
             onClick={() => setActiveTab('builder')}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+            className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
               activeTab === 'builder'
                 ? 'text-white border-accent-500'
                 : 'text-steel-400 border-transparent hover:text-steel-200'
@@ -378,7 +378,7 @@ export function Admin({ onNavigate }: { onNavigate: (r: { name: string }) => voi
           </button>
           <button
             onClick={() => setActiveTab('services')}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+            className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
               activeTab === 'services'
                 ? 'text-white border-accent-500'
                 : 'text-steel-400 border-transparent hover:text-steel-200'
@@ -389,7 +389,7 @@ export function Admin({ onNavigate }: { onNavigate: (r: { name: string }) => voi
           </button>
           <button
             onClick={() => setActiveTab('training')}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+            className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
               activeTab === 'training' ? 'text-white border-accent-500' : 'text-steel-400 border-transparent hover:text-steel-200'
             }`}
           >

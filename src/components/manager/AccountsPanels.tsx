@@ -48,7 +48,7 @@ function Field({ label, children, hint, group }: { label: string; children: Reac
 function ResearchBox({ checked, onChange, disabled }: { checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
   return (
     <label className="flex items-start gap-2 rounded-lg border border-accent-500/30 bg-accent-500/5 p-3 text-sm text-steel-200 cursor-pointer">
-      <input type="checkbox" className="mt-0.5" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} />
+      <input type="checkbox" name="research-ok" className="mt-0.5" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} />
       <span><b className="text-white">Not sure?</b> ForgeLine will research this company/site and tailor the training.</span>
     </label>
   );
@@ -153,11 +153,11 @@ export function EmployeesTab({ team, placements, roles, currentUserId, canManage
       </div>
       <div className="flex flex-wrap items-center gap-2 mb-3">
         <Filter className="w-4 h-4 text-steel-500" />
-        <select aria-label="Filter by trade" className={sel} value={trade} onChange={(e) => setTrade(e.target.value)}><option value="">All trades</option>{trades.map((t) => <option key={t}>{t}</option>)}</select>
-        <select aria-label="Filter by role" className={sel} value={role} onChange={(e) => setRole(e.target.value)}><option value="">All roles</option>{roleOpts.map((r) => <option key={r} value={r}>{r.startsWith('custom:') ? roles.find((x) => x.id === r.slice(7))?.name : ROLE_LABEL[r as BaseRole]}</option>)}</select>
-        <select aria-label="Filter by client" className={sel} value={client} onChange={(e) => setClient(e.target.value)}><option value="">All clients</option>{placements.map((p) => <option key={p.id} value={p.id}>{p.client_name}</option>)}<option value="__none">No client</option></select>
-        <select aria-label="Filter by industry" className={sel} value={industry} onChange={(e) => setIndustry(e.target.value)}><option value="">All industries</option>{industries.map((i) => <option key={i}>{i}</option>)}</select>
-        <select aria-label="Filter by site" className={sel} value={site} onChange={(e) => setSite(e.target.value)}><option value="">All sites</option>{sites.map((s) => <option key={s}>{s}</option>)}</select>
+        <select aria-label="Filter by trade" name="filter-trade" className={sel} value={trade} onChange={(e) => setTrade(e.target.value)}><option value="">All trades</option>{trades.map((t) => <option key={t}>{t}</option>)}</select>
+        <select aria-label="Filter by role" name="filter-role" className={sel} value={role} onChange={(e) => setRole(e.target.value)}><option value="">All roles</option>{roleOpts.map((r) => <option key={r} value={r}>{r.startsWith('custom:') ? roles.find((x) => x.id === r.slice(7))?.name : ROLE_LABEL[r as BaseRole]}</option>)}</select>
+        <select aria-label="Filter by client" name="filter-client" className={sel} value={client} onChange={(e) => setClient(e.target.value)}><option value="">All clients</option>{placements.map((p) => <option key={p.id} value={p.id}>{p.client_name}</option>)}<option value="__none">No client</option></select>
+        <select aria-label="Filter by industry" name="filter-industry" className={sel} value={industry} onChange={(e) => setIndustry(e.target.value)}><option value="">All industries</option>{industries.map((i) => <option key={i}>{i}</option>)}</select>
+        <select aria-label="Filter by site" name="filter-site" className={sel} value={site} onChange={(e) => setSite(e.target.value)}><option value="">All sites</option>{sites.map((s) => <option key={s}>{s}</option>)}</select>
         <label className="flex items-center gap-1.5 text-xs text-steel-300 ml-1"><input type="checkbox" name="group-by-client" checked={group} onChange={(e) => setGroup(e.target.checked)} /> Group by client</label>
       </div>
       <div className={`hidden lg:grid ${cols} gap-2 px-3 pb-1 text-[10px] font-semibold text-steel-500 uppercase tracking-wider`}>
@@ -478,7 +478,7 @@ export function RolesTradesSettings({ roles, trades, allowSelfTrade, onAddRole, 
         <p className="text-xs text-steel-500 mb-2">Built in: {TRADE_PRESETS.join(', ')}. Add your own:</p>
         <ul className="mb-2 space-y-1">{trades.map((t) => <li key={t.id} className="flex items-center justify-between text-sm text-steel-200">{t.name}<button onClick={() => onDeleteTrade(t)} aria-label="Delete trade" className="text-steel-500 hover:text-error-400"><Trash2 className="w-3.5 h-3.5" /></button></li>)}</ul>
         <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); if (tn.trim()) { onAddTrade(tn.trim()); setTn(''); } }}><input aria-label="New trade name" name="trade-name" className="input flex-1 min-w-0 text-sm" value={tn} onChange={(e) => setTn(e.target.value)} placeholder="Trade name" /><button type="submit" className="btn-secondary text-sm" disabled={!tn.trim()}>Add</button></form>
-        <label className="flex items-center gap-2 mt-3 text-sm text-steel-200"><input type="checkbox" checked={allowSelfTrade} onChange={(e) => onSelfTrade(e.target.checked)} /> Let employees set their own trade</label>
+        <label className="flex items-center gap-2 mt-3 text-sm text-steel-200"><input type="checkbox" name="allow-self-trade" checked={allowSelfTrade} onChange={(e) => onSelfTrade(e.target.checked)} /> Let employees set their own trade</label>
       </div>
     </div>
   );

@@ -56,10 +56,14 @@ export const SEAT_REQUEST_HREF = '/request?seats=10';
 
 export type Tab = 'overview' | 'employees' | 'clients' | 'training' | 'assistant' | 'settings';
 const TABS: Tab[] = ['overview', 'employees', 'clients', 'training', 'assistant', 'settings'];
+/** URL names: the tab is labelled "Roles & trades", so ?tab=roles is the canonical link (settings still accepted). */
+const TAB_ALIASES: Record<string, Tab> = { roles: 'settings', trades: 'settings', 'custom-training': 'training', sites: 'clients', team: 'employees' };
+const TAB_URL: Partial<Record<Tab, string>> = { settings: 'roles' };
 /** Deep link: /dashboard?tab=employees */
 function urlTab(): Tab {
   const t = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('tab') : null;
-  return TABS.includes(t as Tab) ? (t as Tab) : 'overview';
+  const k = t ? (TAB_ALIASES[t.toLowerCase()] ?? t.toLowerCase()) : null;
+  return TABS.includes(k as Tab) ? (k as Tab) : 'overview';
 }
 
 export function ManagerDashboard({ company, currentUserId, currentRole, onNavigate, dataSource = supabaseManagerData, accounts = supabaseAccountsData, banner, initialTab = urlTab(), initialAssistant, initialEditUserId }: Props) {
@@ -97,6 +101,7 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
   const [assignmentRows, setAssignmentRows] = useState<AssignmentRow[] | undefined>(undefined);
   const [invites, setInvites] = useState<InviteRow[] | undefined>(undefined);
   const [assignFor, setAssignFor] = useState<string | null | false>(false);
+  const [assignFocus, setAssignFocus] = useState(0); // bump = show the Overdue filter
   const [lastLink, setLastLink] = useState<{ email: string; url: string; emailed: boolean; reason?: string } | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   useEffect(() => { if (!notice) return; const t = window.setTimeout(() => setNotice(null), 8000); return () => window.clearTimeout(t); }, [notice]);
@@ -107,7 +112,7 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
     setTab(k);
     if (!opts.keepSelection) setSelected(null);
     const u = new URL(window.location.href);
-    if (k === 'overview') u.searchParams.delete('tab'); else u.searchParams.set('tab', k);
+    if (k === 'overview') u.searchParams.delete('tab'); else u.searchParams.set('tab', TAB_URL[k] ?? k);
     window.history.replaceState(window.history.state, '', u.pathname + u.search + u.hash);
     requestAnimationFrame(() => scrollToTop(contentRef.current));
   }, []);
@@ -297,7 +302,7 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
   }
   function exportPrint() {
     if (!team) return;
-    if (!printAuditReport(company.name, buildAuditRows(team, assignments))) setError('Allow pop-ups for this site to open the printable report.');
+    printAuditReport(company.name, buildAuditRows(team, assignments));
   }
 
   const canRemove = (m: RosterMember) => canManage && m.user_id !== currentUserId && m.role !== 'owner';
@@ -338,8 +343,9 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
     ? ([['overview', 'Overview'], ['employees', 'Employees'], ['clients', 'Clients & sites'], ...(canManage ? [['training', 'Custom training']] : []), ['assistant', 'Manager Assistant'], ...(canManage ? [['settings', 'Roles & trades']] : [])] as [Tab, string][])
     : [];
   const sel = selected ? summaries.find((s) => s.m.user_id === selected) ?? null : null;
-  function showAssignments() {
+  function showAssignments(overdueOnly = false) {
     setSelected(null); lastSelected.current = null;
+    if (overdueOnly) setAssignFocus((n) => n + 1);
     if (v3Team && tab !== 'overview') goTab('overview');
     requestAnimationFrame(() => requestAnimationFrame(() => scrollToTop(document.getElementById('assignments'))));
   }
@@ -455,9 +461,9 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
               <Stat icon={<CheckCircle2 className="w-4 h-4" />} label="Courses completed" value={String(totals.completed)} onClick={showRoster} />
               <Stat icon={<Award className="w-4 h-4" />} label="Certificates" value={String(totals.certs)} onClick={showActivity} />
               <Stat icon={<ClipboardCheck className="w-4 h-4" />} label="Avg quiz score" value={totals.avgQuiz != null ? `${totals.avgQuiz}%` : '—'} onClick={showActivity} />
-              {assignmentRows && <Stat icon={<Timer className="w-4 h-4" />} label="Overdue" value={String(overdue)} warn={overdue > 0} onClick={showAssignments} />}
+              {assignmentRows && <Stat icon={<Timer className="w-4 h-4" />} label="Overdue" value={String(overdue)} warn={overdue > 0} onClick={() => showAssignments(overdue > 0)} />}
             </div>
-            {assignmentRows && <OverdueBanner count={overdue} onShow={showAssignments} />}
+            {assignmentRows && <OverdueBanner count={overdue} onShow={() => showAssignments(true)} />}
 
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_22rem] gap-6">
               <div className="min-w-0">
@@ -553,7 +559,7 @@ export function ManagerDashboard({ company, currentUserId, currentRole, onNaviga
                 )}
                 {!sel && assignmentRows && team && (
                   <div id="assignments">
-                    <AssignmentsPanel items={assignments} byId={byId} courseTitles={team.courseTitles} busy={busy}
+                    <AssignmentsPanel focusOverdue={assignFocus} items={assignments} byId={byId} courseTitles={team.courseTitles} busy={busy}
                       onAssign={() => setAssignFor(null)} onRemove={(a) => void removeAssignment(a)} onSelect={setSelected} />
                   </div>
                 )}

@@ -5,6 +5,7 @@ import { useCourses, fetchAllProgress, fetchCertificates } from '@/lib/data';
 import { supabase } from '@/lib/supabase';
 import { trackPageView } from '@/lib/analytics';
 import { pathToRoute, routeToPath } from '@/lib/routing';
+import { NotFound } from '@/pages/NotFound';
 import type { UserProgress, Certificate } from '@/lib/types';
 import { Nav, type Route } from '@/components/Nav';
 import { Footer } from '@/components/Footer';
@@ -212,6 +213,7 @@ function AppContent() {
           />
         )}
         {route.name === 'announcements' && <Announcements onNavigate={navigate} />}
+        {route.name === 'notfound' && <NotFound path={route.path} onNavigate={navigate} />}
         {route.name === 'search' && (
           <Catalog
             courses={courses}

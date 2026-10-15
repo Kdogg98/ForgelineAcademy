@@ -41,6 +41,8 @@ export function routeToPath(r: Route): string {
       return '/assessment';
     case 'announcements':
       return '/announcements';
+    case 'notfound':
+      return r.path;
     default:
       return '/';
   }
@@ -80,5 +82,6 @@ export function pathToRoute(pathname: string, search = ''): Route {
   }
   const legal = p.match(/^\/legal\/(privacy|terms|disclaimer)$/);
   if (legal) return { name: 'legal', doc: legal[1] as 'privacy' | 'terms' | 'disclaimer' };
-  return { name: 'home' };
+  // Unknown path: a real 404 page instead of silently rendering home/dashboard.
+  return { name: 'notfound', path: p };
 }

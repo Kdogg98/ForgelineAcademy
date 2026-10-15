@@ -1,8 +1,9 @@
 import { Modal } from '@/components/ui/Modal';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, CalendarClock, Check, ClipboardList, Copy, Loader2, Mail, Trash2 } from 'lucide-react';
 import type { AssignmentRow, InviteRow, RosterMember, TeamSnapshot } from '@/lib/managerData';
 import { inviteUrl } from '@/lib/managerData';
+import { ROLE_LABEL, normRole } from '@/lib/accountsData';
 
 /* ----------------------------------------------------------------------------
  * Assignment status (done = existing completion data: certificate, or every
@@ -105,7 +106,9 @@ export function AssignDialog({ members, courseTitles, busy, onCancel, onAssign, 
 /* ----------------------------------------------------------------------------
  * Assignments panel
  * -------------------------------------------------------------------------- */
-export function AssignmentsPanel({ items, byId, courseTitles, onAssign, onRemove, onSelect, busy }: {
+export function AssignmentsPanel({ items, byId, courseTitles, onAssign, onRemove, onSelect, busy, focusOverdue = 0 }: {
+  /** Increment to switch the filter to Overdue (coming from the overdue banner / stat). */
+  focusOverdue?: number;
   items: AssignmentView[];
   byId: Map<string, RosterMember>;
   courseTitles: Record<string, string>;
@@ -114,7 +117,8 @@ export function AssignmentsPanel({ items, byId, courseTitles, onAssign, onRemove
   onSelect: (userId: string) => void;
   busy: boolean;
 }) {
-  const [filter, setFilter] = useState<'all' | AssignmentStatus>('all');
+  const [filter, setFilter] = useState<'all' | AssignmentStatus>(focusOverdue ? 'overdue' : 'all');
+  useEffect(() => { if (focusOverdue) setFilter('overdue'); }, [focusOverdue]);
   const order: Record<AssignmentStatus, number> = { overdue: 0, in_progress: 1, not_started: 2, done: 3 };
   const shown = items
     .filter((a) => filter === 'all' || a.status === filter)
@@ -246,7 +250,7 @@ export function buildAuditRows(team: TeamSnapshot, assignments: AssignmentView[]
   const rows: AuditRow[] = [];
   const blank = { course: '', detail: '', score: '', date: '', certificate_id: '', due_date: '', status: '' };
   for (const m of team.members) {
-    const who = { employee: m.full_name ?? '', email: m.email ?? '', role: m.role };
+    const who = { employee: m.full_name ?? '', email: m.email ?? '', role: ROLE_LABEL[normRole(m.role)] }; // same wording as the UI ('member' -> Employee)
     rows.push({ record_type: 'employee', ...who, ...blank, date: isoDay(m.created_at), detail: 'joined company' });
     for (const r of team.rollups.filter((x) => x.user_id === m.user_id)) {
       const total = team.lessonTotals[r.course_id] ?? 0;
@@ -293,27 +297,43 @@ export function downloadAuditCsv(companyName: string, rows: AuditRow[]) {
 
 const html = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-/** Opens a plain, print-friendly report in a new tab and triggers the print dialog (Save as PDF). */
+/**
+ * Prints a plain report in-page (no about:blank tab): a temporary #fl-print-root is the only thing
+ * visible under @media print, and document.title becomes the report title for the print header.
+ */
 export function printAuditReport(companyName: string, rows: AuditRow[]): boolean {
-  const w = window.open('', '_blank');
-  if (!w) return false;
   const section = (type: AuditRow['record_type'], title: string, cols: (keyof AuditRow)[]) => {
     const rs = rows.filter((r) => r.record_type === type);
     return `<h2>${title} (${rs.length})</h2>` + (rs.length === 0 ? '<p class="none">None</p>' :
       `<table><thead><tr>${cols.map((c) => `<th>${html(c.replace(/_/g, ' '))}</th>`).join('')}</tr></thead><tbody>${rs.map((r) => `<tr>${cols.map((c) => `<td>${html(r[c])}</td>`).join('')}</tr>`).join('')}</tbody></table>`);
   };
-  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${html(companyName)} training audit ${todayISO()}</title>
-<style>body{font:12px/1.4 system-ui,sans-serif;color:#111;margin:24px}h1{font-size:20px;margin:0}h2{font-size:14px;margin:20px 0 6px;border-bottom:1px solid #999}
-table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:3px 6px;text-align:left;vertical-align:top}th{background:#eee;text-transform:capitalize}
-tr{page-break-inside:avoid}.meta{color:#555}.none{color:#777}@media print{body{margin:0}}</style></head><body>
-<h1>${html(companyName)}: training audit</h1><p class="meta">Generated ${html(new Date().toLocaleString())} from ForgeLine Academy. Contains this company's employees only.</p>
+  document.getElementById('fl-print-root')?.remove();
+  document.getElementById('fl-print-style')?.remove();
+  const style = document.createElement('style');
+  style.id = 'fl-print-style';
+  style.textContent = `#fl-print-root{display:none}
+@media print{body>*:not(#fl-print-root){display:none!important}#fl-print-root{display:block;font:12px/1.4 system-ui,sans-serif;color:#111;background:#fff}
+#fl-print-root h1{font-size:20px;margin:0}#fl-print-root h2{font-size:14px;margin:20px 0 6px;border-bottom:1px solid #999}
+#fl-print-root table{width:100%;border-collapse:collapse}#fl-print-root th,#fl-print-root td{border:1px solid #ccc;padding:3px 6px;text-align:left;vertical-align:top}
+#fl-print-root th{background:#eee;text-transform:capitalize}#fl-print-root tr{page-break-inside:avoid}#fl-print-root .meta{color:#555}#fl-print-root .none{color:#777}
+html,body{background:#fff!important}}`;
+  const root = document.createElement('div');
+  root.id = 'fl-print-root';
+  root.innerHTML = `<h1>${html(companyName)}: training audit</h1><p class="meta">Generated ${html(new Date().toLocaleString())} from ForgeLine Academy. Contains this company's employees only.</p>
 ${section('employee', 'Employees', ['employee', 'email', 'role', 'date'])}
 ${section('course_completed', 'Courses completed', ['employee', 'course', 'detail', 'score', 'date'])}
 ${section('certificate', 'Certificates', ['employee', 'course', 'certificate_id', 'date'])}
 ${section('assignment', 'Assignments', ['employee', 'course', 'due_date', 'status', 'detail', 'date'])}
-${section('quiz', 'Quiz results', ['employee', 'course', 'detail', 'score', 'status', 'date'])}
-<script>window.onload=function(){window.print()}</script></body></html>`);
-  w.document.close();
+${section('quiz', 'Quiz results', ['employee', 'course', 'detail', 'score', 'status', 'date'])}`;
+  document.head.appendChild(style);
+  document.body.appendChild(root);
+  const prevTitle = document.title;
+  document.title = `${companyName} training audit ${todayISO()}`;
+  const cleanup = () => { document.title = prevTitle; root.remove(); style.remove(); window.removeEventListener('afterprint', cleanup); };
+  window.addEventListener('afterprint', cleanup);
+  window.print();
+  // Some browsers (iOS) don't fire afterprint; clean up anyway once print() returns control.
+  window.setTimeout(() => { if (document.body.contains(root)) cleanup(); }, 1000);
   return true;
 }
 

@@ -42,8 +42,25 @@ interface CompanyAdminProps {
 }
 
 export function CompanyAdmin({ onNavigate, companyId }: CompanyAdminProps) {
-  const { user, company: userCompany, companyRole, isCompanyAdmin, isAdmin, refreshPremium } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'settings' | 'members' | 'progress' | 'retakes'>('overview');
+  const { user, company: userCompany, companyRole, isCompanyAdmin, isCompanyManager, isAdmin, refreshPremium } = useAuth();
+  /** The manager parts of this older page are superseded by /dashboard; deep-link there (SPA, keeps ?tab=). */
+  const openDashboard = (tab: string) => {
+    window.history.pushState(null, '', `/dashboard?tab=${tab}`);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    window.scrollTo({ top: 0 });
+  };
+  type CoTab = 'overview' | 'settings' | 'members' | 'progress' | 'retakes';
+  // /company?tab=… deep links (overview | settings | members | progress | retakes).
+  const [activeTab, setActiveTabRaw] = useState<CoTab>(() => {
+    const t = new URLSearchParams(window.location.search).get('tab');
+    return (['overview', 'settings', 'members', 'progress', 'retakes'] as const).includes(t as CoTab) ? (t as CoTab) : 'overview';
+  });
+  const setActiveTab = (t: CoTab) => {
+    setActiveTabRaw(t);
+    const u = new URL(window.location.href);
+    if (t === 'overview') u.searchParams.delete('tab'); else u.searchParams.set('tab', t);
+    window.history.replaceState(window.history.state, '', u.pathname + u.search);
+  };
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [allCompanies, setAllCompanies] = useState<Company[]>([]);
   const [members, setMembers] = useState<MemberRow[]>([]);
@@ -62,6 +79,13 @@ export function CompanyAdmin({ onNavigate, companyId }: CompanyAdminProps) {
 
   // Determine which company we're managing
   const managingCompany = selectedCompany ?? userCompany;
+  // Own company's manager: Members/Team Progress are superseded by /dashboard (roles, trades, placements,
+  // assignments, invites). Platform admins managing another company keep the old tabs.
+  const ownManager = isCompanyManager && !!userCompany && managingCompany?.id === userCompany.id;
+  useEffect(() => {
+    if (ownManager && (activeTab === 'members' || activeTab === 'progress')) openDashboard('employees');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ownManager, activeTab]);
   const canManage = isCompanyAdmin || isAdmin;
   // Any linked member (company_members row) can see the branded overview.
   const canView = canManage || companyRole !== null;
@@ -422,15 +446,16 @@ export function CompanyAdmin({ onNavigate, companyId }: CompanyAdminProps) {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 mb-6 border-b border-steel-700/60">
+        <div className="flex flex-wrap gap-x-1 mb-6 border-b border-steel-700/60">
           {tabs.map((t) => {
             const Icon = t.icon;
             const pendingCount = retakeRequests.filter((r) => r.status === 'pending').length;
             return (
               <button
                 key={t.key}
-                onClick={() => setActiveTab(t.key)}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+                onClick={() => (ownManager && (t.key === 'members' || t.key === 'progress') ? openDashboard('employees') : setActiveTab(t.key))}
+                title={ownManager && (t.key === 'members' || t.key === 'progress') ? 'Opens the Team Dashboard → Employees' : undefined}
+                className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 whitespace-nowrap text-sm font-medium transition-colors border-b-2 -mb-px ${
                   tab === t.key ? 'text-white border-rok-500' : 'text-steel-400 border-transparent hover:text-steel-200'
                 }`}
                 style={tab === t.key && showBranding ? { borderColor: 'var(--brand-accent)' } : undefined}

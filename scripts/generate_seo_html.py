@@ -376,7 +376,7 @@ def course_body(course: dict, courses: list[dict]) -> str:
     if len(related) < 3:
         related = (related + same)[:3]
     access = "Free" if tier == "free" else "Premium"
-    player = f"/course/{course['id']}"
+    player = f"/course/{course['slug']}"  # app route (SPA); /courses/<slug> is this static page
     pretty = f"/courses/{course['slug']}"
     related_pairs = [(f"/courses/{c['slug']}", c["title"]) for c in related]
     if stage == "mechanical":
@@ -713,6 +713,9 @@ def redirects(courses: list[dict]) -> str:
         "",
         "/courses/:slug        /courses/:slug/index.html 200",
         "/courses/:slug/       /courses/:slug/index.html 200",
+        "",
+        "# App course player: /course/<slug-or-id> and /course/<id>/games are SPA routes (reload/share opens the app).",
+        "/course/*             /index.html                  200",
         "",
         "/*                    /index.html                  200",
         "",

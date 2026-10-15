@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { cloneElement, isValidElement, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Bot, Briefcase, Building2, CalendarClock, Check, ClipboardPaste, Factory, FileUp, Filter, Loader2, Mail, MapPin, Plus,
   Send, Sparkles, Trash2, UserCog, Users, Wrench, X,
@@ -9,6 +9,7 @@ import {
   type AccountsDataSource, type AssignmentProposal, type BaseRole, type CompanyRole, type CompanyTrade, type MemberDetails,
   type NewTrainingRequest, type Placement, type TeamMember, type TrainingProfile, type TrainingRequest,
 } from '@/lib/accountsData';
+import { Modal } from '@/components/ui/Modal';
 
 const fmt = (d: string | null | undefined) => (d ? new Date(d.length === 10 ? d + 'T12:00:00' : d).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '—');
 export const memberName = (m: Pick<TeamMember, 'full_name' | 'email'> | undefined) => m?.full_name || m?.email || 'Unknown';
@@ -30,37 +31,28 @@ export function Chips({ options, value, onChange, disabled }: { options: string[
     </div>
   );
 }
-function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
+function Field({ label, children, hint, group }: { label: string; children: React.ReactNode; hint?: string; group?: boolean }) {
+  const Tag = group ? 'div' : 'label';
+  // Give the wrapped control a name (autofill / form tooling expect id or name).
+  if (!group && isValidElement<{ name?: string; id?: string }>(children) && !children.props.name && !children.props.id) {
+    children = cloneElement(children, { name: label.toLowerCase().replace(/\(.*?\)/g, '').trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') });
+  }
   return (
-    <label className="block">
+    <Tag className="block" {...(group ? { role: 'group', 'aria-label': label } : {})}>
       <span className="block text-[11px] font-semibold uppercase tracking-wider text-steel-400 mb-1">{label}</span>
       {children}
       {hint && <span className="block text-[11px] text-steel-500 mt-1">{hint}</span>}
-    </label>
+    </Tag>
   );
 }
 function ResearchBox({ checked, onChange, disabled }: { checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
   return (
     <label className="flex items-start gap-2 rounded-lg border border-accent-500/30 bg-accent-500/5 p-3 text-sm text-steel-200 cursor-pointer">
-      <input type="checkbox" className="mt-0.5" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} />
+      <input type="checkbox" name="research-ok" className="mt-0.5" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} />
       <span><b className="text-white">Not sure?</b> ForgeLine will research this company/site and tailor the training.</span>
     </label>
   );
 }
-function Modal({ title, onClose, children, wide }: { title: string; onClose: () => void; children: React.ReactNode; wide?: boolean }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/60 p-3 overflow-y-auto" role="dialog" aria-modal="true">
-      <div className={`card w-full ${wide ? 'max-w-3xl' : 'max-w-lg'} p-4 sm:p-5 my-6`}>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-display text-lg font-semibold text-white">{title}</h3>
-          <button onClick={onClose} aria-label="Close" className="text-steel-400 hover:text-white"><X className="w-5 h-5" /></button>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-}
-
 /* ---------------- dashboard cards ---------------- */
 export function EndingSoonCard({ team, placements, onOpen }: { team: TeamMember[]; placements: Placement[]; onOpen: (id: string) => void }) {
   const rows = team.filter((m) => endingSoon(m.details)).sort((a, b) => (a.details!.contract_end ?? '').localeCompare(b.details!.contract_end ?? ''));
@@ -87,8 +79,9 @@ export function EndingSoonCard({ team, placements, onOpen }: { team: TeamMember[
   );
 }
 
-export function DailySummaryCard({ ds, companyId, onProposals }: { ds: AccountsDataSource; companyId: string; onProposals: (p: AssignmentProposal[], text: string) => void }) {
+export function DailySummaryCard({ ds, companyId, onProposals, onReview }: { ds: AccountsDataSource; companyId: string; onProposals: (p: AssignmentProposal[], text: string) => void; onReview?: () => void }) {
   const [text, setText] = useState<string | null>(null);
+  const [proposed, setProposed] = useState(0);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   async function run() {
@@ -97,6 +90,7 @@ export function DailySummaryCard({ ds, companyId, onProposals }: { ds: AccountsD
     setBusy(false);
     if (!r.ok) { setErr(r.error); return; }
     setText(r.reply);
+    setProposed(r.proposals.length);
     if (r.proposals.length) onProposals(r.proposals, r.reply);
   }
   return (
@@ -108,8 +102,11 @@ export function DailySummaryCard({ ds, companyId, onProposals }: { ds: AccountsD
         </button>
       </div>
       {err && <p className="text-xs text-error-400">{err}</p>}
-      {text ? <div className="text-sm text-steel-200 whitespace-pre-wrap">{text}</div>
+      {text ? <div className="text-sm text-steel-200 whitespace-pre-wrap break-words">{text}</div>
         : !err && <p className="text-sm text-steel-500">AI summary of today: who's active, behind, overdue, contracts ending and certificates. Generated on demand.</p>}
+      {proposed > 0 && onReview && (
+        <button onClick={onReview} className="mt-3 btn-primary text-xs px-3 py-1.5">Review {proposed} proposed assignment{proposed === 1 ? '' : 's'}</button>
+      )}
     </div>
   );
 }
@@ -145,7 +142,7 @@ export function EmployeesTab({ team, placements, roles, currentUserId, canManage
     ? Array.from(rows.reduce((acc, m) => { const k = pl.get(m.details?.placement_id ?? '')?.client_name ?? 'No client placement'; acc.set(k, [...(acc.get(k) ?? []), m]); return acc; }, new Map<string, TeamMember[]>()))
     : [['', rows]];
   const sel = 'input !w-auto text-xs py-1.5 pr-7';
-  const cols = 'md:grid-cols-[minmax(10rem,1.4fr)_6.5rem_7rem_minmax(8rem,1.2fr)_minmax(7rem,1fr)_6.5rem_4rem_2rem]';
+  const cols = 'lg:grid-cols-[minmax(10rem,1.4fr)_6.5rem_7rem_minmax(8rem,1.2fr)_minmax(7rem,1fr)_6.5rem_4rem_2rem]';
   return (
     <div className="card p-4 sm:p-5">
       <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -156,14 +153,14 @@ export function EmployeesTab({ team, placements, roles, currentUserId, canManage
       </div>
       <div className="flex flex-wrap items-center gap-2 mb-3">
         <Filter className="w-4 h-4 text-steel-500" />
-        <select aria-label="Filter by trade" className={sel} value={trade} onChange={(e) => setTrade(e.target.value)}><option value="">All trades</option>{trades.map((t) => <option key={t}>{t}</option>)}</select>
-        <select aria-label="Filter by role" className={sel} value={role} onChange={(e) => setRole(e.target.value)}><option value="">All roles</option>{roleOpts.map((r) => <option key={r} value={r}>{r.startsWith('custom:') ? roles.find((x) => x.id === r.slice(7))?.name : ROLE_LABEL[r as BaseRole]}</option>)}</select>
-        <select aria-label="Filter by client" className={sel} value={client} onChange={(e) => setClient(e.target.value)}><option value="">All clients</option>{placements.map((p) => <option key={p.id} value={p.id}>{p.client_name}</option>)}<option value="__none">No client</option></select>
-        <select aria-label="Filter by industry" className={sel} value={industry} onChange={(e) => setIndustry(e.target.value)}><option value="">All industries</option>{industries.map((i) => <option key={i}>{i}</option>)}</select>
-        <select aria-label="Filter by site" className={sel} value={site} onChange={(e) => setSite(e.target.value)}><option value="">All sites</option>{sites.map((s) => <option key={s}>{s}</option>)}</select>
-        <label className="flex items-center gap-1.5 text-xs text-steel-300 ml-1"><input type="checkbox" checked={group} onChange={(e) => setGroup(e.target.checked)} /> Group by client</label>
+        <select aria-label="Filter by trade" name="filter-trade" className={sel} value={trade} onChange={(e) => setTrade(e.target.value)}><option value="">All trades</option>{trades.map((t) => <option key={t}>{t}</option>)}</select>
+        <select aria-label="Filter by role" name="filter-role" className={sel} value={role} onChange={(e) => setRole(e.target.value)}><option value="">All roles</option>{roleOpts.map((r) => <option key={r} value={r}>{r.startsWith('custom:') ? roles.find((x) => x.id === r.slice(7))?.name : ROLE_LABEL[r as BaseRole]}</option>)}</select>
+        <select aria-label="Filter by client" name="filter-client" className={sel} value={client} onChange={(e) => setClient(e.target.value)}><option value="">All clients</option>{placements.map((p) => <option key={p.id} value={p.id}>{p.client_name}</option>)}<option value="__none">No client</option></select>
+        <select aria-label="Filter by industry" name="filter-industry" className={sel} value={industry} onChange={(e) => setIndustry(e.target.value)}><option value="">All industries</option>{industries.map((i) => <option key={i}>{i}</option>)}</select>
+        <select aria-label="Filter by site" name="filter-site" className={sel} value={site} onChange={(e) => setSite(e.target.value)}><option value="">All sites</option>{sites.map((s) => <option key={s}>{s}</option>)}</select>
+        <label className="flex items-center gap-1.5 text-xs text-steel-300 ml-1"><input type="checkbox" name="group-by-client" checked={group} onChange={(e) => setGroup(e.target.checked)} /> Group by client</label>
       </div>
-      <div className={`hidden md:grid ${cols} gap-2 px-3 pb-1 text-[10px] font-semibold text-steel-500 uppercase tracking-wider`}>
+      <div className={`hidden lg:grid ${cols} gap-2 px-3 pb-1 text-[10px] font-semibold text-steel-500 uppercase tracking-wider`}>
         <div>Employee</div><div>Role</div><div>Trade</div><div>Client / industry</div><div>Site</div><div>Contract end</div><div className="text-center">Done</div><div />
       </div>
       {groups.map(([g, list]) => (
@@ -176,18 +173,18 @@ export function EmployeesTab({ team, placements, roles, currentUserId, canManage
               const soon = endingSoon(m.details);
               const pr = progress[m.user_id] ?? { courses: 0, completed: 0 };
               return (
-                <div key={m.user_id} className={`grid grid-cols-[1fr_auto] ${cols} gap-2 items-center p-3 rounded-lg border border-steel-700/40 bg-navy-950/30 hover:bg-navy-800/40`}>
+                <div key={m.user_id} id={`emp-${m.user_id}`} className={`grid grid-cols-[1fr_auto] ${cols} gap-2 items-center p-3 rounded-lg border border-steel-700/40 bg-navy-950/30 hover:bg-navy-800/40`}>
                   <button onClick={() => onEdit(m.user_id)} className="min-w-0 text-left">
                     <div className="text-sm font-medium text-white truncate">{memberName(m)}{m.user_id === currentUserId && <span className="text-steel-500 font-normal"> · you</span>}</div>
                     <div className="text-[11px] text-steel-500 truncate">{m.email}</div>
-                    <div className="md:hidden text-[11px] text-steel-400 truncate">{roleText(m)} · {m.details?.trade ?? 'No trade'} · {p?.client_name ?? 'No client'}{soon ? ` · ends in ${days}d` : ''}</div>
+                    <div className="lg:hidden text-[11px] text-steel-400 truncate">{roleText(m)} · {m.details?.trade ?? 'No trade'} · {p?.client_name ?? 'No client'}{soon ? ` · ends in ${days}d` : ''}</div>
                   </button>
-                  <div className="hidden md:block"><span className={`text-[11px] px-2 py-0.5 rounded-full border ${ROLE_RANK[normRole(m.role)] >= 3 ? 'border-accent-500/50 text-accent-300' : normRole(m.role) === 'supervisor' ? 'border-premium-500/50 text-premium-400' : 'border-steel-600 text-steel-300'}`}>{roleText(m)}</span></div>
-                  <div className="hidden md:block text-xs text-steel-200 truncate">{m.details?.trade ?? <span className="text-steel-600">—</span>}</div>
-                  <div className="hidden md:block min-w-0"><div className="text-xs text-white truncate">{p?.client_name ?? <span className="text-steel-600">—</span>}</div><div className="text-[10px] text-steel-500 truncate">{p?.industry.join(', ')}</div></div>
-                  <div className="hidden md:block text-xs text-steel-300 truncate">{m.details?.site_location || p?.location || <span className="text-steel-600">—</span>}</div>
-                  <div className={`hidden md:block text-xs ${soon ? 'text-warning-400 font-semibold' : days != null && days < 0 ? 'text-steel-500 line-through' : 'text-steel-300'}`}>{fmt(m.details?.contract_end)}</div>
-                  <div className="hidden md:block text-center text-xs text-steel-300">{pr.completed}/{pr.courses}</div>
+                  <div className="hidden lg:block"><span className={`text-[11px] px-2 py-0.5 rounded-full border ${ROLE_RANK[normRole(m.role)] >= 3 ? 'border-accent-500/50 text-accent-300' : normRole(m.role) === 'supervisor' ? 'border-premium-500/50 text-premium-400' : 'border-steel-600 text-steel-300'}`}>{roleText(m)}</span></div>
+                  <div className="hidden lg:block text-xs text-steel-200 truncate">{m.details?.trade ?? <span className="text-steel-600">—</span>}</div>
+                  <div className="hidden lg:block min-w-0"><div className="text-xs text-white truncate">{p?.client_name ?? <span className="text-steel-600">—</span>}</div><div className="text-[10px] text-steel-500 truncate">{p?.industry.join(', ')}</div></div>
+                  <div className="hidden lg:block text-xs text-steel-300 truncate">{m.details?.site_location || p?.location || <span className="text-steel-600">—</span>}</div>
+                  <div className={`hidden lg:block text-xs ${soon ? 'text-warning-400 font-semibold' : days != null && days < 0 ? 'text-steel-500 line-through' : 'text-steel-300'}`}>{fmt(m.details?.contract_end)}</div>
+                  <div className="hidden lg:block text-center text-xs text-steel-300">{pr.completed}/{pr.courses}</div>
                   <div className="flex items-center justify-end gap-1">
                     {canManage && onRemove && m.user_id !== currentUserId && normRole(m.role) !== 'owner' && (
                       <button onClick={() => onRemove(m)} disabled={busy} aria-label={`Remove ${memberName(m)}`} className="p-1 rounded text-steel-500 hover:text-error-400"><Trash2 className="w-4 h-4" /></button>
@@ -244,8 +241,12 @@ export function EmployeeEditPanel({ member, team, placements, roles, trades, cur
   }
   const ro = !canEdit;
   return (
-    <Modal title={memberName(member)} onClose={onClose} wide>
-      <p className="text-xs text-steel-500 -mt-3 mb-4">{member.email}{ro ? ' · view only (supervisors can view, owners/admins edit)' : ''}</p>
+    <Modal title={memberName(member)} subtitle={`${member.email ?? ''}${ro ? ' · view only (supervisors can view, owners/admins edit)' : ''}`} onClose={onClose} size="lg"
+      footer={<>
+        {onViewProgress && <button onClick={onViewProgress} className="btn-ghost text-sm mr-auto">View training progress</button>}
+        <button onClick={onClose} className="btn-ghost text-sm">{ro ? 'Close' : 'Cancel'}</button>
+        {!ro && <button onClick={() => void save()} disabled={busy} className="btn-primary text-sm px-4">{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}</button>}
+      </>}>
       <div className="grid sm:grid-cols-2 gap-3 mb-4">
         <Field label="Role" hint={member.role === 'owner' && owners <= 1 ? 'Only owner: promote someone else to owner first.' : self ? 'You cannot raise your own role.' : undefined}>
           <select className="input w-full" value={roleVal} disabled={ro} onChange={(e) => setRoleVal(e.target.value)}>
@@ -285,11 +286,6 @@ export function EmployeeEditPanel({ member, team, placements, roles, trades, cur
         <Field label="Supervisor"><input className="input w-full" value={d.supervisor_name ?? ''} disabled={ro} onChange={(e) => set('supervisor_name', e.target.value)} /></Field>
       </div>
       <Field label="Notes"><textarea className="input w-full min-h-[70px]" value={d.notes ?? ''} disabled={ro} onChange={(e) => set('notes', e.target.value)} /></Field>
-      <div className="flex flex-wrap justify-end gap-2 mt-4">
-        {onViewProgress && <button onClick={onViewProgress} className="btn-ghost text-sm mr-auto">View training progress</button>}
-        <button onClick={onClose} className="btn-ghost text-sm">{ro ? 'Close' : 'Cancel'}</button>
-        {!ro && <button onClick={() => void save()} disabled={busy} className="btn-primary text-sm px-4">{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}</button>}
-      </div>
     </Modal>
   );
 }
@@ -329,22 +325,22 @@ function PlacementEditor({ initial, onClose, onSave }: { initial: Partial<Placem
   const [p, setP] = useState<Partial<Placement>>({ industry: [], equipment: [], research_ok: false, ...initial });
   const [busy, setBusy] = useState(false);
   return (
-    <Modal title={initial.id ? 'Edit client site' : 'Add client site'} onClose={onClose} wide>
+    <Modal title={initial.id ? 'Edit client site' : 'Add client site'} onClose={onClose} size="lg"
+      footer={<>
+        <button onClick={onClose} className="btn-ghost text-sm">Cancel</button>
+        <button disabled={busy || !p.client_name?.trim()} onClick={async () => { setBusy(true); await onSave({ ...p, client_name: p.client_name!.trim() }); setBusy(false); }} className="btn-primary text-sm px-4">{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}</button>
+      </>}>
       <div className="grid sm:grid-cols-2 gap-3 mb-3">
         <Field label="Client company"><input className="input w-full" value={p.client_name ?? ''} onChange={(e) => setP({ ...p, client_name: e.target.value })} autoFocus /></Field>
         <Field label="Site location"><input className="input w-full" value={p.location ?? ''} onChange={(e) => setP({ ...p, location: e.target.value })} placeholder="City, plant, building" /></Field>
       </div>
-      <Field label="Client industry"><Chips options={INDUSTRIES} value={p.industry ?? []} onChange={(v) => setP({ ...p, industry: v })} /></Field>
+      <Field group label="Client industry"><Chips options={INDUSTRIES} value={p.industry ?? []} onChange={(v) => setP({ ...p, industry: v })} /></Field>
       <div className="h-3" />
-      <Field label="Equipment at this site"><Chips options={EQUIPMENT} value={p.equipment ?? []} onChange={(v) => setP({ ...p, equipment: v })} /></Field>
+      <Field group label="Equipment at this site"><Chips options={EQUIPMENT} value={p.equipment ?? []} onChange={(v) => setP({ ...p, equipment: v })} /></Field>
       <div className="h-3" />
       <Field label="Other equipment / specifics"><textarea className="input w-full min-h-[60px]" value={p.equipment_notes ?? ''} onChange={(e) => setP({ ...p, equipment_notes: e.target.value })} placeholder="e.g. Fanuc robots on line 4, Ingersoll Rand compressors" /></Field>
       <div className="h-3" />
       <ResearchBox checked={!!p.research_ok} onChange={(v) => setP({ ...p, research_ok: v })} />
-      <div className="flex justify-end gap-2 mt-4">
-        <button onClick={onClose} className="btn-ghost text-sm">Cancel</button>
-        <button disabled={busy || !p.client_name?.trim()} onClick={async () => { setBusy(true); await onSave({ ...p, client_name: p.client_name!.trim() }); setBusy(false); }} className="btn-primary text-sm px-4">{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}</button>
-      </div>
     </Modal>
   );
 }
@@ -358,11 +354,11 @@ export function TrainingProfilePanel({ profile, companyId, canEdit, onSave }: { 
     <div className="card p-4 sm:p-5">
       <h2 className="font-display text-lg font-semibold text-white flex items-center gap-2 mb-1"><Factory className="w-5 h-5 text-accent-400" /> Company training profile <span className="text-xs font-normal text-steel-500">(optional)</span></h2>
       <p className="text-xs text-steel-500 mb-4">Tell ForgeLine about your company so custom training fits. Client sites carry their own industry and equipment too.</p>
-      <Field label="Industry"><Chips options={INDUSTRIES} value={p.industries} disabled={!canEdit} onChange={(v) => setP({ ...p, industries: v })} /></Field>
+      <Field group label="Industry"><Chips options={INDUSTRIES} value={p.industries} disabled={!canEdit} onChange={(v) => setP({ ...p, industries: v })} /></Field>
       <div className="h-3" />
       <Field label="Company / plant specifics"><textarea className="input w-full min-h-[70px]" disabled={!canEdit} value={p.plant_details ?? ''} onChange={(e) => setP({ ...p, plant_details: e.target.value })} placeholder="What you make, plant size, shifts, unions, anything that matters for training" /></Field>
       <div className="h-3" />
-      <Field label="Equipment you use"><Chips options={EQUIPMENT} value={p.equipment} disabled={!canEdit} onChange={(v) => setP({ ...p, equipment: v })} /></Field>
+      <Field group label="Equipment you use"><Chips options={EQUIPMENT} value={p.equipment} disabled={!canEdit} onChange={(v) => setP({ ...p, equipment: v })} /></Field>
       <div className="h-3" />
       <Field label="Other equipment"><input className="input w-full" disabled={!canEdit} value={p.equipment_notes ?? ''} onChange={(e) => setP({ ...p, equipment_notes: e.target.value })} placeholder="Makes, models, control systems" /></Field>
       <div className="h-3" />
@@ -402,7 +398,7 @@ export function RequestTrainingPanel({ companyId, profile, placements, requests,
         <p className="text-[11px] font-semibold uppercase tracking-wider text-accent-400">Request custom training</p>
         <h2 className="font-display text-xl sm:text-2xl font-bold text-white mb-1">Get your skilled workers the training they actually need</h2>
         <p className="text-sm text-steel-400 mb-4">Tell us what your crew works on. ForgeLine builds training around your equipment and sites, online, on-site or both.</p>
-        <Field label="Topics"><Chips options={TRAINING_TOPICS} value={r.topics} onChange={(v) => setR({ ...r, topics: v, topic: r.topic || v[0] || '' })} /></Field>
+        <Field group label="Topics"><Chips options={TRAINING_TOPICS} value={r.topics} onChange={(v) => setR({ ...r, topics: v, topic: r.topic || v[0] || '' })} /></Field>
         <div className="grid sm:grid-cols-2 gap-3 mt-3">
           <Field label="Topic / title"><input className="input w-full" value={r.topic} onChange={(e) => setR({ ...r, topic: e.target.value })} placeholder="e.g. VFD troubleshooting for night shift" /></Field>
           <Field label="For a client site (optional)">
@@ -417,25 +413,26 @@ export function RequestTrainingPanel({ companyId, profile, placements, requests,
               <option value="flexible">Flexible</option><option value="normal">Next 1-3 months</option><option value="soon">Within a month</option><option value="urgent">Urgent</option>
             </select>
           </Field>
-          <Field label="Preferred format">
+          <Field group label="Preferred format">
             <div className="flex gap-1.5">{(['online', 'on_site', 'blend'] as const).map((f) => (
-              <button key={f} type="button" onClick={() => setR({ ...r, preferred_format: f })} className={`flex-1 text-xs py-2 rounded-lg border ${r.preferred_format === f ? 'border-accent-500 bg-accent-500/15 text-accent-200' : 'border-steel-600 text-steel-300'}`}>{f === 'online' ? 'Online' : f === 'on_site' ? 'On-site' : 'Blend'}</button>
+              <button key={f} type="button" aria-pressed={r.preferred_format === f} onClick={() => setR({ ...r, preferred_format: f })} className={`flex-1 text-xs py-2 rounded-lg border ${r.preferred_format === f ? 'border-accent-500 bg-accent-500/15 text-accent-200' : 'border-steel-600 text-steel-300'}`}>{f === 'online' ? 'Online' : f === 'on_site' ? 'On-site' : 'Blend'}</button>
             ))}</div>
           </Field>
         </div>
         <div className="mt-3"><Field label="Details"><textarea className="input w-full min-h-[90px]" value={r.details ?? ''} onChange={(e) => setR({ ...r, details: e.target.value })} placeholder="What's going wrong, what they need to be able to do, any deadlines or audits" /></Field></div>
-        <div className="mt-3"><Field label={`Industry${r.placement_id ? ' (from client site)' : profile ? ' (from your profile)' : ''}`}><Chips options={INDUSTRIES} value={r.industries} onChange={(v) => setR({ ...r, industries: v })} /></Field></div>
-        <div className="mt-3"><Field label="Equipment"><Chips options={EQUIPMENT} value={r.equipment} onChange={(v) => setR({ ...r, equipment: v })} /></Field></div>
+        <div className="mt-3"><Field group label={`Industry${r.placement_id ? ' (from client site)' : profile ? ' (from your profile)' : ''}`}><Chips options={INDUSTRIES} value={r.industries} onChange={(v) => setR({ ...r, industries: v })} /></Field></div>
+        <div className="mt-3"><Field group label="Equipment"><Chips options={EQUIPMENT} value={r.equipment} onChange={(v) => setR({ ...r, equipment: v })} /></Field></div>
         <div className="mt-3"><ResearchBox checked={r.research_ok} onChange={(v) => setR({ ...r, research_ok: v })} /></div>
         <div className="mt-3">
-          <input ref={fileRef} type="file" multiple className="hidden" onChange={(e) => setFiles([...files, ...Array.from(e.target.files ?? [])].slice(0, 10))} />
+          <input ref={fileRef} type="file" name="attachments" aria-label="Attach files" multiple className="hidden" onChange={(e) => { setFiles([...files, ...Array.from(e.target.files ?? [])].slice(0, 10)); e.target.value = ''; }} />
           <button type="button" onClick={() => fileRef.current?.click()} className="btn-ghost text-sm flex items-center gap-1.5"><FileUp className="w-4 h-4" /> Attach files (prints, procedures, photos)</button>
-          {files.length > 0 && <ul className="mt-1 text-xs text-steel-300">{files.map((f, i) => <li key={i} className="flex items-center gap-2">{f.name} <button onClick={() => setFiles(files.filter((_, j) => j !== i))} aria-label="Remove file"><X className="w-3 h-3" /></button></li>)}</ul>}
+          {files.length > 0 && <ul className="mt-1 text-xs text-steel-300 space-y-1">{files.map((f, i) => <li key={i} className="flex items-center gap-2 min-w-0"><span className="min-w-0 break-all">{f.name}</span> <button type="button" onClick={() => setFiles(files.filter((_, j) => j !== i))} aria-label={`Remove ${f.name}`} className="shrink-0 p-1 rounded hover:bg-navy-800"><X className="w-3 h-3" /></button></li>)}</ul>}
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3 mt-5">
-          <a href={KRIS_MAILTO} className="text-sm text-steel-400 hover:text-accent-300 flex items-center gap-1.5"><Mail className="w-4 h-4" /> or email us: kris@forgelineacademy.com</a>
+          <a href={KRIS_MAILTO} className="text-sm text-steel-400 hover:text-accent-300 flex items-center gap-1.5 min-w-0 break-all"><Mail className="w-4 h-4" /> or email us: kris@forgelineacademy.com</a>
           <button disabled={busy || !r.topic.trim()} onClick={async () => { setBusy(true); const ok = await onSubmit({ ...r, topic: r.topic.trim() }, files); setBusy(false); if (ok) { setR(base()); setFiles([]); } }}
             className="btn-primary text-sm px-5 flex items-center gap-2">{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Send request</button>
+          {!r.topic.trim() && <p className="basis-full text-right text-[11px] text-steel-500">Pick a topic or enter a title to send.</p>}
         </div>
       </div>
       <div className="card p-4 sm:p-5">
@@ -444,7 +441,7 @@ export function RequestTrainingPanel({ companyId, profile, placements, requests,
           <ul className="divide-y divide-steel-700/40 rounded-lg border border-steel-700/40">
             {requests.map((q) => (
               <li key={q.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm">
-                <span className="min-w-0"><span className="text-white">{q.topic}</span> <span className="text-[11px] text-steel-500">· {fmt(q.created_at)}{q.placement_id ? ` · ${placements.find((p) => p.id === q.placement_id)?.client_name ?? ''}` : ''}</span></span>
+                <span className="min-w-0 break-words"><span className="text-white">{q.topic}</span> <span className="text-[11px] text-steel-500">· {fmt(q.created_at)}{q.placement_id ? ` · ${placements.find((p) => p.id === q.placement_id)?.client_name ?? ''}` : ''}</span></span>
                 <RequestStatusPill status={q.status} />
               </li>
             ))}
@@ -472,16 +469,16 @@ export function RolesTradesSettings({ roles, trades, allowSelfTrade, onAddRole, 
         <h3 className="font-display text-base font-semibold text-white mb-1 flex items-center gap-2"><UserCog className="w-4 h-4 text-accent-400" /> Custom roles</h3>
         <p className="text-xs text-steel-500 mb-2">Your own titles (Lead Hand, Foreman...). Each maps to a permission level.</p>
         <ul className="mb-2 space-y-1">{roles.map((r) => <li key={r.id} className="flex items-center justify-between text-sm text-steel-200"><span>{r.name} <span className="text-[11px] text-steel-500">· {ROLE_LABEL[r.base_role]} permissions</span></span><button onClick={() => onDeleteRole(r)} aria-label="Delete role" className="text-steel-500 hover:text-error-400"><Trash2 className="w-3.5 h-3.5" /></button></li>)}</ul>
-        <div className="flex gap-2"><input className="input flex-1 text-sm" value={rn} onChange={(e) => setRn(e.target.value)} placeholder="Role name" />
-          <select className="input text-sm" value={rb} onChange={(e) => setRb(e.target.value as CompanyRole['base_role'])}><option value="employee">Employee</option><option value="supervisor">Supervisor</option><option value="admin">Admin</option></select>
-          <button className="btn-secondary text-sm" disabled={!rn.trim()} onClick={() => { onAddRole(rn, rb); setRn(''); }}>Add</button></div>
+        <form className="flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (rn.trim()) { onAddRole(rn.trim(), rb); setRn(''); } }}><input aria-label="New role name" name="role-name" className="input flex-1 min-w-0 text-sm" value={rn} onChange={(e) => setRn(e.target.value)} placeholder="Role name" />
+          <select aria-label="Permissions for new role" name="role-base" className="input !w-auto text-sm" value={rb} onChange={(e) => setRb(e.target.value as CompanyRole['base_role'])}><option value="employee">Employee</option><option value="supervisor">Supervisor</option><option value="admin">Admin</option></select>
+          <button type="submit" className="btn-secondary text-sm" disabled={!rn.trim()}>Add</button></form>
       </div>
       <div>
         <h3 className="font-display text-base font-semibold text-white mb-1 flex items-center gap-2"><Wrench className="w-4 h-4 text-accent-400" /> Trades</h3>
         <p className="text-xs text-steel-500 mb-2">Built in: {TRADE_PRESETS.join(', ')}. Add your own:</p>
         <ul className="mb-2 space-y-1">{trades.map((t) => <li key={t.id} className="flex items-center justify-between text-sm text-steel-200">{t.name}<button onClick={() => onDeleteTrade(t)} aria-label="Delete trade" className="text-steel-500 hover:text-error-400"><Trash2 className="w-3.5 h-3.5" /></button></li>)}</ul>
-        <div className="flex gap-2"><input className="input flex-1 text-sm" value={tn} onChange={(e) => setTn(e.target.value)} placeholder="Trade name" /><button className="btn-secondary text-sm" disabled={!tn.trim()} onClick={() => { onAddTrade(tn); setTn(''); }}>Add</button></div>
-        <label className="flex items-center gap-2 mt-3 text-sm text-steel-200"><input type="checkbox" checked={allowSelfTrade} onChange={(e) => onSelfTrade(e.target.checked)} /> Let employees set their own trade</label>
+        <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); if (tn.trim()) { onAddTrade(tn.trim()); setTn(''); } }}><input aria-label="New trade name" name="trade-name" className="input flex-1 min-w-0 text-sm" value={tn} onChange={(e) => setTn(e.target.value)} placeholder="Trade name" /><button type="submit" className="btn-secondary text-sm" disabled={!tn.trim()}>Add</button></form>
+        <label className="flex items-center gap-2 mt-3 text-sm text-steel-200"><input type="checkbox" name="allow-self-trade" checked={allowSelfTrade} onChange={(e) => onSelfTrade(e.target.checked)} /> Let employees set their own trade</label>
       </div>
     </div>
   );
@@ -494,15 +491,16 @@ export function GroupAssignDialog({ courseTitles, trades, roles, onCancel, onAss
 }) {
   const [course, setCourse] = useState(''); const [trade, setTrade] = useState(''); const [role, setRole] = useState(''); const [due, setDue] = useState('');
   return (
-    <Modal title="Assign a course to a trade or role" onClose={onCancel}>
+    <Modal title="Assign a course to a trade or role" onClose={onCancel}
+      footer={<><button onClick={onCancel} className="btn-ghost text-sm">Cancel</button>
+        <button disabled={busy || !course || (!trade && !role)} onClick={() => onAssign(course, trade || null, role || null, due || null)} className="btn-primary text-sm px-4">{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Assign'}</button></>}>
       <div className="space-y-3">
         <Field label="Course"><select className="input w-full" value={course} onChange={(e) => setCourse(e.target.value)}><option value="">Choose a course</option>{Object.entries(courseTitles).map(([id, t]) => <option key={id} value={id}>{t}</option>)}</select></Field>
         <Field label="Trade"><select className="input w-full" value={trade} onChange={(e) => setTrade(e.target.value)}><option value="">Any trade</option>{Array.from(new Set([...TRADE_PRESETS, ...trades])).map((t) => <option key={t}>{t}</option>)}</select></Field>
         <Field label="Role"><select className="input w-full" value={role} onChange={(e) => setRole(e.target.value)}><option value="">Any role</option>{(['admin', 'supervisor', 'employee'] as BaseRole[]).map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}{roles.map((r) => <option key={r.id} value={r.name}>{r.name}</option>)}</select></Field>
         <Field label="Due date (optional)"><input type="date" className="input w-full" value={due} onChange={(e) => setDue(e.target.value)} /></Field>
       </div>
-      <div className="flex justify-end gap-2 mt-4"><button onClick={onCancel} className="btn-ghost text-sm">Cancel</button>
-        <button disabled={busy || !course || (!trade && !role)} onClick={() => onAssign(course, trade || null, role || null, due || null)} className="btn-primary text-sm px-4">{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Assign'}</button></div>
+      {!trade && !role && <p className="mt-3 text-[11px] text-steel-500">Pick a trade, a role, or both.</p>}
     </Modal>
   );
 }
@@ -518,32 +516,35 @@ export function BulkInviteDialog({ seatsLeft, onCancel, onInvite }: {
   const over = seatsLeft != null && valid.length > seatsLeft;
   async function onFile(f: File | undefined) { if (f) setText(await f.text()); }
   return (
-    <Modal title="Bulk invite" onClose={onCancel} wide>
+    <Modal title="Bulk invite" onClose={onCancel} size="lg"
+      footer={<><button onClick={onCancel} className="btn-ghost text-sm">{results ? 'Done' : 'Cancel'}</button>
+        {!results && <button disabled={busy || valid.length === 0} onClick={async () => { setBusy(true); setResults(await onInvite(valid)); setBusy(false); }} className="btn-primary text-sm px-4">{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : `Invite ${valid.length}`}</button>}</>}>
       <p className="text-xs text-steel-500 mb-2">Paste one per line or upload a CSV: <code className="text-steel-300">email, trade, role</code> (role = employee or supervisor). Pending invites use a seat.</p>
-      <textarea className="input w-full min-h-[140px] font-mono text-xs" value={text} onChange={(e) => setText(e.target.value)} placeholder={'email,trade,role\njane@acme.com,Electrician,employee\nmo@acme.com,Millwright,supervisor'} />
-      <input type="file" accept=".csv,text/csv,text/plain" className="mt-2 text-xs text-steel-400" onChange={(e) => void onFile(e.target.files?.[0])} />
+      <textarea aria-label="Invites, one per line" name="bulk-invites" className="input w-full min-h-[140px] font-mono text-xs" value={text} onChange={(e) => setText(e.target.value)} placeholder={'email,trade,role\njane@acme.com,Electrician,employee\nmo@acme.com,Millwright,supervisor'} />
+      <input type="file" aria-label="Upload CSV" name="bulk-invites-csv" accept=".csv,text/csv,text/plain" className="mt-2 text-xs text-steel-400 max-w-full" onChange={(e) => void onFile(e.target.files?.[0])} />
       {rows.length > 0 && (
-        <div className="mt-3 max-h-48 overflow-y-auto rounded border border-steel-700/50 text-xs">
+        <div className="mt-3 rounded border border-steel-700/50 text-xs">
           {rows.map((r, i) => { const res = results?.find((x) => x.email === r.email); return (
             <div key={i} className="flex justify-between gap-2 px-2 py-1 border-b border-steel-800 last:border-0">
-              <span className="text-steel-200">{r.email} <span className="text-steel-500">{r.trade ?? ''} {r.role ?? ''}</span></span>
+              <span className="text-steel-200 min-w-0 break-all">{r.email} <span className="text-steel-500">{r.trade ?? ''} {r.role ?? ''}</span></span>
               <span className={r.error || res?.error ? 'text-error-400' : res?.ok ? 'text-success-400' : 'text-steel-500'}>{r.error ?? (res ? (res.ok ? 'Invited' : res.error) : 'Ready')}</span>
             </div>); })}
         </div>
       )}
       {over && <p className="mt-2 text-xs text-warning-400">Only {seatsLeft} seat{seatsLeft === 1 ? '' : 's'} left: the first {seatsLeft} will be invited, the rest will be refused until you free seats or add more.</p>}
-      <div className="flex justify-end gap-2 mt-4"><button onClick={onCancel} className="btn-ghost text-sm">{results ? 'Done' : 'Cancel'}</button>
-        {!results && <button disabled={busy || valid.length === 0} onClick={async () => { setBusy(true); setResults(await onInvite(valid)); setBusy(false); }} className="btn-primary text-sm px-4">{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : `Invite ${valid.length}`}</button>}</div>
     </Modal>
   );
 }
 
 /* ---------------- Manager Assistant ---------------- */
 export interface AssistantMsg { role: 'user' | 'assistant'; content: string; proposals?: AssignmentProposal[]; draft?: Partial<NewTrainingRequest> | null; confirmed?: boolean }
-export function ManagerAssistant({ ds, companyId, team, courseTitles, onConfirmAssignments, onUseDraft, initial }: {
+export function ManagerAssistant({ ds, companyId, team, courseTitles, onConfirmAssignments, onUseDraft, initial, embedded }: {
   ds: AccountsDataSource; companyId: string; team: TeamMember[]; courseTitles: Record<string, string>;
   onConfirmAssignments: (p: AssignmentProposal[]) => Promise<boolean>; onUseDraft: (d: Partial<NewTrainingRequest>) => void; initial?: AssistantMsg[];
+  /** Inside another scroll container (AI Tutor panel): fill it instead of using a fixed viewport height. */
+  embedded?: boolean;
 }) {
+  const logRef = useRef<HTMLDivElement>(null);
   const [msgs, setMsgs] = useState<AssistantMsg[]>(initial ?? []);
   const [input, setInput] = useState(''); const [busy, setBusy] = useState(false); const [err, setErr] = useState<string | null>(null);
   const byId = new Map(team.map((m) => [m.user_id, m]));
@@ -555,20 +556,22 @@ export function ManagerAssistant({ ds, companyId, team, courseTitles, onConfirmA
     if (!r.ok) { setErr(r.error); return; }
     setMsgs([...next, { role: 'assistant', content: r.reply, proposals: r.proposals, draft: r.draft }]);
   }
+  // Keep the newest message in view (the log scrolls, not the page).
+  useEffect(() => { const el = logRef.current; if (el) el.scrollTop = el.scrollHeight; }, [msgs, busy, err]);
   const suggestions = ["Who's behind or overdue?", 'Suggest courses for our electricians by client site', 'Whose contracts end this month?', 'Draft a custom training request for VFDs', 'How do I bulk invite?'];
   return (
-    <div className="card p-4 sm:p-5 flex flex-col min-h-[520px]">
+    <div className={embedded ? 'flex flex-col flex-1 min-h-0' : 'card p-4 sm:p-5 flex flex-col h-[calc(100dvh-9rem)] min-h-[440px] max-h-[860px]'}>
       <div className="flex flex-wrap items-center gap-2 mb-3">
         <h2 className="font-display text-lg font-semibold text-white flex items-center gap-2"><Bot className="w-5 h-5 text-accent-400" /> Manager Assistant</h2>
-        <span className="text-[11px] text-steel-500">Uses only your team's data. Never assigns or sends anything without your Confirm.</span>
+        <span className="text-[11px] text-steel-500 basis-full sm:basis-auto order-last sm:order-none">Uses only your team's data. Never assigns or sends anything without your Confirm.</span>
         <div className="flex-1" />
         <button onClick={() => void send('daily_summary')} disabled={busy} className="btn-secondary text-xs px-3 py-1.5 flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5" /> Daily summary</button>
       </div>
-      <div className="flex-1 space-y-3 overflow-y-auto pr-1">
+      <div ref={logRef} className="flex-1 min-h-0 space-y-3 overflow-y-auto overscroll-contain pr-1" aria-live="polite">
         {msgs.length === 0 && <div className="flex flex-wrap gap-2">{suggestions.map((s) => <button key={s} onClick={() => void send('chat', s)} className="text-xs px-3 py-1.5 rounded-full border border-steel-600 text-steel-300 hover:border-accent-500">{s}</button>)}</div>}
         {msgs.map((m, i) => (
           <div key={i} className={m.role === 'user' ? 'flex justify-end' : ''}>
-            <div className={`rounded-xl px-3 py-2 text-sm max-w-[90%] whitespace-pre-wrap ${m.role === 'user' ? 'bg-accent-500/20 text-white' : 'bg-navy-950/60 border border-steel-700/50 text-steel-200'}`}>
+            <div className={`rounded-xl px-3 py-2 text-sm max-w-[90%] whitespace-pre-wrap break-words ${m.role === 'user' ? 'bg-accent-500/20 text-white' : 'bg-navy-950/60 border border-steel-700/50 text-steel-200'}`}>
               {m.content}
               {m.proposals && m.proposals.length > 0 && (
                 <div className="mt-3 rounded-lg border border-warning-500/40 bg-warning-500/5 p-3">
@@ -598,7 +601,7 @@ export function ManagerAssistant({ ds, companyId, team, courseTitles, onConfirmA
         {err && <p className="text-xs text-error-400">{err}</p>}
       </div>
       <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); if (input.trim()) void send('chat', input.trim()); }}>
-        <input className="input flex-1" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask about your team, assignments, contracts, or how to do something" />
+        <input aria-label="Message the Manager Assistant" name="assistant-message" className="input flex-1 min-w-0" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask about your team, assignments, contracts, or how to do something" />
         <button disabled={busy || !input.trim()} className="btn-primary px-3" aria-label="Send"><Send className="w-4 h-4" /></button>
       </form>
     </div>

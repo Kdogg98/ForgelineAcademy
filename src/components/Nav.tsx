@@ -22,7 +22,8 @@ export type Route =
   | { name: 'book' }
   | { name: 'services' }
   | { name: 'assessment' }
-  | { name: 'announcements' };
+  | { name: 'announcements' }
+  | { name: 'notfound'; path: string };
 
 interface NavProps {
   route: Route;

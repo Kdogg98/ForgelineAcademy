@@ -286,7 +286,7 @@ export function Dashboard({ courses, onNavigate, progressMap, certs }: Dashboard
                     <div className="text-xs text-steel-500 mb-0.5">
                       {STAGE_LABEL[c.stage]}
                     </div>
-                    <h3 className="text-sm font-semibold text-white truncate">
+                    <h3 className="text-sm font-semibold text-white line-clamp-2">
                       {c.title}
                     </h3>
                     <div className="flex items-center gap-2 mt-2">
@@ -411,7 +411,7 @@ export function Dashboard({ courses, onNavigate, progressMap, certs }: Dashboard
                 >
                   <CheckCircle2 className="w-5 h-5 text-success-500 shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-semibold text-white truncate">
+                    <h3 className="text-sm font-semibold text-white line-clamp-2">
                       {c.title}
                     </h3>
                     <div className="text-xs text-steel-500">{STAGE_LABEL[c.stage]}</div>

@@ -61,6 +61,16 @@ export function AICourseTutor({
     }
   }, [messages, loading]);
 
+  // Esc closes the panel; the page behind doesn't scroll while it's open.
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('keydown', onKey);
+    return () => { document.body.style.overflow = prev; document.removeEventListener('keydown', onKey); };
+  }, [open]);
+
   useEffect(() => {
     if (open && canUseTutor) {
       setTimeout(() => inputRef.current?.focus(), 200);
@@ -125,16 +135,16 @@ export function AICourseTutor({
           />
 
           {/* Panel */}
-          <div className="relative w-full max-w-md h-full bg-navy-900 border-l border-steel-700/60 shadow-2xl flex flex-col animate-slide-in">
+          <div role="dialog" aria-modal="true" aria-label="AI Course Tutor" className="relative w-full max-w-md h-[100dvh] bg-navy-900 border-l border-steel-700/60 shadow-2xl flex flex-col animate-slide-in">
             {isCompanyManager && company && (
-              <div className="flex gap-1 p-1.5 border-b border-steel-700/60 bg-navy-950/60 text-xs font-semibold">
-                <button onClick={() => setMode('tutor')} className={`flex-1 py-1.5 rounded ${mode === 'tutor' ? 'bg-rok-500/20 text-white' : 'text-steel-400'}`}>Course Tutor</button>
-                <button onClick={() => setMode('manager')} className={`flex-1 py-1.5 rounded ${mode === 'manager' ? 'bg-rok-500/20 text-white' : 'text-steel-400'}`}>Manager Assistant</button>
+              <div role="tablist" aria-label="Assistant mode" className="h-11 shrink-0 flex gap-1 p-1.5 border-b border-steel-700/60 bg-navy-950/60 text-xs font-semibold">
+                <button role="tab" aria-selected={mode === 'tutor'} onClick={() => setMode('tutor')} className={`flex-1 py-1.5 rounded ${mode === 'tutor' ? 'bg-rok-500/20 text-white' : 'text-steel-400'}`}>Course Tutor</button>
+                <button role="tab" aria-selected={mode === 'manager'} onClick={() => setMode('manager')} className={`flex-1 py-1.5 rounded ${mode === 'manager' ? 'bg-rok-500/20 text-white' : 'text-steel-400'}`}>Manager Assistant</button>
               </div>
             )}
             {mode === 'manager' && isCompanyManager && company && (
-              <div className="absolute inset-x-0 bottom-0 top-[44px] z-10 bg-navy-900 overflow-y-auto p-3">
-                <button onClick={() => setOpen(false)} className="mb-2 text-xs text-steel-400 hover:text-white flex items-center gap-1"><X className="w-3.5 h-3.5" /> Close</button>
+              <div className="absolute inset-x-0 bottom-0 top-11 z-10 bg-navy-900 flex flex-col p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                <button onClick={() => setOpen(false)} className="self-end shrink-0 mb-2 text-xs text-steel-400 hover:text-white flex items-center gap-1 px-2 py-1 rounded hover:bg-navy-800"><X className="w-3.5 h-3.5" /> Close</button>
                 <ManagerAssistantLoader companyId={company.id} />
               </div>
             )}

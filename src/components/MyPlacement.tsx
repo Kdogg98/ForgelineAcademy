@@ -9,7 +9,7 @@ export function MyPlacement({ userId, companyId }: { userId?: string; companyId?
   const [p, setP] = useState<Placement | null>(null);
   const [allow, setAllow] = useState(false);
   const [trade, setTrade] = useState('');
-  const [saved, setSaved] = useState(false);
+  const [saved, setSaved] = useState<boolean | 'error'>(false);
   useEffect(() => {
     if (!userId || !companyId) return;
     void (async () => {
@@ -32,11 +32,12 @@ export function MyPlacement({ userId, companyId }: { userId?: string; companyId?
   return (
     <div className="card p-4 mb-6">
       <h2 className="font-display text-base font-semibold text-white flex items-center gap-2 mb-2"><Briefcase className="w-4 h-4 text-accent-400" /> My placement</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+      <div className="grid grid-cols-1 min-[400px]:grid-cols-2 sm:grid-cols-4 gap-3 text-sm [&>div]:min-w-0 [&_div]:break-words">
         <div><div className="text-[10px] uppercase text-steel-500">Trade</div>
           {allow ? (
-            <div className="flex gap-1"><select className="input text-xs py-1" value={trade} onChange={(e) => { setTrade(e.target.value); setSaved(false); }}><option value="">Not set</option>{TRADE_PRESETS.concat(trade && !TRADE_PRESETS.includes(trade) ? [trade] : []).map((t) => <option key={t}>{t}</option>)}</select>
-              <button className="text-xs text-accent-300" onClick={async () => { const { error } = await supabase.rpc('set_my_trade', { p_trade: trade }); setSaved(!error); }}>{saved ? 'Saved' : 'Save'}</button></div>
+            <div className="flex flex-wrap items-center gap-1"><select id="my-trade" name="trade" aria-label="My trade" className="input text-xs py-1 min-w-0 max-w-full" value={trade} onChange={(e) => { setTrade(e.target.value); setSaved(false); }}><option value="">Not set</option>{TRADE_PRESETS.concat(trade && !TRADE_PRESETS.includes(trade) ? [trade] : []).map((t) => <option key={t}>{t}</option>)}</select>
+              <button type="button" className="text-xs text-accent-300 px-1.5 py-1" onClick={async () => { const { error } = await supabase.rpc('set_my_trade', { p_trade: trade }); setSaved(error ? 'error' : true); }}>{saved === true ? 'Saved' : 'Save'}</button>
+              {saved === 'error' && <span role="alert" className="basis-full text-[11px] text-error-400">Could not save. Try again.</span>}</div>
           ) : <div className="text-white">{d?.trade ?? '—'}</div>}
         </div>
         <div><div className="text-[10px] uppercase text-steel-500">Client / site</div><div className="text-white">{p?.client_name ?? '—'}</div><div className="text-[11px] text-steel-400">{d?.site_location || p?.location || ''}</div></div>

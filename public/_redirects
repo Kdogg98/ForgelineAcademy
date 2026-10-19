@@ -35,12 +35,6 @@
 /courses/:slug        /courses/:slug/index.html 200
 /courses/:slug/       /courses/:slug/index.html 200
 
-# Prerendered SPA public routes (dist/<route>.html, written after vite build). Same app bundle; crawlers get real HTML.
-/catalog              /catalog.html                200
-/paths                /paths.html                  200
-/upgrade              /upgrade.html                200
-/request              /request.html                200
-/book                 /book.html                   200
 
 # App course player: /course/<slug-or-id> and /course/<id>/games are SPA routes (reload/share opens the app).
 /course/*             /index.html                  200

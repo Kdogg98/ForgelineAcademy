@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="google-site-verification" content="v0sNOeFejHM8_lot2OkiRXJSAPcGxJuntu8X1iZs8KI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ForgeLine Academy — Industrial Maintenance Training Online &amp; On-Site</title>
+    <meta name="description" content="78 plant-floor courses for millwrights, industrial electricians and I&amp;E techs. 44 free Mechanical and Electrical courses; Premium unlocks I&amp;E and Engineering." />
+    <meta property="og:title" content="ForgeLine Academy — Industrial Maintenance Training Online &amp; On-Site" />
+    <meta property="og:description" content="78 plant-floor courses for millwrights, industrial electricians and I&amp;E techs. 44 free Mechanical and Electrical courses; Premium unlocks I&amp;E and Engineering." />
+    <meta property="og:url" content="https://forgelineacademy.com/" />
+    <meta property="og:site_name" content="ForgeLine Academy" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://forgelineacademy.com/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://forgelineacademy.com/og.png" />
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){ dataLayer.push(arguments); }
+    </script>
+    <script>
+      /* Company theme boot (flash-free). Mirrors src/lib/theme/themeStore.ts: re-applies the
+         cached theme of the signed-in member (or an admin preview) before the app loads. */
+      (function () {
+        try {
+          var t = null, raw = sessionStorage.getItem('fl_theme_preview');
+          if (!raw) {
+            for (var i = 0; i < localStorage.length; i++) {
+              var k = localStorage.key(i);
+              if (k && /^sb-.+-auth-token$/.test(k)) {
+                var s = JSON.parse(localStorage.getItem(k) || 'null');
+                if (s && s.user && s.user.id) { raw = localStorage.getItem('fl_company_theme:' + s.user.id); break; }
+              }
+            }
+          }
+          if (raw) t = JSON.parse(raw);
+          if (!t || t.v !== 1 || !t.vars) return;
+          var r = document.documentElement;
+          for (var name in t.vars) if (name.indexOf('--fl-') === 0) r.style.setProperty(name, t.vars[name]);
+          r.setAttribute('data-company-theme', (t.company && t.company.id) || 'preview');
+          if (t.title) document.title = t.title;
+          var link = document.querySelector('link[rel="icon"]');
+          if (link && t.favicon) { link.setAttribute('data-default-href', link.getAttribute('href')); link.removeAttribute('type'); link.setAttribute('href', t.favicon); }
+        } catch (e) { /* default ForgeLine look */ }
+      })();
+    </script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

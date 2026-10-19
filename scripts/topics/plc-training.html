@@ -1,0 +1,36 @@
+<p class="lead">PLC training for maintenance technicians should start where the work happens: a machine is down, the HMI shows an alarm, and you need to find the input, output, or rung that is holding it. ForgeLine's PLC courses are built for that, with Logix-style examples and the habits that keep online edits from becoming the next outage.</p>
+
+<div class="card"><h2>Who this is for</h2>
+<p>Industrial electricians and I&amp;E technicians who already read ladder diagrams and wire control circuits, and want to troubleshoot and modify PLC logic safely. It also suits controls engineers who need consistent programming standards across a plant. If you are new to control circuits, start with the free <a href="/courses/electrical-prints-schematics-ladder-diagrams/">Electrical Prints, Schematics &amp; Ladder Diagrams</a> and <a href="/courses/industrial-motor-control-circuits/">Industrial Motor Control Circuits</a> courses.</p></div>
+
+<div class="card"><h2>What you learn</h2>
+<ul>
+<li><strong>Troubleshooting from the HMI to the rung:</strong> start at the alarm, cross-reference the tag, and follow the logic back to the physical device that is false.</li>
+<li><strong>I/O verification:</strong> confirm a field input with a meter, then confirm the PLC sees it on the input card and in the tag. A green LED on the card is not the same as the right tag going true.</li>
+<li><strong>Forcing and online edits:</strong> when forcing is acceptable, how to document and remove forces, and how to test edits before finalizing so a typo does not stop the line.</li>
+<li><strong>Program structure:</strong> tasks, programs, routines, and user-defined types; naming tags so the next technician can read the code at 3 a.m.</li>
+<li><strong>Timers, counters, sequencers and state machines:</strong> the patterns behind most machine logic.</li>
+<li><strong>Networks:</strong> EtherNet/IP and remote I/O faults, and how to tell a network problem from a device problem.</li>
+<li><strong>Backups and change control:</strong> comparing the running program against the archived copy before and after work.</li>
+</ul></div>
+
+<div class="card"><h2>A troubleshooting sequence worth memorizing</h2>
+<ol>
+<li>Read the alarm and the machine state. What step is the sequence stuck on?</li>
+<li>Find the rung that drives the output that should be on. Which condition is false?</li>
+<li>Trace that condition to an input tag, then to an I/O point, then to the field device.</li>
+<li>Verify the field device with a meter or by observation before changing any logic.</li>
+<li>Fix the device. Edit logic only if the logic is actually wrong, and record why.</li>
+</ol></div>
+
+<h2>PLC courses in the catalog</h2>
+<ul>
+<li><a href="/courses/plc-programming-best-practices-logix-style/">PLC Programming Best Practices (Logix Style)</a> (Premium)</li>
+<li><a href="/courses/studio-5000-logix-system-architecture-deep-dive/">Studio 5000 Logix System Architecture Deep Dive</a> (Premium)</li>
+<li><a href="/courses/advanced-plc-programming-patterns-and-standards/">Advanced PLC Programming Patterns &amp; Standards</a> (Premium)</li>
+<li><a href="/courses/ethernet-ip-network-design-and-segmentation/">EtherNet/IP Network Design &amp; Segmentation</a> (Premium)</li>
+<li><a href="/courses/fieldbus-and-industrial-ethernet-troubleshooting/">Fieldbus &amp; Industrial Ethernet Troubleshooting</a> (Premium)</li>
+<li><a href="/courses/motion-control-and-servo-systems/">Motion Control &amp; Servo Systems</a> (Premium)</li>
+</ul>
+<p>PLC courses are part of Premium ($19.99/month). Companies can start a 30-day free trial with 5 online seats; see <a href="/upgrade/">pricing</a>. Training does not replace your site's change-management and LOTO procedures.</p>
+<p>Related: <a href="/industrial-electrical-training/">industrial electrical training</a>, <a href="/ie-technician/">I&amp;E technician training</a>, <a href="/faq/">FAQ</a>.</p>

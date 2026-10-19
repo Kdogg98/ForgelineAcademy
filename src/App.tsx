@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { CompanyThemeProvider } from '@/lib/theme/CompanyThemeProvider';
 import { useCourses, fetchAllProgress, fetchCertificates } from '@/lib/data';
@@ -11,22 +11,22 @@ import { Nav, type Route } from '@/components/Nav';
 import { Footer } from '@/components/Footer';
 import { SeoHead } from '@/components/SeoHead';
 import { Home } from '@/pages/Home';
-import { Catalog } from '@/pages/Catalog';
-import { Paths } from '@/pages/Paths';
-import { CourseDetail } from '@/pages/CourseDetail';
-import { CourseGames } from '@/pages/CourseGames';
-import { Dashboard } from '@/pages/Dashboard';
-import { Certificates } from '@/pages/Certificates';
-import { Auth } from '@/pages/Auth';
-import { Pricing } from '@/pages/Pricing';
-import { Admin } from '@/pages/Admin';
-import { Legal } from '@/pages/Legal';
-import { BookMeeting } from '@/pages/BookMeeting';
-import { Services } from '@/pages/Services';
-import { CompanyAdmin } from '@/pages/CompanyAdmin';
-import { SkillAssessment } from '@/pages/SkillAssessment';
-import { Announcements } from '@/pages/Announcements';
-import { ManagerDashboard } from '@/components/manager/ManagerDashboard';
+const Catalog = lazy(() => import('@/pages/Catalog').then((m) => ({ default: m.Catalog })));
+const Paths = lazy(() => import('@/pages/Paths').then((m) => ({ default: m.Paths })));
+const CourseDetail = lazy(() => import('@/pages/CourseDetail').then((m) => ({ default: m.CourseDetail })));
+const CourseGames = lazy(() => import('@/pages/CourseGames').then((m) => ({ default: m.CourseGames })));
+const Dashboard = lazy(() => import('@/pages/Dashboard').then((m) => ({ default: m.Dashboard })));
+const Certificates = lazy(() => import('@/pages/Certificates').then((m) => ({ default: m.Certificates })));
+const Auth = lazy(() => import('@/pages/Auth').then((m) => ({ default: m.Auth })));
+const Pricing = lazy(() => import('@/pages/Pricing').then((m) => ({ default: m.Pricing })));
+const Admin = lazy(() => import('@/pages/Admin').then((m) => ({ default: m.Admin })));
+const Legal = lazy(() => import('@/pages/Legal').then((m) => ({ default: m.Legal })));
+const BookMeeting = lazy(() => import('@/pages/BookMeeting').then((m) => ({ default: m.BookMeeting })));
+const Services = lazy(() => import('@/pages/Services').then((m) => ({ default: m.Services })));
+const CompanyAdmin = lazy(() => import('@/pages/CompanyAdmin').then((m) => ({ default: m.CompanyAdmin })));
+const SkillAssessment = lazy(() => import('@/pages/SkillAssessment').then((m) => ({ default: m.SkillAssessment })));
+const Announcements = lazy(() => import('@/pages/Announcements').then((m) => ({ default: m.Announcements })));
+const ManagerDashboard = lazy(() => import('@/components/manager/ManagerDashboard').then((m) => ({ default: m.ManagerDashboard })));
 
 function AppContent() {
   const { user, loading: authLoading, profileReady, isCompanyManager, company, companyRole } = useAuth();
@@ -147,6 +147,7 @@ function AppContent() {
       <SeoHead route={route} courses={courses} />
       <Nav route={route} onNavigate={navigate} />
       <main className="flex-1">
+      <Suspense fallback={<div className="min-h-screen" aria-busy="true" />}>
         {(route.name === 'home' || route.name === 'dashboard') && awaitingRole && (
           <div className="pt-32 flex justify-center"><div className="w-8 h-8 rounded-full border-2 border-accent-500/30 border-t-accent-500 animate-spin" /></div>
         )}
@@ -231,6 +232,7 @@ function AppContent() {
             managerView={managerView}
           />
         )}
+      </Suspense>
       </main>
       <Footer onNavigate={navigate} />
     </div>

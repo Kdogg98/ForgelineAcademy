@@ -449,6 +449,10 @@ export function Home({
             <img
               src="/hero-plant-floor.webp"
               alt="Industrial plant floor"
+              width={1600}
+              height={900}
+              fetchPriority="high"
+              decoding="async"
               className="w-full h-full object-cover opacity-35"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-navy-950 via-navy-900/90 to-navy-900/60" />

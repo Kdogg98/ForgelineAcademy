@@ -178,11 +178,9 @@ export function Pricing({ onNavigate }: PricingProps) {
       if (fnError) throw fnError;
       if (data?.url) {
         const listPrice = 19.99;
-        const code = promoCode.trim().toUpperCase();
-        const discounted = promoValid && code === '75OFF';
         const session = data as { url?: string; session_id?: string; id?: string };
         track('premium_checkout', {
-          value: discounted ? +(listPrice * 0.25).toFixed(2) : listPrice,
+          value: listPrice,
           currency: 'USD',
           transaction_id: String(session.session_id ?? session.id ?? `${user.id}-${Date.now()}`),
         });
@@ -329,11 +327,6 @@ export function Pricing({ onNavigate }: PricingProps) {
             <div className="mb-6">
               <span className="font-display text-4xl font-bold text-white">$19.99</span>
               <span className="text-steel-400 text-sm ml-1">/month</span>
-              {!viaCompany && (
-                <p className="mt-2 text-sm text-premium-300">
-                  Beta: 75% off with code <span className="font-mono font-semibold text-white">75OFF</span>
-                </p>
-              )}
             </div>
             <ul className="space-y-3 mb-8 flex-1">
               {[
@@ -445,19 +438,19 @@ export function Pricing({ onNavigate }: PricingProps) {
           </div>
         )}
 
-        {/* Promo / Referral code input */}
+        {/* Referral code input */}
         {user && profileReady && !isPremium && !isAdmin && (
           <div className="mt-6 card p-5">
             <div className="flex items-center gap-2 mb-3">
               <Tag className="w-4 h-4 text-accent-400" />
-              <h3 className="text-sm font-semibold text-white">Have a promo or referral code?</h3>
+              <h3 className="text-sm font-semibold text-white">Have a referral code?</h3>
             </div>
             <div className="flex gap-2">
               <input
                 type="text"
                 value={promoCode}
                 onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoMessage(null); setPromoValid(false); }}
-                placeholder="75OFF"
+                placeholder="Referral code"
                 className="input flex-1 uppercase"
               />
               <button

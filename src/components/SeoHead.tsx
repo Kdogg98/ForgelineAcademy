@@ -56,6 +56,56 @@ function upsertJsonLd(id: string, data: object | null) {
   document.head.appendChild(script);
 }
 
+// Public SPA routes: must match the prerendered HTML written by scripts/generate_seo_html.py.
+const ROUTE_META: Partial<Record<Route['name'], { path: string; title: string; description: string }>> = {
+  home: {
+    path: '/',
+    title: 'ForgeLine Academy — Industrial Maintenance Training Online & On-Site',
+    description:
+      '78 plant-floor courses for millwrights, industrial electricians and I&E techs. 44 free Mechanical and Electrical courses; Premium unlocks I&E and Engineering.',
+  },
+  catalog: {
+    path: '/catalog',
+    title: 'Course Catalog — 78 Industrial Maintenance Courses | ForgeLine Academy',
+    description:
+      'Browse all 78 ForgeLine courses: Mechanical, Electrical, I&E and Engineering. 44 free courses for millwrights and industrial electricians.',
+  },
+  paths: {
+    path: '/paths',
+    title: 'Learning Paths — Mechanical, Electrical, I&E, Engineering | ForgeLine Academy',
+    description:
+      'Four ForgeLine learning paths from millwright fundamentals to I&E and engineering. Start free with the Mechanical or Electrical path.',
+  },
+  pricing: {
+    path: '/upgrade',
+    title: 'Pricing — Premium $19.99/mo & Plant Seats | ForgeLine Academy',
+    description:
+      'ForgeLine pricing: 44 free courses, Premium $19.99/month, Plant 5-seat $129/mo, Plant 10-seat $229/mo, and a 30-day free company trial.',
+  },
+  services: {
+    path: '/request',
+    title: 'Request On-Site Training or Plant Support | ForgeLine Academy',
+    description:
+      'Request on-site industrial maintenance training, plant troubleshooting support, or online plant seats from ForgeLine Academy. Call +1 580 421 5714.',
+  },
+  book: {
+    path: '/book',
+    title: 'Book a Meeting — Plant Training Planning | ForgeLine Academy',
+    description:
+      'Book a call with ForgeLine Academy to plan crew training, on-site cohorts, or plant seats for your maintenance team.',
+  },
+  legal: {
+    path: '/privacy',
+    title: 'Legal — ForgeLine Academy',
+    description: 'ForgeLine Academy privacy policy, terms of service and training disclaimer.',
+  },
+};
+
+function setRobots(index: boolean) {
+  if (index) removeMeta('name', 'robots');
+  else upsertMeta('name', 'robots', 'noindex, follow');
+}
+
 function clipMetaDescription(text: string, max = 155): string {
   const clean = (text || '').replace(/\s+/g, ' ').trim();
   if (clean.length <= max) return clean;
@@ -77,7 +127,8 @@ export function SeoHead({ route, courses = [] }: { route: Route; courses?: Cours
       const stage = live?.stage ?? seo?.stage;
       const tier = live?.tier ?? seo?.tier;
       const slugPath = prettyCoursePath(route.courseId) ?? `/course/${route.courseId}`;
-      const canonical = `${SITE}${slugPath}`;
+      // Static /courses/<slug>/ pages are served at the trailing-slash URL (host 301s the bare path).
+      const canonical = slugPath.startsWith('/courses/') ? `${SITE}${slugPath}/` : `${SITE}${slugPath}`;
       const pageTitle = flagship?.metaTitle ?? (title ? `${title} | ForgeLine` : DEFAULT_TITLE);
       const pageDesc = flagship?.metaDescription ? flagship.metaDescription : (clipMetaDescription(description) || DEFAULT_DESCRIPTION);
       const kws = keywordsForCourse(route.courseId);
@@ -88,6 +139,7 @@ export function SeoHead({ route, courses = [] }: { route: Route; courses?: Cours
       upsertMeta('property', 'og:description', pageDesc);
       upsertMeta('property', 'og:url', canonical);
       upsertLink('canonical', canonical);
+      setRobots(true);
       if (kws.length) upsertMeta('name', 'keywords', kws.join(', '));
       else removeMeta('name', 'keywords');
 
@@ -101,7 +153,7 @@ export function SeoHead({ route, courses = [] }: { route: Route; courses?: Cours
         provider: {
           '@type': 'Organization',
           name: 'ForgeLine Academy',
-          url: SITE,
+          url: `${SITE}/`,
         },
       };
       if (stage) {
@@ -121,12 +173,23 @@ export function SeoHead({ route, courses = [] }: { route: Route; courses?: Cours
       };
     }
 
-    document.title = titleFor(DEFAULT_TITLE);
-    upsertMeta('name', 'description', DEFAULT_DESCRIPTION);
-    upsertMeta('property', 'og:title', DEFAULT_TITLE);
-    upsertMeta('property', 'og:description', DEFAULT_DESCRIPTION);
-    upsertMeta('property', 'og:url', SITE);
-    upsertLink('canonical', `${SITE}/`);
+    const meta = ROUTE_META[route.name];
+    const title = meta?.title ?? DEFAULT_TITLE;
+    const desc = meta?.description ?? DEFAULT_DESCRIPTION;
+    // Legal pages keep their own path; app areas (dashboard, admin, company, auth, search, 404) are noindex.
+    const path = route.name === 'legal' ? (route.doc === 'disclaimer' ? '/legal/disclaimer' : `/${route.doc}`) : meta?.path;
+    const url = path ? (path === '/' ? `${SITE}/` : `${SITE}${path}`) : null;
+    document.title = titleFor(title);
+    upsertMeta('name', 'description', desc);
+    upsertMeta('property', 'og:title', title);
+    upsertMeta('property', 'og:description', desc);
+    if (url) {
+      upsertMeta('property', 'og:url', url);
+      upsertLink('canonical', url);
+    } else {
+      document.head.querySelector('link[rel="canonical"]')?.remove();
+    }
+    setRobots(Boolean(url));
     removeMeta('name', 'keywords');
     upsertJsonLd('seo-jsonld-course', null);
   }, [route, courses, titleFor]);

@@ -1,0 +1,3264 @@
+[
+{
+"course_id": "0009a826-7db0-446d-99d5-c97e03f2c8ff",
+"mo": 1,
+"module_title": "Centrifugal Pump Fundamentals",
+"lessons": [
+[
+"Pump Curves & Operating Point",
+50
+],
+[
+"Cavitation Diagnosis",
+40
+]
+]
+},
+{
+"course_id": "0009a826-7db0-446d-99d5-c97e03f2c8ff",
+"mo": 2,
+"module_title": "Mechanical Seals",
+"lessons": [
+[
+"Seal Installation & Failure Analysis",
+55
+]
+]
+},
+{
+"course_id": "0009a826-7db0-446d-99d5-c97e03f2c8ff",
+"mo": 3,
+"module_title": "Pump Installation & Commissioning",
+"lessons": [
+[
+"Pump Installation, Alignment & Startup",
+55
+],
+[
+"NPSH, Cavitation & System Troubleshooting",
+55
+]
+]
+},
+{
+"course_id": "0009a826-7db0-446d-99d5-c97e03f2c8ff",
+"mo": 4,
+"module_title": "Advanced Seal Applications",
+"lessons": [
+[
+"Dry Gas Seals & Barrier Fluid Systems",
+55
+]
+]
+},
+{
+"course_id": "03374f8a-369f-4689-8ec1-bbfc416d93bc",
+"mo": 1,
+"module_title": "Ultrasound Fundamentals",
+"lessons": [
+[
+"Ultrasound Inspection Technology",
+45
+]
+]
+},
+{
+"course_id": "03374f8a-369f-4689-8ec1-bbfc416d93bc",
+"mo": 2,
+"module_title": "Acoustic Lubrication & Applications",
+"lessons": [
+[
+"Greasing Bearings by Sound",
+40
+]
+]
+},
+{
+"course_id": "03374f8a-369f-4689-8ec1-bbfc416d93bc",
+"mo": 3,
+"module_title": "Advanced Ultrasound Applications & Program Integration",
+"lessons": [
+[
+"Steam Trap Testing, Valve Leak Detection & Electrical Inspection",
+55
+],
+[
+"Integrating Ultrasound with Vibration & Oil Analysis",
+55
+]
+]
+},
+{
+"course_id": "0383ad44-a771-4e46-b3e6-482b89367304",
+"mo": 1,
+"module_title": "Testing & Verification",
+"lessons": [
+[
+"FAT, SAT & I/O Checkout",
+50
+],
+[
+"Functional Testing & Punch List",
+50
+]
+]
+},
+{
+"course_id": "0383ad44-a771-4e46-b3e6-482b89367304",
+"mo": 2,
+"module_title": "Startup Execution & Cut-over Planning",
+"lessons": [
+[
+"Startup Sequencing & Process Commissioning",
+45
+],
+[
+"Cut-over, Rollback & Handover to Operations",
+45
+]
+]
+},
+{
+"course_id": "0383ad44-a771-4e46-b3e6-482b89367304",
+"mo": 3,
+"module_title": "Project Management & Continuous Improvement",
+"lessons": [
+[
+"Project Planning, Scheduling & Risk Management",
+45
+],
+[
+"Lessons Learned & Post-Project Continuous Improvement",
+45
+]
+]
+},
+{
+"course_id": "0a1cb572-be55-4d56-92ce-73ae70ece9ad",
+"mo": 1,
+"module_title": "Rigging Fundamentals",
+"lessons": [
+[
+"Sling Types, Selection & Inspection",
+50
+],
+[
+"Load Calculation & Crane Signals",
+45
+]
+]
+},
+{
+"course_id": "0a1cb572-be55-4d56-92ce-73ae70ece9ad",
+"mo": 2,
+"module_title": "Rigging Hardware & Safety",
+"lessons": [
+[
+"Shackles, Hooks, Turnbuckles & Below-the-Hook Devices",
+40
+]
+]
+},
+{
+"course_id": "0a1cb572-be55-4d56-92ce-73ae70ece9ad",
+"mo": 3,
+"module_title": "Critical Lifts & Advanced Rigging",
+"lessons": [
+[
+"Critical Lift Planning & Multi-Crane Lifts",
+55
+]
+]
+},
+{
+"course_id": "0aa4a576-58a3-4fc2-aeeb-fbf361a017bb",
+"mo": 1,
+"module_title": "ISO 13849 Machinery Safety",
+"lessons": [
+[
+"Performance Levels & Safety Categories",
+55
+]
+]
+},
+{
+"course_id": "0aa4a576-58a3-4fc2-aeeb-fbf361a017bb",
+"mo": 2,
+"module_title": "IEC 61511 Process SIS",
+"lessons": [
+[
+"SIL Verification & Safety Lifecycle",
+55
+]
+]
+},
+{
+"course_id": "0aa4a576-58a3-4fc2-aeeb-fbf361a017bb",
+"mo": 3,
+"module_title": "Safety System Design & Implementation",
+"lessons": [
+[
+"Safety System Architecture & Sensor/Actuator Selection",
+45
+],
+[
+"Proof Testing, Bypass Management & Safety Maintenance",
+45
+]
+]
+},
+{
+"course_id": "0b5c9254-b2ae-4b0f-b560-9136a5489cb5",
+"mo": 1,
+"module_title": "Infrared Basics & Camera Operation",
+"lessons": [
+[
+"Infrared Thermography Principles",
+45
+]
+]
+},
+{
+"course_id": "0b5c9254-b2ae-4b0f-b560-9136a5489cb5",
+"mo": 2,
+"module_title": "Mechanical Applications",
+"lessons": [
+[
+"Bearings, Couplings, Steam Traps & Motors",
+50
+]
+]
+},
+{
+"course_id": "0b5c9254-b2ae-4b0f-b560-9136a5489cb5",
+"mo": 3,
+"module_title": "Thermography Program Management & Reporting",
+"lessons": [
+[
+"Building a Thermography Inspection Program",
+50
+],
+[
+"Reporting, Documentation & Trend Analysis",
+50
+]
+]
+},
+{
+"course_id": "0e30a966-4597-4d0d-9e55-2eaa0d6de8cc",
+"mo": 1,
+"module_title": "Measurement Tools",
+"lessons": [
+[
+"Dial Indicators & Runout",
+40
+],
+[
+"Micrometers & Calipers",
+35
+]
+]
+},
+{
+"course_id": "0e30a966-4597-4d0d-9e55-2eaa0d6de8cc",
+"mo": 2,
+"module_title": "Soft-Foot & Alignment Checks",
+"lessons": [
+[
+"Detecting and Correcting Soft-Foot",
+45
+]
+]
+},
+{
+"course_id": "0e30a966-4597-4d0d-9e55-2eaa0d6de8cc",
+"mo": 3,
+"module_title": "Advanced Diagnostics & Tolerance Analysis",
+"lessons": [
+[
+"Tolerance Stack-Up & Fit Analysis",
+50
+],
+[
+"Geometric Dimensioning & Tolerancing (GD&T) Basics",
+50
+]
+]
+},
+{
+"course_id": "0e42c42b-a532-41c9-a1c7-3589d864118c",
+"mo": 1,
+"module_title": "Industrial Lighting Systems",
+"lessons": [
+[
+"HID, Fluorescent & LED Systems",
+45
+]
+]
+},
+{
+"course_id": "0e42c42b-a532-41c9-a1c7-3589d864118c",
+"mo": 2,
+"module_title": "LED Retrofits & Energy Savings",
+"lessons": [
+[
+"Retrofit Planning & Energy Calculations",
+45
+]
+]
+},
+{
+"course_id": "0e42c42b-a532-41c9-a1c7-3589d864118c",
+"mo": 3,
+"module_title": "Lighting Controls & Smart Systems",
+"lessons": [
+[
+"Occupancy Sensors, Photocells & Dimming Controls",
+45
+],
+[
+"Networked Lighting & IoT Integration",
+45
+]
+]
+},
+{
+"course_id": "0ece2819-7467-4d79-96e9-b6ba24b8268e",
+"mo": 1,
+"module_title": "Heat Exchanger Types & Maintenance",
+"lessons": [
+[
+"Shell-and-Tube, Plate & Air-Cooled Exchangers",
+50
+],
+[
+"Tube Cleaning & Gasket Replacement",
+45
+]
+]
+},
+{
+"course_id": "0ece2819-7467-4d79-96e9-b6ba24b8268e",
+"mo": 2,
+"module_title": "Cooling Towers & Water Treatment",
+"lessons": [
+[
+"Cooling Tower Maintenance & Water Treatment",
+55
+]
+]
+},
+{
+"course_id": "0ece2819-7467-4d79-96e9-b6ba24b8268e",
+"mo": 3,
+"module_title": "Thermal Performance & Fouling Management",
+"lessons": [
+[
+"Thermal Performance Monitoring & Cleaning Strategies",
+50
+],
+[
+"Cooling Water Treatment & Corrosion Control",
+50
+]
+]
+},
+{
+"course_id": "0eeb8bf6-b037-43a8-8cf3-ebf8bbd76a52",
+"mo": 1,
+"module_title": "Project Organization & Tasks",
+"lessons": [
+[
+"Tasks, Programs & Routines",
+50
+],
+[
+"User-Defined Types & Add-On Instructions",
+50
+]
+]
+},
+{
+"course_id": "0eeb8bf6-b037-43a8-8cf3-ebf8bbd76a52",
+"mo": 2,
+"module_title": "I/O Configuration & Best Practices",
+"lessons": [
+[
+"I/O Configuration, Tag Aliasing & Project Scalability",
+50
+]
+]
+},
+{
+"course_id": "0eeb8bf6-b037-43a8-8cf3-ebf8bbd76a52",
+"mo": 3,
+"module_title": "Advanced Project Features & Diagnostics",
+"lessons": [
+[
+"Produced/Consumed Tags & Message Instructions",
+45
+],
+[
+"Diagnostics, Trending & Controller Performance Analysis",
+45
+]
+]
+},
+{
+"course_id": "0f4bd1c1-bf01-4b0a-a903-4ca4804234fd",
+"mo": 1,
+"module_title": "Fan Types & Performance",
+"lessons": [
+[
+"Centrifugal vs Axial Fans",
+45
+],
+[
+"Bearing Arrangements & Impeller Inspection",
+40
+]
+]
+},
+{
+"course_id": "0f4bd1c1-bf01-4b0a-a903-4ca4804234fd",
+"mo": 2,
+"module_title": "Vibration & Performance Diagnosis",
+"lessons": [
+[
+"Fan Vibration Diagnosis",
+50
+]
+]
+},
+{
+"course_id": "0f4bd1c1-bf01-4b0a-a903-4ca4804234fd",
+"mo": 3,
+"module_title": "Fan System Troubleshooting & Performance",
+"lessons": [
+[
+"Fan Performance Testing & System Effects",
+55
+],
+[
+"Bearing Failure & Belt Drive Maintenance for Fans",
+50
+]
+]
+},
+{
+"course_id": "0f4bd1c1-bf01-4b0a-a903-4ca4804234fd",
+"mo": 4,
+"module_title": "Air Handling Units & HVAC Maintenance",
+"lessons": [
+[
+"AHU Components, Filters & Coils",
+50
+],
+[
+"Balancing, Duct Leakage & System Optimization",
+50
+]
+]
+},
+{
+"course_id": "119e761c-f930-4e39-8c7c-963d2c6ce1c0",
+"mo": 1,
+"module_title": "3-Phase Fundamentals",
+"lessons": [
+[
+"Wye & Delta Systems",
+45
+],
+[
+"Voltage Unbalance & Phasing",
+40
+]
+]
+},
+{
+"course_id": "119e761c-f930-4e39-8c7c-963d2c6ce1c0",
+"mo": 2,
+"module_title": "Power Factor & System Efficiency",
+"lessons": [
+[
+"Power Factor in 3-Phase Systems",
+45
+],
+[
+"3-Phase System Efficiency & Energy Management",
+40
+]
+]
+},
+{
+"course_id": "119e761c-f930-4e39-8c7c-963d2c6ce1c0",
+"mo": 3,
+"module_title": "Troubleshooting 3-Phase Systems",
+"lessons": [
+[
+"Diagnosing Single-Phasing Conditions",
+45
+],
+[
+"Transformer Troubleshooting in 3-Phase Systems",
+50
+]
+]
+},
+{
+"course_id": "1aa5ea8a-1678-4dab-841e-1e1198d3bcd5",
+"mo": 1,
+"module_title": "ISA 18.2 Alarm Philosophy",
+"lessons": [
+[
+"Alarm Philosophy & Rationalization",
+55
+],
+[
+"Nuisance Alarms & KPI Monitoring",
+50
+]
+]
+},
+{
+"course_id": "1aa5ea8a-1678-4dab-841e-1e1198d3bcd5",
+"mo": 2,
+"module_title": "Advanced Alarm System Design",
+"lessons": [
+[
+"Alarm Suppression, Shelving & State-Based Alarming",
+45
+],
+[
+"HMI Design for Alarm Response & Operator Effectiveness",
+45
+]
+]
+},
+{
+"course_id": "1aa5ea8a-1678-4dab-841e-1e1198d3bcd5",
+"mo": 3,
+"module_title": "Alarm System Lifecycle & Advanced Topics",
+"lessons": [
+[
+"Alarm System Lifecycle & Continuous Improvement",
+45
+],
+[
+"Advanced Alarm Analytics & Machine Learning Applications",
+45
+]
+]
+},
+{
+"course_id": "1de5e537-1fa1-4b8d-878a-ac287e114e48",
+"mo": 1,
+"module_title": "Integrated Motion",
+"lessons": [
+[
+"Coordinated Motion & Camming",
+55
+]
+]
+},
+{
+"course_id": "1de5e537-1fa1-4b8d-878a-ac287e114e48",
+"mo": 2,
+"module_title": "Functional Safety",
+"lessons": [
+[
+"SIL Determination & Safety Functions",
+60
+]
+]
+},
+{
+"course_id": "1de5e537-1fa1-4b8d-878a-ac287e114e48",
+"mo": 3,
+"module_title": "Integrated Safety & Motion Commissioning",
+"lessons": [
+[
+"Safety-Rated Motion Functions & CIP Safety",
+45
+],
+[
+"Motion System Commissioning & Safety Validation",
+45
+]
+]
+},
+{
+"course_id": "1fecb273-2d8e-469a-8dda-a497307c4337",
+"mo": 1,
+"module_title": "Grounding Fundamentals",
+"lessons": [
+[
+"NEC Article 250 & Grounding Electrode Systems",
+50
+],
+[
+"Equipment Grounding & Bonding Jumpers",
+45
+]
+]
+},
+{
+"course_id": "1fecb273-2d8e-469a-8dda-a497307c4337",
+"mo": 2,
+"module_title": "Ground Resistance Testing",
+"lessons": [
+[
+"Fall-of-Potential & Clamp-On Ground Testing",
+50
+]
+]
+},
+{
+"course_id": "1fecb273-2d8e-469a-8dda-a497307c4337",
+"mo": 3,
+"module_title": "Grounding System Design & Maintenance",
+"lessons": [
+[
+"Grounding System Design for Industrial Facilities",
+50
+],
+[
+"Grounding System Testing & Maintenance",
+45
+]
+]
+},
+{
+"course_id": "24cc85fc-6e58-4100-a329-198581217cb9",
+"mo": 1,
+"module_title": "Advanced Chain Drives",
+"lessons": [
+[
+"Multiple-Chain Drives & Sprocket Alignment",
+45
+]
+]
+},
+{
+"course_id": "24cc85fc-6e58-4100-a329-198581217cb9",
+"mo": 2,
+"module_title": "Advanced Belt Drives",
+"lessons": [
+[
+"Sheave Alignment, Tensioning & Toothed Belt Timing",
+50
+]
+]
+},
+{
+"course_id": "24cc85fc-6e58-4100-a329-198581217cb9",
+"mo": 3,
+"module_title": "Drive System Optimization & Troubleshooting",
+"lessons": [
+[
+"Premature Failure Analysis & Drive Optimization",
+50
+],
+[
+"Synchronous Belt Drives & High-Torque Applications",
+50
+]
+]
+},
+{
+"course_id": "28e0e1c4-4c76-4e34-8c39-f3bd3f77d8cf",
+"mo": 1,
+"module_title": "Digital Positioner Configuration",
+"lessons": [
+[
+"HART & Fieldbus Positioner Setup",
+50
+]
+]
+},
+{
+"course_id": "28e0e1c4-4c76-4e34-8c39-f3bd3f77d8cf",
+"mo": 2,
+"module_title": "Diagnostics & Asset Management",
+"lessons": [
+[
+"Predictive Valve Diagnostics & CMMS Integration",
+50
+]
+]
+},
+{
+"course_id": "28e0e1c4-4c76-4e34-8c39-f3bd3f77d8cf",
+"mo": 3,
+"module_title": "Positioner Selection & Advanced Applications",
+"lessons": [
+[
+"Smart Positioner Selection & Application Engineering",
+50
+],
+[
+"Partial Stroke Testing & SIS Integration",
+50
+]
+]
+},
+{
+"course_id": "2ad7d2f0-ec35-4553-b7a1-1fdb93f2f8bb",
+"mo": 1,
+"module_title": "Reading Line Diagrams",
+"lessons": [
+[
+"Ladder Logic & Control Schematics",
+50
+]
+]
+},
+{
+"course_id": "2ad7d2f0-ec35-4553-b7a1-1fdb93f2f8bb",
+"mo": 2,
+"module_title": "Starters & Overloads",
+"lessons": [
+[
+"Magnetic Starters & Overload Protection",
+55
+],
+[
+"Control Circuit Troubleshooting",
+45
+]
+]
+},
+{
+"course_id": "2ad7d2f0-ec35-4553-b7a1-1fdb93f2f8bb",
+"mo": 3,
+"module_title": "Advanced Motor Control Applications",
+"lessons": [
+[
+"Jogging, Plugging & Multi-Speed Control",
+45
+],
+[
+"Sequence Control & Interlocking Circuits",
+45
+]
+]
+},
+{
+"course_id": "2ad7d2f0-ec35-4553-b7a1-1fdb93f2f8bb",
+"mo": 10,
+"module_title": "3-Wire and 2-Wire Control Circuits",
+"lessons": []
+},
+{
+"course_id": "2c007191-4099-4301-8465-5abd1d65ec1a",
+"mo": 1,
+"module_title": "Motor Efficiency & VFD Savings",
+"lessons": [
+[
+"IE Efficiency Classes & VFD Energy Savings",
+50
+],
+[
+"ISO 50001 & Demand Management",
+45
+]
+]
+},
+{
+"course_id": "2c007191-4099-4301-8465-5abd1d65ec1a",
+"mo": 2,
+"module_title": "VFD Application & Power Quality",
+"lessons": [
+[
+"VFD Selection, Configuration & Harmonics",
+45
+],
+[
+"Motor Management & Energy Monitoring Systems",
+45
+]
+]
+},
+{
+"course_id": "2c007191-4099-4301-8465-5abd1d65ec1a",
+"mo": 3,
+"module_title": "Sustainable Energy & Regulatory Compliance",
+"lessons": [
+[
+"Renewable Energy & On-site Generation Integration",
+45
+],
+[
+"Energy Regulations, Rebates & Reporting Compliance",
+45
+]
+]
+},
+{
+"course_id": "2dcd4cf8-c95a-4cc9-b9ef-a8162b8405f2",
+"mo": 1,
+"module_title": "Gearbox Types & Selection",
+"lessons": [
+[
+"Helical, Bevel, Worm & Planetary Gearboxes",
+50
+],
+[
+"Oil Selection & Breather Maintenance",
+45
+]
+]
+},
+{
+"course_id": "2dcd4cf8-c95a-4cc9-b9ef-a8162b8405f2",
+"mo": 2,
+"module_title": "Failure Analysis & Inspection",
+"lessons": [
+[
+"Gear Tooth Failure Modes & Inspection",
+55
+]
+]
+},
+{
+"course_id": "2dcd4cf8-c95a-4cc9-b9ef-a8162b8405f2",
+"mo": 3,
+"module_title": "Gearbox Troubleshooting & Failure Prevention",
+"lessons": [
+[
+"Noise, Vibration & Temperature Diagnosis",
+50
+],
+[
+"Gearbox Repair, Rebuild & Commissioning",
+55
+]
+]
+},
+{
+"course_id": "2dcd4cf8-c95a-4cc9-b9ef-a8162b8405f2",
+"mo": 4,
+"module_title": "Variable Speed Drives & Power Transmission Efficiency",
+"lessons": [
+[
+"VFD-Driven Gearbox Considerations",
+50
+],
+[
+"Power Transmission Efficiency & Energy Loss",
+50
+]
+]
+},
+{
+"course_id": "3190e6c5-4dd9-49d5-b939-169f7b6cb34f",
+"mo": 1,
+"module_title": "Pressure Fundamentals & Transmitter Types",
+"lessons": [
+[
+"Gauge, Absolute & Differential Pressure",
+50
+],
+[
+"Diaphragm Seals & Impulse Lines",
+45
+]
+]
+},
+{
+"course_id": "3190e6c5-4dd9-49d5-b939-169f7b6cb34f",
+"mo": 2,
+"module_title": "Calibration & Troubleshooting",
+"lessons": [
+[
+"Zero, Span & Loop Integration",
+50
+]
+]
+},
+{
+"course_id": "3190e6c5-4dd9-49d5-b939-169f7b6cb34f",
+"mo": 3,
+"module_title": "Advanced Pressure Applications & Troubleshooting",
+"lessons": [
+[
+"DP Flow, Level & Density Applications",
+50
+],
+[
+"Pressure Transmitter Troubleshooting & Diagnostics",
+50
+]
+]
+},
+{
+"course_id": "396fd9ac-00d4-4907-8c21-8648a564a5c5",
+"mo": 1,
+"module_title": "Analyzer Types & Calibration",
+"lessons": [
+[
+"pH, ORP, Conductivity & Oxygen Analyzers",
+55
+]
+]
+},
+{
+"course_id": "396fd9ac-00d4-4907-8c21-8648a564a5c5",
+"mo": 2,
+"module_title": "Sample Conditioning Systems",
+"lessons": [
+[
+"Sample System Design & Maintenance",
+50
+]
+]
+},
+{
+"course_id": "396fd9ac-00d4-4907-8c21-8648a564a5c5",
+"mo": 3,
+"module_title": "Advanced Analyzers & Calibration Management",
+"lessons": [
+[
+"Gas Chromatographs & Continuous Gas Analyzers",
+50
+],
+[
+"Analyzer Calibration Management & Documentation",
+50
+]
+]
+},
+{
+"course_id": "3bbff1c9-5685-4e62-b8cb-4c6193dd0d02",
+"mo": 1,
+"module_title": "Contactor Selection & Application",
+"lessons": [
+[
+"NEMA vs IEC Contactors",
+50
+],
+[
+"Arc Suppression & Contact Life",
+45
+]
+]
+},
+{
+"course_id": "3bbff1c9-5685-4e62-b8cb-4c6193dd0d02",
+"mo": 2,
+"module_title": "Overload Relays",
+"lessons": [
+[
+"Overload Class Selection & Troubleshooting",
+50
+]
+]
+},
+{
+"course_id": "3bbff1c9-5685-4e62-b8cb-4c6193dd0d02",
+"mo": 3,
+"module_title": "Solid-State Starting & Motor Protection",
+"lessons": [
+[
+"Solid-State Overload Relays & Electronic Motor Protection",
+45
+],
+[
+"Reversing Starters & Multi-Speed Motor Controls",
+50
+]
+]
+},
+{
+"course_id": "3c179fe9-62e6-4cad-85db-bb124cde7e69",
+"mo": 1,
+"module_title": "Temporary Power Distribution",
+"lessons": [
+[
+"GFCI, Spider Boxes & Generator Sizing",
+45
+]
+]
+},
+{
+"course_id": "3c179fe9-62e6-4cad-85db-bb124cde7e69",
+"mo": 2,
+"module_title": "OSHA 1926 Subpart K Safety",
+"lessons": [
+[
+"OSHA 1926 Subpart K & Temporary Wiring Rules",
+40
+]
+]
+},
+{
+"course_id": "3c179fe9-62e6-4cad-85db-bb124cde7e69",
+"mo": 3,
+"module_title": "Temporary Power System Design",
+"lessons": [
+[
+"Designing Temporary Power Distribution for Construction Sites",
+45
+],
+[
+"Generator Power & Load Management for Temporary Installations",
+45
+]
+]
+},
+{
+"course_id": "4044ddc8-440c-4f70-865e-30f6fe5beba5",
+"mo": 1,
+"module_title": "Servo Fundamentals & Tuning",
+"lessons": [
+[
+"Servo Motor Theory & Loop Tuning",
+55
+]
+]
+},
+{
+"course_id": "4044ddc8-440c-4f70-865e-30f6fe5beba5",
+"mo": 2,
+"module_title": "Coordinated Motion & Safety",
+"lessons": [
+[
+"Coordinated Motion & Safety-Rated Functions",
+55
+]
+]
+},
+{
+"course_id": "4044ddc8-440c-4f70-865e-30f6fe5beba5",
+"mo": 3,
+"module_title": "Motion Application Engineering",
+"lessons": [
+[
+"Mechanical Considerations: Inertia, Backlash & Couplings",
+45
+],
+[
+"Motion Application Sizing & Motor Selection",
+45
+]
+]
+},
+{
+"course_id": "4f524576-9dd7-422d-b5db-3aaadd9d91b0",
+"mo": 1,
+"module_title": "Tubing, Fittings & Impulse Lines",
+"lessons": [
+[
+"Tubing, Fittings & Impulse Line Routing",
+50
+]
+]
+},
+{
+"course_id": "4f524576-9dd7-422d-b5db-3aaadd9d91b0",
+"mo": 2,
+"module_title": "Grounding, Lightning Protection & Commissioning",
+"lessons": [
+[
+"Grounding, Lightning Protection & Loop Commissioning",
+50
+]
+]
+},
+{
+"course_id": "4f524576-9dd7-422d-b5db-3aaadd9d91b0",
+"mo": 3,
+"module_title": "Hazardous Area Installation & Compliance",
+"lessons": [
+[
+"Hazardous Area Classification & Protection Methods",
+55
+],
+[
+"Intrinsically Safe Circuit Design & Installation",
+55
+]
+]
+},
+{
+"course_id": "4f752341-8433-4d0f-bd90-fb3c4c9872b4",
+"mo": 1,
+"module_title": "HART Protocol Basics",
+"lessons": [
+[
+"HART Communication & Loop Integration",
+50
+]
+]
+},
+{
+"course_id": "4f752341-8433-4d0f-bd90-fb3c4c9872b4",
+"mo": 2,
+"module_title": "Configuration & Diagnostics",
+"lessons": [
+[
+"Calibration & Digital Diagnostics",
+55
+]
+]
+},
+{
+"course_id": "4f752341-8433-4d0f-bd90-fb3c4c9872b4",
+"mo": 3,
+"module_title": "Advanced HART Applications & Integration",
+"lessons": [
+[
+"HART Multiplexers & AMS Integration",
+50
+],
+[
+"HART-to-Fieldbus Gateways & Protocol Conversion",
+50
+]
+]
+},
+{
+"course_id": "5381eb44-655a-404e-a2b5-08f811cff313",
+"mo": 1,
+"module_title": "Vibration Basics & Measurement",
+"lessons": [
+[
+"Sensors, Frequency & Amplitude",
+55
+],
+[
+"Spectrum Interpretation",
+50
+]
+]
+},
+{
+"course_id": "5381eb44-655a-404e-a2b5-08f811cff313",
+"mo": 2,
+"module_title": "Diagnosing Common Faults",
+"lessons": [
+[
+"Imbalance, Misalignment, Looseness & Bearing Defects",
+55
+]
+]
+},
+{
+"course_id": "5381eb44-655a-404e-a2b5-08f811cff313",
+"mo": 3,
+"module_title": "Advanced Vibration Diagnosis & Program Building",
+"lessons": [
+[
+"Advanced Spectrum Analysis & Time Waveform",
+55
+],
+[
+"Building a Vibration Monitoring Program",
+55
+]
+]
+},
+{
+"course_id": "57d849a9-085d-4648-9b88-dd9dc6d032b7",
+"mo": 1,
+"module_title": "Non-Contact Level Measurement",
+"lessons": [
+[
+"Ultrasonic & Radar Level Measurement",
+50
+]
+]
+},
+{
+"course_id": "57d849a9-085d-4648-9b88-dd9dc6d032b7",
+"mo": 2,
+"module_title": "Contact & Hydrostatic Level",
+"lessons": [
+[
+"DP, Capacitance & Hydrostatic Level Measurement",
+50
+]
+]
+},
+{
+"course_id": "57d849a9-085d-4648-9b88-dd9dc6d032b7",
+"mo": 3,
+"module_title": "Advanced Level Applications & Switches",
+"lessons": [
+[
+"Interface Level Measurement Technologies",
+50
+],
+[
+"Level Switches & Point Level Detection",
+50
+]
+]
+},
+{
+"course_id": "5b3f8d01-c2af-479c-a180-d5b1f87a4aaf",
+"mo": 1,
+"module_title": "Failure Modes & Criticality",
+"lessons": [
+[
+"Failure Mode Identification for Rotating Equipment",
+50
+],
+[
+"Criticality Analysis & Maintenance Strategy",
+50
+]
+]
+},
+{
+"course_id": "5b3f8d01-c2af-479c-a180-d5b1f87a4aaf",
+"mo": 2,
+"module_title": "Condition Monitoring Strategy",
+"lessons": [
+[
+"Building a Condition Monitoring Program",
+55
+]
+]
+},
+{
+"course_id": "5b3f8d01-c2af-479c-a180-d5b1f87a4aaf",
+"mo": 3,
+"module_title": "Reliability Metrics & Continuous Improvement",
+"lessons": [
+[
+"Reliability KPIs, MTBF, MTTR & OEE",
+50
+],
+[
+"Reliability Centered Maintenance Implementation",
+55
+]
+]
+},
+{
+"course_id": "5d21f6da-0b87-40ab-b773-9b0b9d36ea39",
+"mo": 1,
+"module_title": "System Types & Design",
+"lessons": [
+[
+"Series-Progressive, Dual-Line & Single-Line Systems",
+50
+]
+]
+},
+{
+"course_id": "5d21f6da-0b87-40ab-b773-9b0b9d36ea39",
+"mo": 2,
+"module_title": "Maintenance & Troubleshooting",
+"lessons": [
+[
+"Pump Maintenance & Line Troubleshooting",
+45
+]
+]
+},
+{
+"course_id": "5d21f6da-0b87-40ab-b773-9b0b9d36ea39",
+"mo": 3,
+"module_title": "Advanced System Design & Troubleshooting",
+"lessons": [
+[
+"System Design, Pump Sizing & Divider Block Operation",
+50
+],
+[
+"Troubleshooting Flow Issues & System Commissioning",
+50
+]
+]
+},
+{
+"course_id": "5d8324bd-3f8c-4f5b-b841-9c7a5dcfe76f",
+"mo": 1,
+"module_title": "Systematic Troubleshooting Methods",
+"lessons": [
+[
+"The Half-Split Method & Decision Trees",
+50
+],
+[
+"Voltage Drop & Current Measurement",
+45
+]
+]
+},
+{
+"course_id": "5d8324bd-3f8c-4f5b-b841-9c7a5dcfe76f",
+"mo": 2,
+"module_title": "Documentation & Root Cause",
+"lessons": [
+[
+"Root Cause Analysis & Documentation",
+40
+]
+]
+},
+{
+"course_id": "5d8324bd-3f8c-4f5b-b841-9c7a5dcfe76f",
+"mo": 3,
+"module_title": "Advanced Troubleshooting Scenarios",
+"lessons": [
+[
+"Intermittent Faults & Thermal Imaging",
+50
+],
+[
+"Motor Control Circuit Troubleshooting",
+50
+]
+]
+},
+{
+"course_id": "5f2941a8-be3b-4d2f-8329-a3a8dd896e94",
+"mo": 1,
+"module_title": "Hydraulic Systems",
+"lessons": [
+[
+"Pumps, Valves & Actuators",
+50
+],
+[
+"Common Hydraulic Failures",
+45
+]
+]
+},
+{
+"course_id": "5f2941a8-be3b-4d2f-8329-a3a8dd896e94",
+"mo": 2,
+"module_title": "Pneumatics & Safety",
+"lessons": [
+[
+"Pneumatic Circuits & LOTO for Fluid Power",
+40
+]
+]
+},
+{
+"course_id": "5f2941a8-be3b-4d2f-8329-a3a8dd896e94",
+"mo": 3,
+"module_title": "Fluid Power System Troubleshooting & Safety",
+"lessons": [
+[
+"Hydraulic System Troubleshooting",
+55
+],
+[
+"Pneumatic System Maintenance & LOTO for Fluid Power",
+55
+]
+]
+},
+{
+"course_id": "66b92839-3d47-48b0-bd5b-021405ad905c",
+"mo": 1,
+"module_title": "Panel Layout & Component Placement",
+"lessons": [
+[
+"UL 508A Layout Requirements",
+55
+]
+]
+},
+{
+"course_id": "66b92839-3d47-48b0-bd5b-021405ad905c",
+"mo": 2,
+"module_title": "Wiring, Bundling & Labeling",
+"lessons": [
+[
+"Wire Sizing, Bundling & Labeling Standards",
+50
+]
+]
+},
+{
+"course_id": "66b92839-3d47-48b0-bd5b-021405ad905c",
+"mo": 3,
+"module_title": "Testing & Quality Control",
+"lessons": [
+[
+"Panel Testing & Point-to-Point Verification",
+45
+],
+[
+"UL 508A Compliance & Certification",
+45
+]
+]
+},
+{
+"course_id": "68e083a2-f156-4c9e-8093-56b508fd1e6a",
+"mo": 1,
+"module_title": "IIoT Architecture & Edge Computing",
+"lessons": [
+[
+"Edge Computing & Cloud Platforms",
+55
+],
+[
+"Predictive Analytics & Business Case",
+50
+]
+]
+},
+{
+"course_id": "68e083a2-f156-4c9e-8093-56b508fd1e6a",
+"mo": 2,
+"module_title": "IIoT Implementation & Data Architecture",
+"lessons": [
+[
+"Sensor Selection & Data Acquisition Architecture",
+45
+],
+[
+"Cybersecurity for IIoT & OT Data Governance",
+45
+]
+]
+},
+{
+"course_id": "68e083a2-f156-4c9e-8093-56b508fd1e6a",
+"mo": 3,
+"module_title": "Digital Transformation Strategy & Change Management",
+"lessons": [
+[
+"Digital Transformation Strategy & Roadmap",
+45
+],
+[
+"Change Management & Workforce Upskilling",
+45
+]
+]
+},
+{
+"course_id": "693be544-0e16-4d9d-ba84-4f5783bf5a01",
+"mo": 1,
+"module_title": "NFPA 70E Boundaries & PPE",
+"lessons": [
+[
+"Approach Boundaries",
+50
+],
+[
+"PPE Category Selection",
+45
+]
+]
+},
+{
+"course_id": "693be544-0e16-4d9d-ba84-4f5783bf5a01",
+"mo": 2,
+"module_title": "Energized Work & LOTO",
+"lessons": [
+[
+"Energized Work Permits & Lockout/Tagout",
+40
+]
+]
+},
+{
+"course_id": "693be544-0e16-4d9d-ba84-4f5783bf5a01",
+"mo": 3,
+"module_title": "Arc Flash Hazard Analysis",
+"lessons": [
+[
+"Incident Energy & Arc Flash Calculations",
+50
+],
+[
+"Creating & Implementing an Arc Flash Safety Program",
+45
+]
+]
+},
+{
+"course_id": "6b276d7a-bc49-4613-a284-4fe7cfff4729",
+"mo": 1,
+"module_title": "Transformer Sizing & Selection",
+"lessons": [
+[
+"Control Transformer Sizing & Inrush",
+50
+]
+]
+},
+{
+"course_id": "6b276d7a-bc49-4613-a284-4fe7cfff4729",
+"mo": 2,
+"module_title": "Control Circuit Troubleshooting",
+"lessons": [
+[
+"Voltage Drop & Ground Fault Diagnosis",
+45
+]
+]
+},
+{
+"course_id": "6b276d7a-bc49-4613-a284-4fe7cfff4729",
+"mo": 3,
+"module_title": "Advanced Control Circuit Design",
+"lessons": [
+[
+"Two-Wire vs Three-Wire Control Circuits",
+45
+],
+[
+"Timer & Relay Logic in Control Circuits",
+50
+]
+]
+},
+{
+"course_id": "6efca302-7ab1-44d2-aa5b-9e074a6d09f7",
+"mo": 1,
+"module_title": "Harmonics & IEEE 519",
+"lessons": [
+[
+"Harmonic Sources & IEEE 519 Limits",
+50
+],
+[
+"Voltage Sags, Swells & Flicker",
+45
+]
+]
+},
+{
+"course_id": "6efca302-7ab1-44d2-aa5b-9e074a6d09f7",
+"mo": 2,
+"module_title": "Power Factor & Correction",
+"lessons": [
+[
+"Power Factor Correction & Mitigation",
+45
+]
+]
+},
+{
+"course_id": "6efca302-7ab1-44d2-aa5b-9e074a6d09f7",
+"mo": 3,
+"module_title": "Power Quality Monitoring & Mitigation",
+"lessons": [
+[
+"Power Quality Monitoring & Data Analysis",
+50
+],
+[
+"Power Quality Mitigation Solutions",
+45
+]
+]
+},
+{
+"course_id": "6f9c7344-6975-4b51-8269-613409683110",
+"mo": 1,
+"module_title": "Seal Face Materials & Flush Plans",
+"lessons": [
+[
+"Seal Face Material Selection",
+55
+],
+[
+"API 682 Flush Plans",
+50
+]
+]
+},
+{
+"course_id": "6f9c7344-6975-4b51-8269-613409683110",
+"mo": 2,
+"module_title": "Advanced Failure Analysis",
+"lessons": [
+[
+"Root Cause Analysis of Seal Failures",
+55
+]
+]
+},
+{
+"course_id": "6f9c7344-6975-4b51-8269-613409683110",
+"mo": 3,
+"module_title": "Seal Selection, API Plans & Application Engineering",
+"lessons": [
+[
+"Seal Selection for Challenging Applications",
+55
+],
+[
+"Seal Performance Trending & MTBSF Improvement",
+50
+]
+]
+},
+{
+"course_id": "706bfb6e-e6ae-41df-ba9a-6f4f89004d96",
+"mo": 1,
+"module_title": "EtherNet/IP Topology & Multicast",
+"lessons": [
+[
+"Topology, IGMP Snooping & Multicast Management",
+55
+],
+[
+"QoS & Network Segmentation",
+50
+]
+]
+},
+{
+"course_id": "706bfb6e-e6ae-41df-ba9a-6f4f89004d96",
+"mo": 2,
+"module_title": "Network Resilience & Troubleshooting",
+"lessons": [
+[
+"Network Redundancy & Resilience Protocols",
+45
+],
+[
+"Network Troubleshooting & Packet Analysis",
+45
+]
+]
+},
+{
+"course_id": "706bfb6e-e6ae-41df-ba9a-6f4f89004d96",
+"mo": 3,
+"module_title": "Industrial Network Security & Management",
+"lessons": [
+[
+"OT Network Security Hardening",
+45
+],
+[
+"Network Management & Monitoring Systems",
+45
+]
+]
+},
+{
+"course_id": "70c4ca50-ccdb-4179-a110-43879f5a4d9c",
+"mo": 1,
+"module_title": "Belt & Chain Conveyors",
+"lessons": [
+[
+"Belt Tracking & Tensioning",
+45
+],
+[
+"Sprocket & Chain Wear",
+40
+]
+]
+},
+{
+"course_id": "70c4ca50-ccdb-4179-a110-43879f5a4d9c",
+"mo": 2,
+"module_title": "Gear Drives",
+"lessons": [
+[
+"Gearbox Inspection & Oil Analysis",
+50
+]
+]
+},
+{
+"course_id": "70c4ca50-ccdb-4179-a110-43879f5a4d9c",
+"mo": 3,
+"module_title": "Belt Conveyor System Design",
+"lessons": [
+[
+"Belt Selection, Splice Types & Capacity",
+55
+],
+[
+"Conveyor Safety Systems & Controls",
+50
+]
+]
+},
+{
+"course_id": "70c4ca50-ccdb-4179-a110-43879f5a4d9c",
+"mo": 4,
+"module_title": "Drive System Optimization",
+"lessons": [
+[
+"Gear Drive Selection & Efficiency",
+50
+],
+[
+"Drive Alignment & Coupling Maintenance",
+50
+]
+]
+},
+{
+"course_id": "72b79e38-4066-4f97-a7b9-fe499177407f",
+"mo": 1,
+"module_title": "Failure Analysis",
+"lessons": [
+[
+"FMEA & Failure Modes",
+55
+],
+[
+"Weibull Analysis",
+50
+]
+]
+},
+{
+"course_id": "72b79e38-4066-4f97-a7b9-fe499177407f",
+"mo": 2,
+"module_title": "Predictive Maintenance & KPIs",
+"lessons": [
+[
+"Condition Monitoring & KPIs",
+55
+]
+]
+},
+{
+"course_id": "72b79e38-4066-4f97-a7b9-fe499177407f",
+"mo": 3,
+"module_title": "Reliability Program Implementation",
+"lessons": [
+[
+"Building a Predictive Maintenance Program",
+45
+],
+[
+"Reliability-Centered KPIs & Continuous Improvement",
+45
+]
+]
+},
+{
+"course_id": "73230aa4-0e1c-41c4-912e-a0fec5f9dfaf",
+"mo": 1,
+"module_title": "Safety Program Elements",
+"lessons": [
+[
+"Building an NFPA 70E Safety Program",
+50
+],
+[
+"Job Briefings & Incident Investigation",
+45
+]
+]
+},
+{
+"course_id": "73230aa4-0e1c-41c4-912e-a0fec5f9dfaf",
+"mo": 2,
+"module_title": "Risk Assessment & Hazard Identification",
+"lessons": [
+[
+"Electrical Hazard Risk Assessment",
+45
+],
+[
+"Hazardous Energy Control & LOTO Programs",
+45
+]
+]
+},
+{
+"course_id": "73230aa4-0e1c-41c4-912e-a0fec5f9dfaf",
+"mo": 3,
+"module_title": "Audits, Training & Continuous Improvement",
+"lessons": [
+[
+"Conducting Electrical Safety Audits",
+45
+],
+[
+"Training Programs & Competency Assessment",
+45
+]
+]
+},
+{
+"course_id": "750f5dfb-d2e4-4adc-8dba-a0f6db71df86",
+"mo": 1,
+"module_title": "Coupling Types & Application",
+"lessons": [
+[
+"Gear, Grid, Elastomeric & Disc Couplings",
+50
+],
+[
+"Key Sizing & Shaft Repair",
+45
+]
+]
+},
+{
+"course_id": "750f5dfb-d2e4-4adc-8dba-a0f6db71df86",
+"mo": 2,
+"module_title": "Installation & Balance",
+"lessons": [
+[
+"Coupling Installation & Balance",
+40
+]
+]
+},
+{
+"course_id": "750f5dfb-d2e4-4adc-8dba-a0f6db71df86",
+"mo": 3,
+"module_title": "Coupling Troubleshooting & Failure Analysis",
+"lessons": [
+[
+"Coupling Failure Modes & Diagnosis",
+50
+],
+[
+"Coupling Selection for Special Applications",
+50
+]
+]
+},
+{
+"course_id": "750f5dfb-d2e4-4adc-8dba-a0f6db71df86",
+"mo": 4,
+"module_title": "Shaft Repair & Maintenance",
+"lessons": [
+[
+"Shaft Repair Methods & Straightening",
+55
+],
+[
+"Shaft Materials, Heat Treatment & Surface Hardening",
+50
+]
+]
+},
+{
+"course_id": "7760c37a-95dc-4f23-91f6-aa7fd793ef04",
+"mo": 1,
+"module_title": "Classification & Equipment Selection",
+"lessons": [
+[
+"NEC 500 Class I, II, III & Division/Zone Systems",
+55
+],
+[
+"Sealing & Installation Requirements",
+50
+]
+]
+},
+{
+"course_id": "7760c37a-95dc-4f23-91f6-aa7fd793ef04",
+"mo": 2,
+"module_title": "Equipment Selection & Installation Practices",
+"lessons": [
+[
+"Selecting Equipment for Classified Areas",
+45
+],
+[
+"Installation Methods for Classified Locations",
+45
+]
+]
+},
+{
+"course_id": "7760c37a-95dc-4f23-91f6-aa7fd793ef04",
+"mo": 3,
+"module_title": "Inspection & Maintenance of Classified Areas",
+"lessons": [
+[
+"Inspecting Hazardous Location Installations",
+50
+],
+[
+"Maintenance & Repair in Hazardous Locations",
+50
+]
+]
+},
+{
+"course_id": "79f10708-c531-41d9-813a-6e166836a274",
+"mo": 1,
+"module_title": "VFD Theory",
+"lessons": [
+[
+"Rectifier, DC Bus & IGBT Output",
+50
+]
+]
+},
+{
+"course_id": "79f10708-c531-41d9-813a-6e166836a274",
+"mo": 2,
+"module_title": "Startup & Parameters",
+"lessons": [
+[
+"Essential Parameters & Auto-Tune",
+55
+],
+[
+"Common VFD Faults",
+45
+]
+]
+},
+{
+"course_id": "79f10708-c531-41d9-813a-6e166836a274",
+"mo": 3,
+"module_title": "VFD Energy & Harmonics",
+"lessons": [
+[
+"Harmonic Distortion from VFDs",
+50
+],
+[
+"Energy Savings & VFD Application Strategy",
+45
+]
+]
+},
+{
+"course_id": "84c0f408-f819-491e-8e69-da832b1565b5",
+"mo": 1,
+"module_title": "Tuning Methods",
+"lessons": [
+[
+"Ziegler-Nichols & Lambda Tuning",
+60
+],
+[
+"Loop Pathologies",
+50
+]
+]
+},
+{
+"course_id": "84c0f408-f819-491e-8e69-da832b1565b5",
+"mo": 2,
+"module_title": "Advanced Tuning Techniques",
+"lessons": [
+[
+"Cascade, Feedforward & Gain Scheduling",
+50
+],
+[
+"Model-Based Control & IMC Tuning",
+50
+]
+]
+},
+{
+"course_id": "84c0f408-f819-491e-8e69-da832b1565b5",
+"mo": 3,
+"module_title": "Controller Configuration & Implementation",
+"lessons": [
+[
+"PID Controller Configuration & Implementation",
+50
+],
+[
+"Tuning Implementation in DCS Systems",
+50
+]
+]
+},
+{
+"course_id": "894cdeee-dc44-4d67-85d4-767e680d94c2",
+"mo": 1,
+"module_title": "Soft Foot & Pipe Strain",
+"lessons": [
+[
+"Soft Foot Diagnosis & Correction",
+50
+],
+[
+"Pipe Strain Elimination",
+45
+]
+]
+},
+{
+"course_id": "894cdeee-dc44-4d67-85d4-767e680d94c2",
+"mo": 2,
+"module_title": "Thermal Growth & Precision Tools",
+"lessons": [
+[
+"Thermal Growth Compensation",
+50
+]
+]
+},
+{
+"course_id": "894cdeee-dc44-4d67-85d4-767e680d94c2",
+"mo": 3,
+"module_title": "Precision Tools & Measurement Standards",
+"lessons": [
+[
+"Precision Tool Selection, Calibration & Measurement Standards",
+50
+],
+[
+"Documentation, Standards & Continuous Improvement",
+50
+]
+]
+},
+{
+"course_id": "8a6772f4-6a1f-4578-9cce-3ed659e9e201",
+"mo": 1,
+"module_title": "Machine Guarding Standards",
+"lessons": [
+[
+"OSHA 1910.212 & Guard Types",
+45
+]
+]
+},
+{
+"course_id": "8a6772f4-6a1f-4578-9cce-3ed659e9e201",
+"mo": 2,
+"module_title": "Mechanical Lockout/Tagout",
+"lessons": [
+[
+"Energy Isolation for Mechanical Systems",
+50
+]
+]
+},
+{
+"course_id": "8a6772f4-6a1f-4578-9cce-3ed659e9e201",
+"mo": 3,
+"module_title": "LOTO Program Administration & Audit",
+"lessons": [
+[
+"LOTO Program Development, Training & Audit",
+55
+]
+]
+},
+{
+"course_id": "8eb64ec4-e524-4981-8b69-320bb9001de3",
+"mo": 1,
+"module_title": "PROFIBUS DP & PA",
+"lessons": [
+[
+"PROFIBUS DP/PA Topology & Addressing",
+50
+],
+[
+"PROFINET & Network Diagnostics",
+50
+]
+]
+},
+{
+"course_id": "8eb64ec4-e524-4981-8b69-320bb9001de3",
+"mo": 2,
+"module_title": "PROFINET Installation & Commissioning",
+"lessons": [
+[
+"PROFINET Cabling, Connectors & Topology",
+55
+],
+[
+"PROFINET Diagnostics & Troubleshooting",
+55
+]
+]
+},
+{
+"course_id": "8eb64ec4-e524-4981-8b69-320bb9001de3",
+"mo": 3,
+"module_title": "Field Device Integration & Asset Management",
+"lessons": [
+[
+"PROFINET IO Device Integration & Parameterization",
+55
+],
+[
+"Field Device Asset Management & Condition Monitoring",
+55
+]
+]
+},
+{
+"course_id": "8fecbf82-7658-4486-9af8-f1503c3afbb2",
+"mo": 1,
+"module_title": "UPS Topologies & Sizing",
+"lessons": [
+[
+"Online, Line-Interactive & Standby UPS",
+50
+]
+]
+},
+{
+"course_id": "8fecbf82-7658-4486-9af8-f1503c3afbb2",
+"mo": 2,
+"module_title": "Battery Maintenance & Safety",
+"lessons": [
+[
+"VRLA & Flooded Battery Testing",
+50
+]
+]
+},
+{
+"course_id": "8fecbf82-7658-4486-9af8-f1503c3afbb2",
+"mo": 3,
+"module_title": "UPS System Design & Maintenance",
+"lessons": [
+[
+"UPS System Sizing & Configuration",
+50
+],
+[
+"UPS Maintenance & Battery Replacement Programs",
+45
+]
+]
+},
+{
+"course_id": "93213ae9-c1d8-46d2-b8d7-a14bc35c85a8",
+"mo": 1,
+"module_title": "Drawing Types & Interpretation",
+"lessons": [
+[
+"One-Line, Ladder & Wiring Diagrams",
+50
+],
+[
+"Terminal Blocks & Cross-Referencing",
+45
+]
+]
+},
+{
+"course_id": "93213ae9-c1d8-46d2-b8d7-a14bc35c85a8",
+"mo": 2,
+"module_title": "Control Logic & Device Identification",
+"lessons": [
+[
+"Reading Control Logic & Boolean Operations",
+40
+],
+[
+"Device Identification Standards & Wire Numbering",
+40
+]
+]
+},
+{
+"course_id": "93213ae9-c1d8-46d2-b8d7-a14bc35c85a8",
+"mo": 3,
+"module_title": "Advanced Diagram Reading & Field Applications",
+"lessons": [
+[
+"Reading Motor Control & PLC Schematics",
+45
+],
+[
+"Creating & Maintaining As-Built Documentation",
+40
+]
+]
+},
+{
+"course_id": "955fe917-1db9-4a6d-962d-212202b20c00",
+"mo": 1,
+"module_title": "Wireless Network Design",
+"lessons": [
+[
+"WirelessHART & ISA 100 Network Architecture",
+50
+]
+]
+},
+{
+"course_id": "955fe917-1db9-4a6d-962d-212202b20c00",
+"mo": 2,
+"module_title": "Remote I/O & Troubleshooting",
+"lessons": [
+[
+"Remote I/O Systems & Wireless Troubleshooting",
+45
+]
+]
+},
+{
+"course_id": "955fe917-1db9-4a6d-962d-212202b20c00",
+"mo": 3,
+"module_title": "Wireless Network Security & Industrial Deployment",
+"lessons": [
+[
+"Wireless Network Security Architecture",
+55
+],
+[
+"Site Survey, Deployment & Reliability Engineering",
+55
+]
+]
+},
+{
+"course_id": "9a4e3263-3ead-4a8b-be5a-1df7d81da8af",
+"mo": 1,
+"module_title": "Architecture & Segmentation",
+"lessons": [
+[
+"The Purdue Model & OT Security",
+60
+],
+[
+"Redundancy & Controller Selection",
+55
+]
+]
+},
+{
+"course_id": "9a4e3263-3ead-4a8b-be5a-1df7d81da8af",
+"mo": 2,
+"module_title": "System Integration & Data Flow",
+"lessons": [
+[
+"SCADA, MES & Enterprise Integration",
+45
+],
+[
+"Time Synchronization & Data Historians",
+45
+]
+]
+},
+{
+"course_id": "9a4e3263-3ead-4a8b-be5a-1df7d81da8af",
+"mo": 3,
+"module_title": "Documentation & Lifecycle Management",
+"lessons": [
+[
+"Architecture Documentation & Diagrams",
+45
+],
+[
+"Spare Parts, Obsolescence & Migration Planning",
+45
+]
+]
+},
+{
+"course_id": "9bc05085-a6e2-40ef-9056-afa3f273b2f4",
+"mo": 1,
+"module_title": "Positioner Setup",
+"lessons": [
+[
+"Stroke Calibration & Bench Set",
+50
+]
+]
+},
+{
+"course_id": "9bc05085-a6e2-40ef-9056-afa3f273b2f4",
+"mo": 2,
+"module_title": "Valve Diagnostics",
+"lessons": [
+[
+"Stiction & Hysteresis Diagnosis",
+55
+]
+]
+},
+{
+"course_id": "9bc05085-a6e2-40ef-9056-afa3f273b2f4",
+"mo": 3,
+"module_title": "Advanced Valve Testing & Failure Analysis",
+"lessons": [
+[
+"Advanced Valve Diagnostic Testing",
+50
+],
+[
+"Valve Failure Analysis & Root Cause Investigation",
+50
+]
+]
+},
+{
+"course_id": "9bf71c94-4361-4322-988a-1650bc058037",
+"mo": 1,
+"module_title": "Acceptance Testing Standards",
+"lessons": [
+[
+"NETA Acceptance Testing Overview",
+55
+]
+]
+},
+{
+"course_id": "9bf71c94-4361-4322-988a-1650bc058037",
+"mo": 2,
+"module_title": "Specific Tests & Interpretation",
+"lessons": [
+[
+"Contact Resistance, TTR & Primary Injection",
+50
+]
+]
+},
+{
+"course_id": "9bf71c94-4361-4322-988a-1650bc058037",
+"mo": 3,
+"module_title": "Field Commissioning & Hand-off",
+"lessons": [
+[
+"Commissioning Process & Pre-Energization Checks",
+50
+],
+[
+"Commissioning Documentation & Hand-off Procedures",
+40
+]
+]
+},
+{
+"course_id": "a1ac3800-1bca-4d6f-aa9f-557f856e7975",
+"mo": 1,
+"module_title": "Compressor Types",
+"lessons": [
+[
+"Rotary Screw, Reciprocating & Centrifugal Compressors",
+55
+]
+]
+},
+{
+"course_id": "a1ac3800-1bca-4d6f-aa9f-557f856e7975",
+"mo": 2,
+"module_title": "Air Treatment & System Efficiency",
+"lessons": [
+[
+"Dryers, Filters & Leak Surveys",
+50
+],
+[
+"System Efficiency & Energy Recovery",
+45
+]
+]
+},
+{
+"course_id": "a1ac3800-1bca-4d6f-aa9f-557f856e7975",
+"mo": 3,
+"module_title": "Compressor Maintenance & System Optimization",
+"lessons": [
+[
+"Compressor PM, Oil Analysis & Air Quality Management",
+55
+],
+[
+"System Audit, Leak Management & Energy Recovery",
+55
+]
+]
+},
+{
+"course_id": "a5764488-85c6-4f34-af92-b5eaa93ab2b1",
+"mo": 1,
+"module_title": "Program Structure",
+"lessons": [
+[
+"Tag Naming & Program Organization",
+55
+],
+[
+"Add-On Instructions (AOIs)",
+50
+]
+]
+},
+{
+"course_id": "a5764488-85c6-4f34-af92-b5eaa93ab2b1",
+"mo": 2,
+"module_title": "Safety Routines & Fault Handling",
+"lessons": [
+[
+"Fault Handling & Recovery",
+55
+]
+]
+},
+{
+"course_id": "a5764488-85c6-4f34-af92-b5eaa93ab2b1",
+"mo": 3,
+"module_title": "Code Standards & Version Control",
+"lessons": [
+[
+"Coding Standards & Peer Review",
+50
+],
+[
+"Version Control & Change Management Workflows",
+50
+]
+]
+},
+{
+"course_id": "ae4fb6b4-3a1f-403e-abc4-5c5e51acccd0",
+"mo": 1,
+"module_title": "Calibration Principles",
+"lessons": [
+[
+"Traceability, Uncertainty & Intervals",
+50
+],
+[
+"As-Found/As-Left & Out-of-Tolerance",
+45
+]
+]
+},
+{
+"course_id": "ae4fb6b4-3a1f-403e-abc4-5c5e51acccd0",
+"mo": 2,
+"module_title": "Calibration Interval Optimization & Reliability",
+"lessons": [
+[
+"Calibration Interval Analysis & Adjustment",
+55
+],
+[
+"Calibration Traceability & Measurement Uncertainty",
+55
+]
+]
+},
+{
+"course_id": "ae4fb6b4-3a1f-403e-abc4-5c5e51acccd0",
+"mo": 3,
+"module_title": "Automated Calibration Systems & Data Management",
+"lessons": [
+[
+"Automated Calibration Workflows",
+55
+],
+[
+"Calibration Data Analytics & Reporting",
+55
+]
+]
+},
+{
+"course_id": "afb65829-8dee-4817-bb7b-aa03954fbef0",
+"mo": 1,
+"module_title": "Bearing Fundamentals",
+"lessons": [
+[
+"Bearing Types & Selection",
+45
+],
+[
+"Failure Modes & Inspection",
+40
+]
+]
+},
+{
+"course_id": "afb65829-8dee-4817-bb7b-aa03954fbef0",
+"mo": 2,
+"module_title": "Lubrication",
+"lessons": [
+[
+"Lubricant Selection & Application",
+50
+]
+]
+},
+{
+"course_id": "afb65829-8dee-4817-bb7b-aa03954fbef0",
+"mo": 3,
+"module_title": "Precision Alignment",
+"lessons": [
+[
+"Laser Alignment Techniques",
+55
+]
+]
+},
+{
+"course_id": "afb65829-8dee-4817-bb7b-aa03954fbef0",
+"mo": 4,
+"module_title": "Advanced Alignment & Condition Monitoring",
+"lessons": [
+[
+"Thermal Growth & Hot Alignment",
+50
+],
+[
+"Condition Monitoring for Bearings",
+55
+]
+]
+},
+{
+"course_id": "b682b986-f6a1-4849-b1bb-d969a8ace56f",
+"mo": 1,
+"module_title": "VLANs & Spanning Tree",
+"lessons": [
+[
+"VLAN Segmentation & Trunking",
+50
+],
+[
+"RSTP, MSTP & Network Monitoring",
+50
+]
+]
+},
+{
+"course_id": "b682b986-f6a1-4849-b1bb-d969a8ace56f",
+"mo": 2,
+"module_title": "Advanced Network Features & Security",
+"lessons": [
+[
+"Port Security, ACLs & Network Access Control",
+45
+],
+[
+"Industrial Protocols: PROFINET, EtherCAT & Modbus TCP",
+45
+]
+]
+},
+{
+"course_id": "b682b986-f6a1-4849-b1bb-d969a8ace56f",
+"mo": 3,
+"module_title": "Wireless & IIoT Connectivity",
+"lessons": [
+[
+"Industrial Wireless: WLAN, ISA-100 & WirelessHART",
+45
+],
+[
+"OPC UA, MQTT & IIoT Data Connectivity",
+45
+]
+]
+},
+{
+"course_id": "bd4b0c33-6ddc-4c9e-9cdb-de444ee86e70",
+"mo": 1,
+"module_title": "Conduit Systems",
+"lessons": [
+[
+"Rigid, EMT & Conduit Bending",
+50
+],
+[
+"Cable Tray & Tray Cable",
+45
+]
+]
+},
+{
+"course_id": "bd4b0c33-6ddc-4c9e-9cdb-de444ee86e70",
+"mo": 2,
+"module_title": "Pulling & NEC Chapter 3",
+"lessons": [
+[
+"Conductor Pulling & NEC Chapter 3 Requirements",
+45
+]
+]
+},
+{
+"course_id": "bd4b0c33-6ddc-4c9e-9cdb-de444ee86e70",
+"mo": 3,
+"module_title": "Industrial Wiring Applications",
+"lessons": [
+[
+"Motor Feeders & Branch Circuit Wiring",
+45
+],
+[
+"Hazardous Area Wiring & Sealing Practices",
+50
+]
+]
+},
+{
+"course_id": "c1305e87-e2e7-4380-950b-d0d0f8d14ba0",
+"mo": 1,
+"module_title": "Belt Conveyor Troubleshooting",
+"lessons": [
+[
+"Belt Splice Repair & Tracking Correction",
+50
+],
+[
+"Roller Replacement & Drive Diagnostics",
+45
+]
+]
+},
+{
+"course_id": "c1305e87-e2e7-4380-950b-d0d0f8d14ba0",
+"mo": 2,
+"module_title": "Take-Up & System Optimization",
+"lessons": [
+[
+"Take-Up Adjustment & System Optimization",
+40
+]
+]
+},
+{
+"course_id": "c1305e87-e2e7-4380-950b-d0d0f8d14ba0",
+"mo": 3,
+"module_title": "Conveyor System Reliability & Optimization",
+"lessons": [
+[
+"Conveyor Reliability, PM & Condition Monitoring",
+50
+],
+[
+"Conveyor System Optimization & Energy Efficiency",
+50
+]
+]
+},
+{
+"course_id": "c5fc85da-2d46-48e9-863d-aa79edc630d4",
+"mo": 1,
+"module_title": "Overcurrent Protection Fundamentals",
+"lessons": [
+[
+"Fuses, Breakers & Motor Circuit Protectors",
+50
+]
+]
+},
+{
+"course_id": "c5fc85da-2d46-48e9-863d-aa79edc630d4",
+"mo": 2,
+"module_title": "Coordination & NEC 430",
+"lessons": [
+[
+"Selective Coordination & NEC 430 Requirements",
+50
+]
+]
+},
+{
+"course_id": "c5fc85da-2d46-48e9-863d-aa79edc630d4",
+"mo": 3,
+"module_title": "Motor Protection Coordination Studies",
+"lessons": [
+[
+"Time-Current Curves & Coordination Principles",
+50
+],
+[
+"Protective Relay Settings & Motor Differential Protection",
+50
+]
+]
+},
+{
+"course_id": "c6adddfe-deb2-489d-9b23-a3e15631cf44",
+"mo": 1,
+"module_title": "Installation & EMC",
+"lessons": [
+[
+"VFD Wiring, EMC & Motor Cable Selection",
+55
+]
+]
+},
+{
+"course_id": "c6adddfe-deb2-489d-9b23-a3e15631cf44",
+"mo": 2,
+"module_title": "Startup & Hand-off",
+"lessons": [
+[
+"Startup Procedure & Commissioning Hand-off",
+50
+]
+]
+},
+{
+"course_id": "c6adddfe-deb2-489d-9b23-a3e15631cf44",
+"mo": 3,
+"module_title": "VFD Troubleshooting & Maintenance",
+"lessons": [
+[
+"VFD Fault Diagnosis & Troubleshooting",
+50
+],
+[
+"VFD Preventive Maintenance & Long-Term Care",
+45
+]
+]
+},
+{
+"course_id": "cc2fd161-3adb-418a-8d19-6527c13205f5",
+"mo": 1,
+"module_title": "Differential Pressure & Electromagnetic Flow",
+"lessons": [
+[
+"Orifice, Venturi & Magnetic Flow Meters",
+55
+],
+[
+"Vortex, Coriolis & Ultrasonic Flow Meters",
+50
+]
+]
+},
+{
+"course_id": "cc2fd161-3adb-418a-8d19-6527c13205f5",
+"mo": 2,
+"module_title": "Selection & Troubleshooting",
+"lessons": [
+[
+"Flow Meter Selection & Common Faults",
+50
+]
+]
+},
+{
+"course_id": "cc2fd161-3adb-418a-8d19-6527c13205f5",
+"mo": 3,
+"module_title": "Advanced Flow Measurement & Calibration",
+"lessons": [
+[
+"Custody Transfer Flow Measurement & Proving",
+50
+],
+[
+"Flow Meter Calibration & Proving Methods",
+50
+]
+]
+},
+{
+"course_id": "cf00e64c-d129-4202-ba54-e57d14c78184",
+"mo": 1,
+"module_title": "Reduced Voltage Starting Methods",
+"lessons": [
+[
+"Autotransformer, Star-Delta & Solid-State Soft Starters",
+50
+],
+[
+"Starting Torque & Load Considerations",
+45
+]
+]
+},
+{
+"course_id": "cf00e64c-d129-4202-ba54-e57d14c78184",
+"mo": 2,
+"module_title": "Soft Starter Setup & Commissioning",
+"lessons": [
+[
+"Soft Starter Parameter Setup & Tuning",
+40
+],
+[
+"Soft Starter Troubleshooting & Maintenance",
+40
+]
+]
+},
+{
+"course_id": "cf00e64c-d129-4202-ba54-e57d14c78184",
+"mo": 3,
+"module_title": "Soft Starter Application & Sizing",
+"lessons": [
+[
+"Soft Starter Selection & Application Guidelines",
+45
+],
+[
+"Soft Starter vs VFD: Choosing the Right Solution",
+45
+]
+]
+},
+{
+"course_id": "d81dce37-330c-49fe-8e82-97ff82f10952",
+"mo": 1,
+"module_title": "Welding Processes",
+"lessons": [
+[
+"SMAW, GMAW & GTAW Basics",
+50
+],
+[
+"Joint Preparation & Distortion Control",
+45
+]
+]
+},
+{
+"course_id": "d81dce37-330c-49fe-8e82-97ff82f10952",
+"mo": 2,
+"module_title": "Repair Welding",
+"lessons": [
+[
+"Shaft, Bracket & Structural Repair",
+50
+]
+]
+},
+{
+"course_id": "d81dce37-330c-49fe-8e82-97ff82f10952",
+"mo": 3,
+"module_title": "Welding Safety & Quality Control",
+"lessons": [
+[
+"Welding Safety, Fume Control & Fire Prevention",
+50
+],
+[
+"Weld Quality Inspection & Defect Prevention",
+50
+]
+]
+},
+{
+"course_id": "d944e6dd-5c67-4196-9943-8c3b18d962f7",
+"mo": 1,
+"module_title": "Insulation Resistance Testing",
+"lessons": [
+[
+"Megger Test Procedure & Interpretation",
+50
+],
+[
+"Polarization Index & Dielectric Absorption",
+45
+]
+]
+},
+{
+"course_id": "d944e6dd-5c67-4196-9943-8c3b18d962f7",
+"mo": 2,
+"module_title": "Advanced Motor Diagnostics",
+"lessons": [
+[
+"Surge Testing & Winding Fault Detection",
+50
+],
+[
+"Bearing Currents & Shaft Voltage Testing",
+45
+]
+]
+},
+{
+"course_id": "d944e6dd-5c67-4196-9943-8c3b18d962f7",
+"mo": 3,
+"module_title": "Motor Bearing Testing & Condition Monitoring",
+"lessons": [
+[
+"Vibration Analysis & Bearing Condition Assessment",
+50
+],
+[
+"Online Condition Monitoring & Predictive Maintenance",
+45
+]
+]
+},
+{
+"course_id": "db57e4a5-c723-4184-ba3c-9f1b59ddb3df",
+"mo": 1,
+"module_title": "RTD & Thermocouple Fundamentals",
+"lessons": [
+[
+"RTD Selection & Wire Circuits",
+50
+],
+[
+"Thermocouple Types & Cold Junction Compensation",
+50
+]
+]
+},
+{
+"course_id": "db57e4a5-c723-4184-ba3c-9f1b59ddb3df",
+"mo": 2,
+"module_title": "Infrared & Installation",
+"lessons": [
+[
+"Infrared Pyrometry & Thermowell Installation",
+50
+]
+]
+},
+{
+"course_id": "db57e4a5-c723-4184-ba3c-9f1b59ddb3df",
+"mo": 3,
+"module_title": "Temperature Transmitters & Calibration",
+"lessons": [
+[
+"Temperature Transmitter Configuration & Calibration",
+50
+],
+[
+"Advanced Temperature Measurement Applications",
+50
+]
+]
+},
+{
+"course_id": "db5d9e5b-633e-4c74-be17-e8cba8b18de3",
+"mo": 1,
+"module_title": "RCM Analysis & FMEA",
+"lessons": [
+[
+"RCM Principles & FMEA",
+55
+],
+[
+"Task Selection & Program Implementation",
+50
+]
+]
+},
+{
+"course_id": "db5d9e5b-633e-4c74-be17-e8cba8b18de3",
+"mo": 2,
+"module_title": "Failure Modes & Maintenance Strategy Selection",
+"lessons": [
+[
+"Hidden Failures & Protective Device Testing",
+45
+],
+[
+"Design-Out vs. Maintenance: When to Redesign",
+45
+]
+]
+},
+{
+"course_id": "db5d9e5b-633e-4c74-be17-e8cba8b18de3",
+"mo": 3,
+"module_title": "RCM Program Sustainment & Advanced Topics",
+"lessons": [
+[
+"RCM Program Sustainment & Cultural Adoption",
+45
+],
+[
+"RCM in the Digital Age: Predictive Analytics & Digital Twins",
+45
+]
+]
+},
+{
+"course_id": "e0739ab4-c11f-4c2e-b861-7b246c0eca5c",
+"mo": 1,
+"module_title": "State Machines & Sequencers",
+"lessons": [
+[
+"State Machine Design Pattern",
+55
+],
+[
+"Modular Programming & IEC 61131-3",
+50
+]
+]
+},
+{
+"course_id": "e0739ab4-c11f-4c2e-b861-7b246c0eca5c",
+"mo": 2,
+"module_title": "Advanced Programming Patterns",
+"lessons": [
+[
+"Sequencer & Recipe Management Patterns",
+45
+],
+[
+"Batch Process Control (ISA-88) & Interlocks",
+45
+]
+]
+},
+{
+"course_id": "e0739ab4-c11f-4c2e-b861-7b246c0eca5c",
+"mo": 3,
+"module_title": "Code Quality, Testing & Maintenance",
+"lessons": [
+[
+"Code Quality Metrics & Refactoring Strategies",
+45
+],
+[
+"Simulation, Testing & Virtual Commissioning",
+45
+]
+]
+},
+{
+"course_id": "e4995bd0-845e-4571-8ce5-b01d7e401a38",
+"mo": 1,
+"module_title": "SIS Architecture & SIL",
+"lessons": [
+[
+"SIS Concepts & Safety Integrity Level",
+55
+],
+[
+"Proof Testing & Bypass Management",
+50
+]
+]
+},
+{
+"course_id": "e4995bd0-845e-4571-8ce5-b01d7e401a38",
+"mo": 2,
+"module_title": "SIS Design & Implementation",
+"lessons": [
+[
+"SIS Sensor & Logic Solver Selection",
+50
+],
+[
+"SIS Installation & Commissioning",
+50
+]
+]
+},
+{
+"course_id": "e4995bd0-845e-4571-8ce5-b01d7e401a38",
+"mo": 3,
+"module_title": "SIS Maintenance & Lifecycle Management",
+"lessons": [
+[
+"SIS Maintenance & Lifecycle Management",
+50
+],
+[
+"SIS Trip Investigation & Reliability Analysis",
+50
+]
+]
+},
+{
+"course_id": "e6064434-676e-4f50-97d4-d6ed1bf5f262",
+"mo": 1,
+"module_title": "DCS Architecture",
+"lessons": [
+[
+"Module Hierarchy & Control Strategies",
+60
+],
+[
+"Alarms & Operator Interface",
+50
+]
+]
+},
+{
+"course_id": "e6064434-676e-4f50-97d4-d6ed1bf5f262",
+"mo": 2,
+"module_title": "Troubleshooting",
+"lessons": [
+[
+"Field-to-DCS Troubleshooting",
+55
+]
+]
+},
+{
+"course_id": "e6064434-676e-4f50-97d4-d6ed1bf5f262",
+"mo": 3,
+"module_title": "Advanced DCS Features & System Maintenance",
+"lessons": [
+[
+"Advanced Control Strategies & Batch Control",
+50
+],
+[
+"DCS System Maintenance & Health Monitoring",
+50
+]
+]
+},
+{
+"course_id": "e7d34d85-de0c-4b75-a556-c76c094e3e0c",
+"mo": 1,
+"module_title": "Threat Landscape & Standards",
+"lessons": [
+[
+"IEC 62443 Zones & Conduits",
+55
+],
+[
+"Patching, Incident Response & Risk Assessment",
+50
+]
+]
+},
+{
+"course_id": "e7d34d85-de0c-4b75-a556-c76c094e3e0c",
+"mo": 2,
+"module_title": "Access Control & Identity Management",
+"lessons": [
+[
+"Identity, Authentication & Remote Access",
+45
+],
+[
+"Security Monitoring & Detection in OT",
+45
+]
+]
+},
+{
+"course_id": "e7d34d85-de0c-4b75-a556-c76c094e3e0c",
+"mo": 3,
+"module_title": "Security Program & Compliance",
+"lessons": [
+[
+"Building an OT Security Program",
+45
+],
+[
+"Compliance, Standards & Audit Readiness",
+45
+]
+]
+},
+{
+"course_id": "f08747c1-fc26-41e0-b2e2-6116986d895e",
+"mo": 1,
+"module_title": "Performance Indices & Oscillation Detection",
+"lessons": [
+[
+"Loop Performance Benchmarking & Oscillation Detection",
+50
+]
+]
+},
+{
+"course_id": "f08747c1-fc26-41e0-b2e2-6116986d895e",
+"mo": 2,
+"module_title": "Stiction Diagnosis & Maintenance Prioritization",
+"lessons": [
+[
+"Stiction Quantification & Loop Maintenance Strategy",
+50
+]
+]
+},
+{
+"course_id": "f08747c1-fc26-41e0-b2e2-6116986d895e",
+"mo": 3,
+"module_title": "Advanced Control Strategies & Loop Optimization",
+"lessons": [
+[
+"Model Predictive Control & Advanced Regulatory Control",
+55
+],
+[
+"Plant-Wide Loop Performance Management Program",
+55
+]
+]
+},
+{
+"course_id": "f371b00f-9440-436d-bd1d-0967359ad4b2",
+"mo": 1,
+"module_title": "Foundation Fieldbus H1",
+"lessons": [
+[
+"Segment Sizing & Terminators",
+55
+]
+]
+},
+{
+"course_id": "f371b00f-9440-436d-bd1d-0967359ad4b2",
+"mo": 2,
+"module_title": "Industrial Ethernet",
+"lessons": [
+[
+"Managed Switch Diagnostics",
+50
+]
+]
+},
+{
+"course_id": "f371b00f-9440-436d-bd1d-0967359ad4b2",
+"mo": 3,
+"module_title": "Network Security & Industrial IoT Integration",
+"lessons": [
+[
+"Industrial Network Security & ISA/IEC 62443",
+50
+],
+[
+"Industrial IoT & Edge Computing Integration",
+50
+]
+]
+},
+{
+"course_id": "f61036ab-8ede-4887-954d-a7891522c43c",
+"mo": 1,
+"module_title": "NAMUR NE 107 & Predictive Diagnostics",
+"lessons": [
+[
+"NAMUR NE 107 Status Signals",
+50
+],
+[
+"Asset Management & CMMS Integration",
+50
+]
+]
+},
+{
+"course_id": "f61036ab-8ede-4887-954d-a7891522c43c",
+"mo": 2,
+"module_title": "HART Network Architecture & Communication",
+"lessons": [
+[
+"HART Communication Modes & Network Configurations",
+55
+],
+[
+"HART Command Set & Device Description Files",
+55
+]
+]
+},
+{
+"course_id": "f61036ab-8ede-4887-954d-a7891522c43c",
+"mo": 3,
+"module_title": "Advanced HART Diagnostics & Predictive Maintenance",
+"lessons": [
+[
+"NAMUR NE 107 Status Signals & Device Diagnostics",
+55
+],
+[
+"HART-Based Predictive Maintenance Strategies",
+55
+]
+]
+}
+]

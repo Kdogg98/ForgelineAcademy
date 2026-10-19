@@ -16,7 +16,6 @@ import {
   Sparkles,
   Loader2,
   RotateCcw,
-  Construction,
 } from 'lucide-react';
 import type { Course, Stage } from '@/lib/types';
 import { STAGES, STAGE_LABEL } from '@/lib/types';
@@ -85,7 +84,7 @@ export function Home({
   const { user, isPremium, premiumSource, company, isAdmin, assessmentCompleted, profileReady } = useAuth();
   const { company: themeCompany } = useCompanyTheme();
   // Company members (themed company, or company-premium seat) get a member home instead of
-  // the public marketing hero / beta-discount / Start Free CTAs. Signed-out visitors keep the public page.
+  // the public marketing hero / Start Free CTAs. Signed-out visitors keep the public page.
   const memberHome = Boolean(themeCompany) || (Boolean(user) && premiumSource === 'company');
   // Unpublished-profile companies still get the member home, in the default ForgeLine colors.
   const memberCompany = themeCompany ?? (memberHome && company ? themeCompanyFromRow(company) : null);
@@ -460,17 +459,6 @@ export function Home({
 
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-20 sm:py-28 lg:py-32">
             <div className="max-w-3xl">
-              <div className="mb-6 rounded-lg border border-rok-500/40 bg-navy-950/80 px-4 py-3 text-sm text-steel-200 animate-fade-in">
-                <p className="flex items-start gap-2 leading-relaxed">
-                  <Construction className="w-4 h-4 text-rok-400 shrink-0 mt-0.5" />
-                  <span>
-                    <span className="font-semibold text-white">This site is in beta testing.</span>
-                    {' '}Training is live while we continue improving the experience. Use code{' '}
-                    <span className="font-bold text-rok-300 tracking-wider">75OFF</span>{' '}
-                    for discounted premium features.
-                  </span>
-                </p>
-              </div>
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rok-500/15 border border-rok-500/40 text-rok-300 text-xs font-semibold uppercase tracking-wider mb-6 animate-fade-in">
                 <ShieldCheck className="w-3.5 h-3.5" />
                 Plant-floor proven · Built by industrial electricians and engineers

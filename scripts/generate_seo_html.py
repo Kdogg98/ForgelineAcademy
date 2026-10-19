@@ -206,33 +206,131 @@ def clip(text: str, max_len: int = 158) -> str:
     return (cut[:sp] if sp > 80 else cut).rstrip() + "…"
 
 
+# Directory-backed static pages: the host 301s /x -> /x/, so canonical + sitemap use the final URL.
+STATIC_DIRS = [
+    "vfd-ground-fault", "vfd-overcurrent", "motor-megger", "control-valve-troubleshooting",
+    "4-20ma-loop-troubleshooting", "paths/mechanical", "paths/electrical", "on-site-training",
+    "vfd-troubleshooting", "motor-control-training", "ie-technician", "plants", "services",
+]
+# Hand-written static pages in /public (not generated here) that get canonical/JSON-LD normalized.
+HANDWRITTEN = {
+    "on-site-training": "service",
+    "services": "service",
+    "plants": "service",
+    "vfd-troubleshooting": "topic",
+    "motor-control-training": "topic",
+    "ie-technician": "topic",
+}
+ORG_ID = f"{SITE}/#organization"
+SITE_ID = f"{SITE}/#website"
+SERVICE_AREA = "Based in Oklahoma. Travel available nationwide for on-site training and plant support."
+
+
+def page_url(path: str) -> str:
+    """Final (non-redirecting) URL for a site path."""
+    if path in ("", "/"):
+        return f"{SITE}/"
+    p = path.rstrip("/")
+    if p.startswith("/courses/") or p.lstrip("/") in STATIC_DIRS:
+        return f"{SITE}{p}/"
+    return f"{SITE}{p}"
+
+
 def org_ld() -> dict:
     return {
         "@context": "https://schema.org",
         "@type": "Organization",
+        "@id": ORG_ID,
         "name": ORG,
-        "url": SITE,
+        "url": f"{SITE}/",
+        "logo": f"{SITE}/favicon.svg",
         "telephone": PHONE,
         "email": EMAIL,
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer support",
+            "telephone": PHONE,
+            "email": EMAIL,
+            "areaServed": "US",
+            "availableLanguage": "en",
+        },
     }
 
 
-def course_ld(name: str, description: str, url: str, free: bool) -> dict:
+def website_ld() -> dict:
     return {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "@id": SITE_ID,
+        "name": ORG,
+        "url": f"{SITE}/",
+        "publisher": {"@id": ORG_ID},
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": {"@type": "EntryPoint", "urlTemplate": f"{SITE}/catalog?q={{search_term_string}}"},
+            "query-input": "required name=search_term_string",
+        },
+    }
+
+
+def breadcrumb_ld(items: list[tuple[str, str]]) -> dict:
+    return {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": i + 1, "name": name, "item": page_url(path)}
+            for i, (name, path) in enumerate(items)
+        ],
+    }
+
+
+def service_ld(name: str, description: str, url: str) -> dict:
+    # No street address exists in siteConfig, so Service (not LocalBusiness) with a text service area.
+    return {
+        "@context": "https://schema.org",
+        "@type": "Service",
+        "name": name,
+        "serviceType": "On-site industrial maintenance training and plant troubleshooting",
+        "description": description,
+        "url": url,
+        "provider": {"@id": ORG_ID, "@type": "Organization", "name": ORG, "url": f"{SITE}/", "telephone": PHONE},
+        "areaServed": {"@type": "Country", "name": "United States"},
+        "availableChannel": {"@type": "ServiceChannel", "servicePhone": PHONE, "serviceUrl": f"{SITE}/request"},
+    }
+
+
+def course_ld(name: str, description: str, url: str, free: bool, course: dict | None = None) -> dict:
+    extra: dict = {}
+    if course and OUTLINES.get(course["id"]):
+        mods = OUTLINES[course["id"]]
+        extra["syllabusSections"] = [
+            {"@type": "Syllabus", "name": r["module_title"], "description": "; ".join(t for t, _ in r["lessons"])}
+            for r in mods
+        ]
+        mins = course_minutes(course)
+        if mins:
+            extra["timeRequired"] = f"PT{mins}M"
+    return {**extra, **{
         "@context": "https://schema.org",
         "@type": "Course",
         "name": name,
         "description": description,
         "url": url,
         "isAccessibleForFree": free,
+        "inLanguage": "en",
         "provider": {
             "@type": "Organization",
+            "@id": ORG_ID,
             "name": ORG,
-            "url": SITE,
-            "telephone": PHONE,
-            "email": EMAIL,
+            "url": f"{SITE}/",
         },
-    }
+        "hasCourseInstance": {"@type": "CourseInstance", "courseMode": "Online"},
+        **(
+            {"offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD", "category": "Free", "url": url}}
+            if free
+            else {}
+        ),
+    }}
 
 
 def html_page(title: str, description: str, canonical: str, h1: str, body_html: str, json_ld: list) -> str:
@@ -363,6 +461,44 @@ def extra_topic(course: dict) -> str:
             f"The useful version of {title} is the version you can run on nights without a specialist on the radio. {desc} Keep the as-found. Change one variable. Hand the next crew a log, not a story."
         )
     return " ".join(bits)
+
+
+OUTLINES_PATH = ROOT / "scripts/course_outlines.json"  # snapshot of module/lesson titles (public course structure)
+
+
+def load_outlines() -> dict:
+    if not OUTLINES_PATH.exists():
+        return {}
+    by = {}
+    for row in json.loads(OUTLINES_PATH.read_text(encoding="utf-8")):
+        by.setdefault(row["course_id"], []).append(row)
+    for v in by.values():
+        v.sort(key=lambda r: r["mo"])
+    return by
+
+
+OUTLINES: dict = {}
+
+
+def outline_html(course: dict) -> str:
+    mods = OUTLINES.get(course["id"], [])
+    if not mods:
+        return ""
+    total = sum((m or 0) for r in mods for _, m in r["lessons"])
+    n_less = sum(len(r["lessons"]) for r in mods)
+    parts = [f'<div class="card"><h2>Course outline: {len(mods)} modules, {n_less} lessons'
+             + (f", about {round(total / 60, 1)} hours" if total else "") + "</h2>"]
+    for i, r in enumerate(mods, 1):
+        parts.append(f"<h3>Module {i}: {esc(r['module_title'])}</h3><ul>")
+        for t, m in r["lessons"]:
+            parts.append(f"<li>{esc(t)}" + (f" ({m} min)" if m else "") + "</li>")
+        parts.append("</ul>")
+    parts.append("</div>")
+    return "\n".join(parts)
+
+
+def course_minutes(course: dict) -> int:
+    return sum((m or 0) for r in OUTLINES.get(course["id"], []) for _, m in r["lessons"])
 
 
 def course_body(course: dict, courses: list[dict]) -> str:
@@ -667,7 +803,20 @@ def word_count(html: str) -> int:
     return len(words)
 
 
+def slash_links(html: str) -> str:
+    def fix(m: re.Match) -> str:
+        href = m.group(1)
+        if href.rstrip("/") == "/pricing":
+            return 'href="/upgrade"'
+        if href.startswith("/courses/") or href.lstrip("/") in STATIC_DIRS:
+            return f'href="{href.rstrip("/")}/"'
+        return m.group(0)
+
+    return re.sub(r'href="(/[^"#?]*)"', fix, html)
+
+
 def write_html(rel_dir: str, content: str) -> Path:
+    content = slash_links(content)
     dest = PUBLIC / rel_dir
     dest.mkdir(parents=True, exist_ok=True)
     path = dest / "index.html"
@@ -714,6 +863,13 @@ def redirects(courses: list[dict]) -> str:
         "/courses/:slug        /courses/:slug/index.html 200",
         "/courses/:slug/       /courses/:slug/index.html 200",
         "",
+        "# Prerendered SPA public routes (dist/<route>.html, written after vite build). Same app bundle; crawlers get real HTML.",
+        "/catalog              /catalog.html                200",
+        "/paths                /paths.html                  200",
+        "/upgrade              /upgrade.html                200",
+        "/request              /request.html                200",
+        "/book                 /book.html                   200",
+        "",
         "# App course player: /course/<slug-or-id> and /course/<id>/games are SPA routes (reload/share opens the app).",
         "/course/*             /index.html                  200",
         "",
@@ -724,45 +880,40 @@ def redirects(courses: list[dict]) -> str:
 
 
 def sitemap_xml(courses: list[dict]) -> str:
-    urls = [
-        "/",
-        "/catalog",
-        "/paths",
-        "/upgrade",
-        "/book",
-        "/request",
-    ]
-    urls += [f"/courses/{c['slug']}" for c in courses]
+    urls = ["/", "/catalog", "/paths", "/upgrade", "/book", "/request", "/services", "/on-site-training", "/plants"]
     urls += [L["path"] for L in LANDINGS]
-    extra = [
-        "/on-site-training",
-        "/vfd-troubleshooting",
-        "/motor-control-training",
-        "/ie-technician",
-        "/plants",
-        "/services",
-        "/pricing",
-    ]
-    for u in extra:
-        if u not in urls:
-            urls.append(u)
+    urls += ["/vfd-troubleshooting", "/motor-control-training", "/ie-technician"]
+    urls += [f"/courses/{c['slug']}" for c in courses]
+    # /pricing is a 301 to /upgrade: never list redirects in the sitemap.
     seen = set()
-    ordered = []
-    for u in urls:
-        if u not in seen:
-            seen.add(u)
-            ordered.append(u)
     parts = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
-    for u in ordered:
-        loc = SITE if u == "/" else f"{SITE}{u}"
-        parts.append("  <url>")
-        parts.append(f"    <loc>{loc}</loc>")
-        parts.append(f"    <lastmod>{LASTMOD}</lastmod>")
-        parts.append("    <changefreq>weekly</changefreq>")
-        parts.append("  </url>")
+    for u in urls:
+        loc = page_url(u)
+        if loc in seen:
+            continue
+        seen.add(loc)
+        parts.append(f"  <url><loc>{loc}</loc><lastmod>{lastmod_for(u)}</lastmod></url>")
     parts.append("</urlset>")
     parts.append("")
     return "\n".join(parts)
+
+
+ROBOTS = f"""User-agent: *
+Allow: /
+# Signed-in app areas, auth, and admin are not search content.
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /company
+Disallow: /auth
+Disallow: /certificates
+Disallow: /assessment
+Disallow: /announcements
+Disallow: /course/
+# Course player duplicates /courses/<slug>/ (which carries the canonical).
+Allow: /courses/
+
+Sitemap: {SITE}/sitemap.xml
+"""
 
 
 def pad_if_needed(html: str, extra_paragraph: str) -> str:
@@ -774,23 +925,310 @@ def pad_if_needed(html: str, extra_paragraph: str) -> str:
         return html.replace(needle, card + needle, 1)
     return html
 
+# ---------------------------------------------------------------------------
+# lastmod from real content dates (git), falling back to LASTMOD when git is unavailable.
+import subprocess
+
+SPA_SOURCES = {
+    "/": ["src/pages/Home.tsx"],
+    "/catalog": ["src/pages/Catalog.tsx", "src/lib/seo/courseSlugs.ts"],
+    "/paths": ["src/pages/Paths.tsx"],
+    "/upgrade": ["src/pages/Pricing.tsx"],
+    "/book": ["src/pages/BookMeeting.tsx"],
+    "/request": ["src/pages/Services.tsx"],
+}
+
+
+def git_date(paths: list[str]) -> str:
+    try:
+        out = subprocess.run(["git", "log", "-1", "--format=%cs", "--", *paths], cwd=ROOT,
+                             capture_output=True, text=True, timeout=10).stdout.strip()
+        return out or LASTMOD
+    except Exception:
+        return LASTMOD
+
+
+def lastmod_for(path: str) -> str:
+    if path in SPA_SOURCES:
+        return git_date(SPA_SOURCES[path])
+    rel = path.strip("/")
+    if path.startswith("/courses/"):
+        return git_date([f"public/{rel}/index.html", "src/lib/seo/courseSlugs.ts", "scripts/course_outlines.json"])
+    if path.lstrip("/") in HANDWRITTEN:
+        return git_date([f"public/{rel}/index.html"])
+    return git_date([f"public/{rel}/index.html", "scripts/generate_seo_html.py"])
+
+
+# ---------------------------------------------------------------------------
+# Hand-written static pages: normalize canonical/og:url to the final URL and add JSON-LD.
+HANDWRITTEN_PICK = {
+    "vfd-troubleshooting": lambda c: re.search(r"VFD|Drive|Motor|3-Phase|Power", c["title"], re.I),
+    "motor-control-training": lambda c: re.search(r"Motor|Control Circuit|Relay|Contactor|VFD|Starter", c["title"], re.I),
+    "ie-technician": lambda c: c["stage"] == "ie",
+}
+
+
+def related_courses_block(rel: str, courses: list[dict]) -> str:
+    pick = HANDWRITTEN_PICK.get(rel)
+    if pick:
+        cs = [c for c in courses if pick(c)][:10]
+        head = "Related courses in the ForgeLine catalog"
+    else:
+        cs = []
+        for st in STAGE_LABEL:
+            cs += [c for c in courses if c["stage"] == st][:3]
+        head = "Courses crews take before and after on-site training"
+    items = "".join(
+        f'<li><a href="/courses/{c["slug"]}/">{esc(c["title"])}</a> ({"Free" if c["tier"] == "free" else "Premium"}): {esc(clip(c["description"], 170))}</li>'
+        for c in cs
+    )
+    return (f'<section data-gen="seo-related" style="max-width:960px;margin:24px auto;padding:0 20px"><h2>{head}</h2><ul>{items}</ul>'
+            '<p>See the full <a href="/catalog">course catalog</a> or <a href="/upgrade">pricing</a> '
+            '(Premium $19.99/month; Plant 5-seat $129/mo; Plant 10-seat $229/mo; 30-day free company trial).</p></section>')
+
+
+def normalize_handwritten(courses: list[dict]) -> list[str]:
+    done = []
+    for rel, kind in HANDWRITTEN.items():
+        f = PUBLIC / rel / "index.html"
+        if not f.exists():
+            continue
+        html = f.read_text(encoding="utf-8")
+        url = page_url("/" + rel)
+        html = re.sub(r'(<link rel="canonical" href=")[^"]*(")', rf"\g<1>{url}\g<2>", html)
+        html = re.sub(r'(<meta property="og:url" content=")[^"]*(")', rf"\g<1>{url}\g<2>", html)
+        html = re.sub(r'\s*<script type="application/ld\+json" data-gen="seo">.*?</script>', "", html, flags=re.S)
+        title = re.search(r"<title>(.*?)</title>", html, re.S).group(1)
+        desc_m = re.search(r'<meta name="description" content="([^"]*)"', html)
+        desc = desc_m.group(1) if desc_m else ""
+        name = title.split(" — ")[0].replace("&amp;", "&")
+        ld = [org_ld(), breadcrumb_ld([("Home", "/"), (name, "/" + rel)])]
+        if kind == "service":
+            ld.append(service_ld(name, desc.replace("&amp;", "&"), url))
+        tags = "".join(
+            f'\n  <script type="application/ld+json" data-gen="seo">{json.dumps(o, ensure_ascii=False)}</script>' for o in ld
+        )
+        html = html.replace("</head>", tags + "\n</head>", 1)
+        html = re.sub(r'<section data-gen="seo-related".*?</section>', "", html, flags=re.S)
+        html = html.replace("</body>", related_courses_block(rel, courses) + "\n</body>", 1)
+        f.write_text(slash_links(html), encoding="utf-8")
+        done.append(rel)
+    return done
+
+
+# ---------------------------------------------------------------------------
+# Prerendered HTML for SPA public routes (written into dist/ after `vite build`).
+# The built index.html is the template: same JS/CSS, route-specific head, and real
+# crawlable content inside #root that React replaces on mount (createRoot, not hydrate).
+TOPICS = [
+    ("/vfd-troubleshooting", "VFD troubleshooting training"),
+    ("/vfd-ground-fault", "VFD ground fault troubleshooting"),
+    ("/vfd-overcurrent", "VFD overcurrent troubleshooting"),
+    ("/motor-megger", "Motor megger & polarization index"),
+    ("/motor-control-training", "Motor control training"),
+    ("/control-valve-troubleshooting", "Control valve troubleshooting"),
+    ("/4-20ma-loop-troubleshooting", "4-20 mA loop troubleshooting"),
+    ("/ie-technician", "I&E technician training"),
+    ("/paths/mechanical", "Mechanical path (millwright)"),
+    ("/paths/electrical", "Electrical path"),
+    ("/services", "On-site training & plant troubleshooting"),
+    ("/on-site-training", "On-site training at your facility"),
+    ("/plants", "Plant training & support"),
+]
+
+
+def course_links_by_stage(courses: list[dict], with_desc: bool) -> str:
+    out = []
+    for stage, label in STAGE_LABEL.items():
+        cs = [c for c in courses if c["stage"] == stage]
+        access = "free" if all(c["tier"] == "free" for c in cs) else "Premium"
+        out.append(f"<section><h2>{esc(label)} ({len(cs)} courses, {access})</h2><ul>")
+        for c in cs:
+            line = f'<li><a href="/courses/{c["slug"]}/">{esc(c["title"])}</a>'
+            if with_desc:
+                line += f" — {esc(clip(c['description'], 150))}"
+            out.append(line + "</li>")
+        out.append("</ul></section>")
+    return "\n".join(out)
+
+
+def topic_links() -> str:
+    return "<section><h2>Troubleshooting topics &amp; services</h2><ul>" + "".join(
+        f'<li><a href="{page_url(h).replace(SITE, "")}">{esc(t)}</a></li>' for h, t in TOPICS
+    ) + "</ul></section>"
+
+
+APP_NAV = (
+    '<nav><a href="/">Home</a> · <a href="/catalog">Course catalog</a> · <a href="/paths">Learning paths</a> · '
+    '<a href="/upgrade">Pricing</a> · <a href="/services/">Services</a> · <a href="/request">Request training</a> · '
+    '<a href="/book">Book a meeting</a></nav>'
+)
+
+
+def spa_pages(courses: list[dict]) -> list[dict]:
+    free = sum(1 for c in courses if c["tier"] == "free")
+    pricing_body = f"""
+<p>{ORG} has {len(courses)} industrial maintenance courses. {free} Mechanical and Electrical courses are free with an account.</p>
+<h2>Premium — $19.99/month</h2>
+<p>Premium unlocks the I&amp;E and Engineering paths: instrumentation, calibration, control valves, PLC and DCS work, and engineering courses, plus certificates for every course.</p>
+<h2>Online plant seats for companies</h2>
+<ul>
+<li><strong>30-day free company trial:</strong> 5 online seats free for 30 days, online only.</li>
+<li><strong>Plant 5-seat — $129/mo:</strong> five online Premium seats for your crew.</li>
+<li><strong>Plant 10-seat — $229/mo:</strong> ten online Premium seats with a manager view of progress.</li>
+</ul>
+<p>Need people on site? See <a href="/services/">on-site training and plant troubleshooting</a> or <a href="/request">request training</a>. Phone <a href="tel:{PHONE_TEL}">{PHONE}</a>.</p>
+"""
+    services_body = f"""
+<p>{ORG} delivers on-site training and plant troubleshooting support for industrial maintenance crews. I work with a network of millwrights, electricians and engineers who teach and troubleshoot on the plant floor: VFDs, motor controls, PLCs, instrumentation, pumps, bearings and alignment.</p>
+<h2>On-site training</h2><p>Hands-on cohorts at your facility built around your equipment, with the online catalog for follow-up. {SERVICE_AREA}</p>
+<h2>Plant troubleshooting support</h2><p>Help on recurring trips, nuisance faults, and equipment that keeps coming back on the work-order list.</p>
+<h2>Online plant seats</h2><p>30-day free company trial with 5 online seats, then Plant 5-seat ($129/mo) or Plant 10-seat ($229/mo). See <a href="/upgrade">pricing</a>.</p>
+<p>Use the request form on this page, call <a href="tel:{PHONE_TEL}">{PHONE}</a>, or email <a href="mailto:{EMAIL}">{EMAIL}</a>.</p>
+"""
+    item_list = {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": f"{ORG} course catalog",
+        "numberOfItems": len(courses),
+        "itemListElement": [
+            {"@type": "ListItem", "position": i + 1, "url": page_url(f"/courses/{c['slug']}"), "name": c["title"]}
+            for i, c in enumerate(courses)
+        ],
+    }
+    return [
+        {
+            "path": "/",
+            "title": "ForgeLine Academy — Industrial Maintenance Training Online & On-Site",
+            "description": f"{len(courses)} plant-floor courses for millwrights, industrial electricians and I&E techs. {free} free Mechanical and Electrical courses; Premium unlocks I&E and Engineering.",
+            "h1": "Plant-floor training for industrial maintenance and controls technicians",
+            "body": f"<p>{len(courses)} courses built around real work orders: bearings, lubrication and alignment, pumps, motor controls, VFDs, PLCs, instrumentation and engineering. {free} Mechanical and Electrical courses are free. Premium ($19.99/month) unlocks I&amp;E and Engineering. Companies can start a 30-day free trial with 5 online seats.</p>"
+            + topic_links() + course_links_by_stage(courses, False),
+            "ld": [org_ld(), website_ld()],
+        },
+        {
+            "path": "/catalog",
+            "title": f"Course Catalog — {len(courses)} Industrial Maintenance Courses | ForgeLine Academy",
+            "description": f"Browse all {len(courses)} ForgeLine courses: Mechanical, Electrical, I&E and Engineering. {free} free courses for millwrights and industrial electricians.",
+            "h1": f"Course catalog: {len(courses)} industrial maintenance courses",
+            "body": f"<p>Every course on {ORG}, grouped by path. Mechanical and Electrical are free; I&amp;E and Engineering are Premium.</p>"
+            + course_links_by_stage(courses, True) + topic_links(),
+            "ld": [org_ld(), item_list, breadcrumb_ld([("Home", "/"), ("Catalog", "/catalog")])],
+        },
+        {
+            "path": "/paths",
+            "title": "Learning Paths — Mechanical, Electrical, I&E, Engineering | ForgeLine Academy",
+            "description": "Four ForgeLine learning paths from millwright fundamentals to I&E and engineering. Start free with the Mechanical or Electrical path.",
+            "h1": "Learning paths for plant maintenance crafts",
+            "body": "<p>Pick a path and take courses in order. Mechanical covers bearings, lubrication, alignment, pumps and rotating equipment. Electrical covers motor controls, VFDs, three-phase power and testing. I&amp;E and Engineering are Premium.</p>"
+            '<ul><li><a href="/paths/mechanical/">Mechanical path</a></li><li><a href="/paths/electrical/">Electrical path</a></li></ul>'
+            + course_links_by_stage(courses, False),
+            "ld": [org_ld(), breadcrumb_ld([("Home", "/"), ("Learning paths", "/paths")])],
+        },
+        {
+            "path": "/upgrade",
+            "title": "Pricing — Premium $19.99/mo & Plant Seats | ForgeLine Academy",
+            "description": "ForgeLine pricing: 44 free courses, Premium $19.99/month, Plant 5-seat $129/mo, Plant 10-seat $229/mo, and a 30-day free company trial.",
+            "h1": "ForgeLine Academy pricing",
+            "body": pricing_body + catalog_summary(courses),
+            "ld": [org_ld(), breadcrumb_ld([("Home", "/"), ("Pricing", "/upgrade")])],
+        },
+        {
+            "path": "/request",
+            "title": "Request On-Site Training or Plant Support | ForgeLine Academy",
+            "description": "Request on-site industrial maintenance training, plant troubleshooting support, or online plant seats from ForgeLine Academy. Call +1 580 421 5714.",
+            "h1": "Request on-site training or plant support",
+            "body": services_body + catalog_summary(courses),
+            "ld": [org_ld(), service_ld("On-site training & plant troubleshooting", "On-site industrial maintenance training and plant troubleshooting support for millwrights, electricians and I&E technicians.", page_url("/request")),
+                   breadcrumb_ld([("Home", "/"), ("Request training", "/request")])],
+        },
+        {
+            "path": "/book",
+            "title": "Book a Meeting — Plant Training Planning | ForgeLine Academy",
+            "description": "Book a call with ForgeLine Academy to plan crew training, on-site cohorts, or plant seats for your maintenance team.",
+            "h1": "Book a meeting",
+            "body": f"<p>Pick an open time to talk through crew training: which courses fit your millwrights, electricians and I&amp;E techs, whether on-site cohorts make sense, and how plant seats work (30-day free trial, then $129/mo for 5 seats or $229/mo for 10).</p><p>Prefer the phone? Call <a href=\"tel:{PHONE_TEL}\">{PHONE}</a> or see <a href=\"/services/\">services</a>.</p>" + catalog_summary(courses) + topic_links(),
+            "ld": [org_ld(), breadcrumb_ld([("Home", "/"), ("Book a meeting", "/book")])],
+        },
+    ]
+
+
+def catalog_summary(courses: list[dict]) -> str:
+    out = ["<section><h2>What is in the catalog</h2>"]
+    for st, label in STAGE_LABEL.items():
+        cs = [c for c in courses if c["stage"] == st]
+        access = "free" if all(c["tier"] == "free" for c in cs) else "Premium"
+        links = ", ".join(f'<a href="/courses/{c["slug"]}/">{esc(c["title"])}</a>' for c in cs[:6])
+        out.append(f"<p><strong>{esc(label)}</strong> ({len(cs)} courses, {access}): {links}, and more in the <a href=\"/catalog\">catalog</a>.</p>")
+    out.append("</section>")
+    return "".join(out)
+
+
+def render_spa(template: str, page: dict) -> str:
+    url = page_url(page["path"])
+    t, d = esc(page["title"]), esc(page["description"])
+    html = template
+    html = re.sub(r"<title>.*?</title>", f"<title>{t}</title>", html, flags=re.S)
+    html = re.sub(r'<meta name="description" content="[^"]*"\s*/?>', f'<meta name="description" content="{d}" />', html)
+    html = re.sub(r'<meta property="og:title" content="[^"]*"\s*/?>', f'<meta property="og:title" content="{t}" />', html)
+    html = re.sub(r'<meta property="og:description" content="[^"]*"\s*/?>', f'<meta property="og:description" content="{d}" />', html)
+    html = re.sub(r'<meta property="og:url" content="[^"]*"\s*/?>', f'<meta property="og:url" content="{url}" />', html)
+    html = re.sub(r'\s*<link rel="canonical"[^>]*>', "", html)
+    ld = "".join(f'\n    <script type="application/ld+json">{json.dumps(o, ensure_ascii=False)}</script>' for o in page["ld"])
+    html = html.replace("</head>", f'    <link rel="canonical" href="{url}" />{ld}\n</head>', 1)
+    content = (f'<div id="root"><div class="seo-prerender" style="max-width:960px;margin:0 auto;padding:24px;color:#e2e8f0;font-family:system-ui,sans-serif">'
+               f'{APP_NAV}<h1>{esc(page["h1"])}</h1>{page["body"]}'
+               f'<footer><p>&copy; 2026 {ORG} · <a href="mailto:{EMAIL}">{EMAIL}</a> · <a href="tel:{PHONE_TEL}">{PHONE}</a></p></footer></div></div>')
+    return html.replace('<div id="root"></div>', content, 1)
+
+
+def prerender_spa(courses: list[dict]) -> list[str]:
+    dist = ROOT / "dist"
+    tpl_path = dist / "index.html"
+    if not tpl_path.exists():
+        return []
+    template = tpl_path.read_text(encoding="utf-8")
+    if 'class="seo-prerender"' in template:
+        raise SystemExit("dist/index.html already prerendered; run vite build first")
+    written = []
+    for page in spa_pages(courses):
+        out = render_spa(template, page)
+        dest = tpl_path if page["path"] == "/" else dist / f"{page['path'].strip('/')}.html"
+        dest.write_text(out, encoding="utf-8")
+        written.append(str(dest.relative_to(ROOT)))
+    return written
+
+
 
 def main() -> None:
+    OUTLINES.update(load_outlines())
     courses = parse_courses()
     reports = []
 
     for course in courses:
-        canonical = f"{SITE}/courses/{course['slug']}"
+        canonical = page_url(f"/courses/{course['slug']}")
         title = f"{course['title']} — {ORG}"
         desc = clip(course["description"])
         body = course_body(course, courses)
+        ol = outline_html(course)
+        if ol:
+            body = body.replace('<p class="note">', ol + '\n    <p class="note">', 1) if '<p class="note">' in body else body + ol
         page = html_page(
             title,
             desc,
             canonical,
             course["title"],
             body,
-            [org_ld(), course_ld(course["title"], course["description"], canonical, course["tier"] == "free")],
+            [
+                org_ld(),
+                course_ld(course["title"], course["description"], canonical, course["tier"] == "free", course),
+                breadcrumb_ld([
+                    ("Home", "/"),
+                    ("Catalog", "/catalog"),
+                    (STAGE_LABEL[course["stage"]], f"/paths/{course['stage']}" if course["stage"] in ("mechanical", "electrical") else "/paths"),
+                    (course["title"], f"/courses/{course['slug']}"),
+                ]),
+            ],
         )
         page = pad_if_needed(
             page,
@@ -810,12 +1248,17 @@ def main() -> None:
         f"Phone {PHONE}. Email {EMAIL}. Training does not replace site LOTO."
     )
     for L in LANDINGS:
-        canonical = f"{SITE}{L['path']}"
+        canonical = page_url(L["path"])
         body = landing_copy(L["slug"]) + related_html(L["related"])
         # landings: Course JSON-LD for the primary related course plus Organization
         primary_href = L["related"][0][0]
         primary_name = L["related"][0][1]
-        ld = [org_ld(), course_ld(primary_name, L["description"], canonical, True)]
+        primary_url = page_url(primary_href)
+        crumbs = [("Home", "/")]
+        if L["path"].startswith("/paths/"):
+            crumbs.append(("Learning paths", "/paths"))
+        crumbs.append((L["h1"].split(":")[0], L["path"]))
+        ld = [org_ld(), course_ld(primary_name, L["description"], primary_url, True), breadcrumb_ld(crumbs)]
         page = html_page(L["title"], L["description"], canonical, L["h1"], body, ld)
         page = pad_if_needed(page, extra_pad)
         rel = L["path"].lstrip("/")
@@ -825,6 +1268,8 @@ def main() -> None:
             raise SystemExit(f"landing {L['path']} only {wc} words")
         reports.append((str(path.relative_to(ROOT)), wc, L["title"]))
 
+    normalize_handwritten(courses)
+    (PUBLIC / "robots.txt").write_text(ROBOTS, encoding="utf-8")
     (PUBLIC / "_redirects").write_text(redirects(courses), encoding="utf-8")
     (PUBLIC / "sitemap.xml").write_text(sitemap_xml(courses), encoding="utf-8")
 
@@ -836,7 +1281,7 @@ def main() -> None:
         for src in reports:
             rel = Path(src[0]).relative_to("public") if str(src[0]).startswith("public/") else Path(src[0])
             # reports paths are public/...
-        for item in ["_redirects", "sitemap.xml"]:
+        for item in ["_redirects", "sitemap.xml", "robots.txt"]:
             shutil.copy2(PUBLIC / item, dist / item)
         # copy generated trees
         for folder in ["courses", "vfd-ground-fault", "vfd-overcurrent", "motor-megger",
@@ -851,6 +1296,8 @@ def main() -> None:
                 shutil.rmtree(dest)
             shutil.copytree(src, dest)
 
+    pre = prerender_spa(courses)
+    print(f"prerendered SPA routes: {pre}")
     print(f"generated {len(reports)} html pages")
     for rel, wc, title in reports[:5]:
         print(f"  {wc:4d}  {rel}  {title[:60]}")

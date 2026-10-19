@@ -1,3 +1,15 @@
 User-agent: *
 Allow: /
+# Signed-in app areas, auth, and admin are not search content.
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /company
+Disallow: /auth
+Disallow: /certificates
+Disallow: /assessment
+Disallow: /announcements
+Disallow: /course/
+# Course player duplicates /courses/<slug>/ (which carries the canonical).
+Allow: /courses/
+
 Sitemap: https://forgelineacademy.com/sitemap.xml

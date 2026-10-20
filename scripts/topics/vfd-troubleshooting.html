@@ -1,0 +1,39 @@
+<p class="lead">Most VFD calls start the same way: the drive tripped, production wants it reset, and nobody wrote down the fault. This page is the plant-floor order of operations ForgeLine teaches for troubleshooting variable frequency drives, from the first look at the keypad to the decision to repair, replace, or call the motor shop.</p>
+
+<div class="card"><h2>1. Make it safe before you make it run</h2>
+<p>A VFD stores energy in its DC bus capacitors after the disconnect is open. Lock out the supply, wait the time printed on the drive label (often 5 to 15 minutes), and verify the DC bus is below 50 V with a meter rated for the voltage, measured at the DC+ and DC− terminals. Check for a second source: bypass contactors, a shared DC bus, or a motor that can be back-driven by the load (fans windmilling, conveyors on an incline) will feed voltage back into the drive.</p></div>
+
+<div class="card"><h2>2. Read the fault history, not just the current fault</h2>
+<p>Before anyone presses reset, record the active fault and the last several entries in the fault log, with the output frequency, current, and DC bus voltage at the time of the trip if the drive stores them. A single overcurrent at full speed means something different from five overcurrents during acceleration. Photograph the keypad. That log is the difference between troubleshooting and guessing.</p></div>
+
+<div class="card"><h2>3. Sort the fault into a family</h2>
+<ul>
+<li><strong>Overcurrent:</strong> mechanical bind, an acceleration ramp too short for the load inertia, wrong motor nameplate data, or a short in the motor leads. See <a href="/vfd-overcurrent/">VFD overcurrent troubleshooting</a>.</li>
+<li><strong>Ground fault:</strong> current leaking to ground through wet or damaged insulation in the motor or cable. It is not an overload and resetting it repeatedly can burn the output section. See <a href="/vfd-ground-fault/">VFD ground fault troubleshooting</a>.</li>
+<li><strong>Overvoltage (DC bus):</strong> usually the load regenerating faster than the drive can absorb it, from a deceleration ramp that is too short or an overhauling load. Lengthen decel, enable bus regulation, or add a braking resistor sized for the duty.</li>
+<li><strong>Undervoltage:</strong> sags on the incoming supply, a blown input fuse on one phase, or loose line terminals. Measure all three input phases under load.</li>
+<li><strong>Overtemperature:</strong> blocked heatsinks, failed cooling fans, a hot enclosure, or carrier frequency set higher than the drive's derating allows.</li>
+<li><strong>Motor overload (I²t):</strong> the motor is actually working too hard, or the motor FLA parameter is set wrong.</li>
+</ul></div>
+
+<div class="card"><h2>4. Test the motor and cable separately from the drive</h2>
+<p>Disconnect the motor leads at the drive output. Insulation-resistance test the cable and motor together, then separately, at a test voltage suited to the motor rating (often 500 V or 1000 V DC for 480 V motors). Never megger with the drive connected. Check winding resistance phase to phase for balance. A good drive feeding a bad motor will keep tripping; a good motor on a bad output section will show unbalanced output current. The <a href="/motor-megger/">motor megger and PI guide</a> covers how to log the reading.</p></div>
+
+<div class="card"><h2>5. Check the parameters against the nameplate</h2>
+<p>Motor voltage, FLA, base frequency, base speed, and poles need to match the motor that is actually installed, not the one that was there before the swap. Re-run the autotune if the drive supports it and the load allows. Confirm control mode (V/Hz vs sensorless vector vs closed loop) suits the application.</p></div>
+
+<div class="card"><h2>6. Look at the installation</h2>
+<p>Long motor leads raise reflected-wave voltage at the motor terminals; check whether the run needs an output reactor or dV/dt filter. Confirm shielded VFD cable is grounded at both ends with proper glands, the drive and motor share a solid equipment ground, and control wiring is routed away from motor leads. Electrical noise problems often look like random faults or erratic speed reference.</p></div>
+
+<div class="card"><h2>7. Decide: repair, replace, or escalate</h2>
+<p>If the output section measures shorted (diode test from DC bus to each output phase), the drive needs repair or replacement. If the motor fails insulation testing, it goes to the motor shop. If both test good and the fault repeats, trend current and DC bus voltage over a full cycle of the machine and look for what the process is doing at the moment of the trip.</p></div>
+
+<h2>Courses that go deeper</h2>
+<ul>
+<li><a href="/courses/vfd-fundamentals-parameterization/">VFD Fundamentals &amp; Parameterization</a> (free)</li>
+<li><a href="/courses/vfd-installation-commissioning/">VFD Installation &amp; Commissioning</a> (free)</li>
+<li><a href="/courses/motor-testing-with-megger-pi/">Motor Testing with Megger &amp; PI</a> (free)</li>
+<li><a href="/courses/power-quality-basics/">Power Quality Basics</a> (free)</li>
+<li><a href="/courses/energy-management-and-efficient-drive-systems/">Energy Management &amp; Efficient Drive Systems</a> (Premium)</li>
+</ul>
+<p>Related topics: <a href="/motor-control-training/">motor controls training</a>, <a href="/industrial-electrical-training/">industrial electrical training</a>, <a href="/faq/">FAQ</a>. For drives that keep coming back on the work-order list, see <a href="/services/">plant troubleshooting support</a>.</p>

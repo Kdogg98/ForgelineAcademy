@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && python3 scripts/generate_seo_html.py",
+    "build": "vite build",
     "generate-seo": "python3 scripts/generate_seo_html.py",
     "lint": "eslint .",
     "preview": "vite preview",

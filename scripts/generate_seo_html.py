@@ -211,15 +211,51 @@ STATIC_DIRS = [
     "vfd-ground-fault", "vfd-overcurrent", "motor-megger", "control-valve-troubleshooting",
     "4-20ma-loop-troubleshooting", "paths/mechanical", "paths/electrical", "on-site-training",
     "vfd-troubleshooting", "motor-control-training", "ie-technician", "plants", "services",
+    "plc-training", "millwright-training", "industrial-electrical-training", "hydraulics-training", "faq",
+    # Prerendered SPA routes (repo-root <route>/index.html, built by Vite as extra HTML entries).
+    "catalog", "paths", "upgrade", "request", "book",
+]
+
+# Topic landing pages: body copy lives in scripts/topics/<slug>.html (hand-written, reviewed).
+TOPIC_PAGES = [
+    {"slug": "vfd-troubleshooting", "title": "VFD Troubleshooting Guide for Plant Electricians | ForgeLine Academy",
+     "h1": "VFD troubleshooting: a plant-floor order of operations",
+     "crumb": "VFD troubleshooting",
+     "description": "Step-by-step VFD troubleshooting for plant electricians: DC bus safety, fault history, overcurrent vs ground fault vs overvoltage, motor and cable tests, parameters and installation."},
+    {"slug": "plc-training", "title": "PLC Training Online for Maintenance Technicians | ForgeLine Academy",
+     "h1": "PLC training online for maintenance technicians",
+     "crumb": "PLC training",
+     "description": "Online PLC training built for plant troubleshooting: HMI to rung, I/O verification, forcing and online edits, Logix-style program structure, and EtherNet/IP faults."},
+    {"slug": "millwright-training", "title": "Millwright Training Online & On-Site | ForgeLine Academy",
+     "h1": "Millwright training: bearings, alignment, pumps and rotating equipment",
+     "crumb": "Millwright training",
+     "description": "Free online millwright training on the ForgeLine Mechanical path: bearings, lubrication, shaft alignment, pumps and seals, gearboxes, drives and condition monitoring. On-site cohorts available."},
+    {"slug": "industrial-electrical-training", "title": "Industrial Electrical Training for Plant Electricians | ForgeLine Academy",
+     "h1": "Industrial electrical training for plant electricians",
+     "crumb": "Industrial electrical training",
+     "description": "Free industrial electrical training: NFPA 70E awareness, prints, three-phase power, motor controls, VFDs, megger testing, grounding and a troubleshooting method you can defend."},
+    {"slug": "ie-technician", "title": "I&E Technician Training: Instrumentation & Loops | ForgeLine Academy",
+     "h1": "I&E technician training: instrumentation, loops and control valves",
+     "crumb": "I&E technician training",
+     "description": "I&E technician training: 4-20 mA loop troubleshooting, pressure, temperature, flow and level measurement, control valves, HART, fieldbus, DCS and calibration records."},
+    {"slug": "motor-control-training", "title": "Motor Controls Training: Starters, Overloads, Ladder | ForgeLine Academy",
+     "h1": "Motor controls training: read the ladder, find the open",
+     "crumb": "Motor controls training",
+     "description": "Free motor controls training: starters, contactors, overload relays, control transformers, two-wire vs three-wire control, reversing, and a meter-based troubleshooting sequence."},
+    {"slug": "hydraulics-training", "title": "Industrial Hydraulics Training & Troubleshooting | ForgeLine Academy",
+     "h1": "Hydraulics training for maintenance technicians",
+     "crumb": "Hydraulics training",
+     "description": "Hydraulics troubleshooting for maintenance techs: stored energy, reading ISO circuits, slow or weak actuators, hot oil, pump noise, contamination control and pneumatics."},
+    {"slug": "faq", "title": "FAQ — Courses, Pricing, Company Seats & On-Site Training | ForgeLine Academy",
+     "h1": "Frequently asked questions",
+     "crumb": "FAQ",
+     "description": "ForgeLine Academy FAQ: free vs Premium ($19.99/mo), company seats ($129/mo for 5, $229/mo for 10), 30-day free company trial, certificates and on-site training."},
 ]
 # Hand-written static pages in /public (not generated here) that get canonical/JSON-LD normalized.
 HANDWRITTEN = {
     "on-site-training": "service",
     "services": "service",
     "plants": "service",
-    "vfd-troubleshooting": "topic",
-    "motor-control-training": "topic",
-    "ie-technician": "topic",
 }
 ORG_ID = f"{SITE}/#organization"
 SITE_ID = f"{SITE}/#website"
@@ -864,9 +900,15 @@ def redirects(courses: list[dict]) -> str:
         "/courses/:slug/       /courses/:slug/index.html 200",
         "",
         "# App course player: /course/<slug-or-id> and /course/<id>/games are SPA routes (reload/share opens the app).",
-        "/course/*             /index.html                  200",
+        "/course/*             /app.html                    200",
+        "/legal/*              /app.html                    200",
         "",
-        "/*                    /index.html                  200",
+        "# Other client-side app routes (src/lib/routing.ts). Public SPA routes are prerendered files.",
+        *[f"{r:<21} /app.html                    200" for r in SPA_ROUTES],
+        *[f"{r + '/':<21} /app.html                    200" for r in SPA_ROUTES],
+        "/company/*            /app.html                    200",
+        "",
+        "# No blanket /* splat: unknown URLs get public/404.html with a real 404 status.",
         "",
     ]
     return "\n".join(lines)
@@ -875,7 +917,7 @@ def redirects(courses: list[dict]) -> str:
 def sitemap_xml(courses: list[dict]) -> str:
     urls = ["/", "/catalog", "/paths", "/upgrade", "/book", "/request", "/services", "/on-site-training", "/plants"]
     urls += [L["path"] for L in LANDINGS]
-    urls += ["/vfd-troubleshooting", "/motor-control-training", "/ie-technician"]
+    urls += ["/" + T["slug"] for T in TOPIC_PAGES]
     urls += [f"/courses/{c['slug']}" for c in courses]
     # /pricing is a 301 to /upgrade: never list redirects in the sitemap.
     seen = set()
@@ -902,6 +944,7 @@ Disallow: /certificates
 Disallow: /assessment
 Disallow: /announcements
 Disallow: /course/
+Disallow: /app.html
 # Course player duplicates /courses/<slug>/ (which carries the canonical).
 Allow: /courses/
 
@@ -1014,7 +1057,12 @@ def normalize_handwritten(courses: list[dict]) -> list[str]:
 # The built index.html is the template: same JS/CSS, route-specific head, and real
 # crawlable content inside #root that React replaces on mount (createRoot, not hydrate).
 TOPICS = [
-    ("/vfd-troubleshooting", "VFD troubleshooting training"),
+    ("/vfd-troubleshooting", "VFD troubleshooting guide"),
+    ("/plc-training", "PLC training online"),
+    ("/millwright-training", "Millwright training"),
+    ("/industrial-electrical-training", "Industrial electrical training"),
+    ("/hydraulics-training", "Hydraulics training"),
+    ("/faq", "Frequently asked questions"),
     ("/vfd-ground-fault", "VFD ground fault troubleshooting"),
     ("/vfd-overcurrent", "VFD overcurrent troubleshooting"),
     ("/motor-megger", "Motor megger & polarization index"),
@@ -1167,30 +1215,66 @@ def render_spa(template: str, page: dict) -> str:
     html = re.sub(r'<meta property="og:description" content="[^"]*"\s*/?>', f'<meta property="og:description" content="{d}" />', html)
     html = re.sub(r'<meta property="og:url" content="[^"]*"\s*/?>', f'<meta property="og:url" content="{url}" />', html)
     html = re.sub(r'\s*<link rel="canonical"[^>]*>', "", html)
-    ld = "".join(f'\n    <script type="application/ld+json">{json.dumps(o, ensure_ascii=False)}</script>' for o in page["ld"])
+    ld = "".join(f'\n    <script type="application/ld+json" data-seo="1">{json.dumps(o, ensure_ascii=False)}</script>' for o in page["ld"])
     html = html.replace("</head>", f'    <link rel="canonical" href="{url}" />{ld}\n</head>', 1)
-    content = (f'<div id="root"><div class="seo-prerender" style="max-width:960px;margin:0 auto;padding:24px;color:#e2e8f0;font-family:system-ui,sans-serif">'
+    content = (f'<div id="root"><!--seo-prerender--><div class="seo-prerender" style="max-width:960px;margin:0 auto;padding:24px;color:#e2e8f0;font-family:system-ui,sans-serif">'
                f'{APP_NAV}<h1>{esc(page["h1"])}</h1>{page["body"]}'
-               f'<footer><p>&copy; 2026 {ORG} · <a href="mailto:{EMAIL}">{EMAIL}</a> · <a href="tel:{PHONE_TEL}">{PHONE}</a></p></footer></div></div>')
+               f'<footer><p>&copy; 2026 {ORG} · <a href="mailto:{EMAIL}">{EMAIL}</a> · <a href="tel:{PHONE_TEL}">{PHONE}</a></p></footer></div><!--/seo-prerender--></div>')
     return html.replace('<div id="root"></div>', content, 1)
 
 
+PRERENDER_ROUTES_NOTE = "Generated by scripts/generate_seo_html.py; committed so a plain `vite build` ships it."
+
+
+def strip_prerender(html: str) -> str:
+    html = re.sub(r'<div id="root"><!--seo-prerender-->.*?<!--/seo-prerender--></div>', '<div id="root"></div>', html, flags=re.S)
+    html = re.sub(r'\s*<script type="application/ld\+json" data-seo="1">.*?</script>', "", html, flags=re.S)
+    return html
+
+
 def prerender_spa(courses: list[dict]) -> list[str]:
-    dist = ROOT / "dist"
-    tpl_path = dist / "index.html"
-    if not tpl_path.exists():
-        return []
-    template = tpl_path.read_text(encoding="utf-8")
-    if 'class="seo-prerender"' in template:
-        raise SystemExit("dist/index.html already prerendered; run vite build first")
+    """Write prerendered HTML entry points at the repo root (index.html, catalog/index.html, ...).
+
+    Vite builds each one as an HTML entry (see vite.config.ts), so hashed JS/CSS references are
+    injected by Vite itself. No post-build step is needed on the host.
+    """
+    tpl_path = ROOT / "index.html"
+    template = strip_prerender(tpl_path.read_text(encoding="utf-8"))
     written = []
     for page in spa_pages(courses):
         out = render_spa(template, page)
-        dest = tpl_path if page["path"] == "/" else dist / f"{page['path'].strip('/')}.html"
-        dest.write_text(out, encoding="utf-8")
+        dest = tpl_path if page["path"] == "/" else ROOT / page["path"].strip("/") / "index.html"
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(slash_links(out), encoding="utf-8")
         written.append(str(dest.relative_to(ROOT)))
+    # Plain app shell for signed-in/app routes (/dashboard, /course/*, /legal/* ...): no prerendered
+    # marketing content and no canonical, so those URLs never look like a copy of the homepage.
+    # SeoHead sets title/canonical/robots client-side.
+    shell = re.sub(r'\s*<link rel="canonical"[^>]*>', "", template)
+    (ROOT / "app.html").write_text(shell, encoding="utf-8")
+    written.append("app.html")
     return written
 
+
+# Every client-side route from src/lib/routing.ts pathToRoute that is NOT backed by a static file.
+# Public prerendered routes (/, /catalog, /paths, /upgrade, /request, /book) and /courses/<slug>/
+# are real files. Anything else falls through to 404.html with a 404 status.
+SPA_ROUTES = [
+    "/courses", "/dashboard", "/certificates", "/auth", "/admin", "/company", "/assessment",
+    "/announcements", "/privacy", "/terms",
+]
+
+
+def not_found_page() -> str:
+    body = (
+        "<p>That page does not exist or has moved. Try one of these instead:</p><ul>"
+        '<li><a href="/">Home</a></li><li><a href="/catalog/">Course catalog (78 courses)</a></li>'
+        '<li><a href="/paths/">Learning paths</a></li><li><a href="/faq/">FAQ</a></li>'
+        '<li><a href="/request/">Request training</a></li></ul>'
+    )
+    html = html_page("Page not found — ForgeLine Academy", "Page not found.", f"{SITE}/", "Page not found", body, [])
+    html = html.replace(f'  <link rel="canonical" href="{SITE}/" />\n', "")
+    return html.replace('<meta name="viewport"', '<meta name="robots" content="noindex" />\n  <meta name="viewport"', 1)
 
 
 def main() -> None:
@@ -1261,33 +1345,31 @@ def main() -> None:
             raise SystemExit(f"landing {L['path']} only {wc} words")
         reports.append((str(path.relative_to(ROOT)), wc, L["title"]))
 
+    for T in TOPIC_PAGES:
+        body = (ROOT / "scripts/topics" / f"{T['slug']}.html").read_text(encoding="utf-8")
+        canonical = page_url("/" + T["slug"])
+        ld = [org_ld(), breadcrumb_ld([("Home", "/"), (T["crumb"], "/" + T["slug"])])]
+        if T["slug"] == "faq":
+            qa = re.findall(r"<h3>(.*?)</h3>\s*<p>(.*?)</p>", body, re.S)
+            strip = lambda h: re.sub(r"<[^>]+>", "", h).replace("&amp;", "&").strip()
+            ld.append({
+                "@context": "https://schema.org", "@type": "FAQPage",
+                "mainEntity": [{"@type": "Question", "name": strip(q),
+                                "acceptedAnswer": {"@type": "Answer", "text": strip(a)}} for q, a in qa],
+            })
+        page = html_page(T["title"], T["description"], canonical, T["h1"], body, ld)
+        path = write_html(T["slug"], page)
+        wc = word_count(page)
+        if wc < 400:
+            raise SystemExit(f"topic {T['slug']} only {wc} words")
+        reports.append((str(path.relative_to(ROOT)), wc, T["title"]))
+
     normalize_handwritten(courses)
+    (PUBLIC / "404.html").write_text(not_found_page(), encoding="utf-8")
     (PUBLIC / "robots.txt").write_text(ROBOTS, encoding="utf-8")
     (PUBLIC / "_redirects").write_text(redirects(courses), encoding="utf-8")
     (PUBLIC / "sitemap.xml").write_text(sitemap_xml(courses), encoding="utf-8")
 
-    # Keep committed dist in sync for hosts that serve dist/ as-is.
-    dist = ROOT / "dist"
-    if dist.is_dir():
-        import shutil
-
-        for src in reports:
-            rel = Path(src[0]).relative_to("public") if str(src[0]).startswith("public/") else Path(src[0])
-            # reports paths are public/...
-        for item in ["_redirects", "sitemap.xml", "robots.txt"]:
-            shutil.copy2(PUBLIC / item, dist / item)
-        # copy generated trees
-        for folder in ["courses", "vfd-ground-fault", "vfd-overcurrent", "motor-megger",
-                       "control-valve-troubleshooting", "4-20ma-loop-troubleshooting", "paths",
-                       "on-site-training", "vfd-troubleshooting", "motor-control-training",
-                       "ie-technician", "plants", "pricing", "services"]:
-            src = PUBLIC / folder
-            if not src.exists():
-                continue
-            dest = dist / folder
-            if dest.exists():
-                shutil.rmtree(dest)
-            shutil.copytree(src, dest)
 
     pre = prerender_spa(courses)
     print(f"prerendered SPA routes: {pre}")

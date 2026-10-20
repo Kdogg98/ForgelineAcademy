@@ -3,61 +3,100 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Motor Control Training — ForgeLine Academy</title>
-  <meta name="description" content="Industrial motor control training: line diagrams, starters, interlocks, and plant-floor troubleshooting." />
+  <title>Motor Controls Training: Starters, Overloads, Ladder | ForgeLine Academy</title>
+  <meta name="description" content="Free motor controls training: starters, contactors, overload relays, control transformers, two-wire vs three-wire control, reversing, and a meter-based troubleshooting sequence." />
   <link rel="canonical" href="https://forgelineacademy.com/motor-control-training/" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://forgelineacademy.com/motor-control-training/" />
-  <meta property="og:title" content="Motor Control Training — ForgeLine Academy" />
-  <meta property="og:description" content="Industrial motor control training: line diagrams, starters, interlocks, and plant-floor troubleshooting." />
-  <meta property="og:image" content="https://forgelineacademy.com/hero-control-panel.webp" />
+  <meta property="og:title" content="Motor Controls Training: Starters, Overloads, Ladder | ForgeLine Academy" />
+  <meta property="og:description" content="Free motor controls training: starters, contactors, overload relays, control transformers, two-wire vs three-wire control, reversing, and a meter-based troubleshooting sequence." />
+  <meta property="og:image" content="https://forgelineacademy.com/og.png" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:image" content="https://forgelineacademy.com/hero-control-panel.webp" />
+  <meta name="twitter:image" content="https://forgelineacademy.com/og.png" />
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "@id": "https://forgelineacademy.com/#organization", "name": "ForgeLine Academy", "url": "https://forgelineacademy.com/", "logo": "https://forgelineacademy.com/favicon.svg", "telephone": "+1 580 421 5714", "email": "support@forgelineacademy.com", "contactPoint": {"@type": "ContactPoint", "contactType": "customer support", "telephone": "+1 580 421 5714", "email": "support@forgelineacademy.com", "areaServed": "US", "availableLanguage": "en"}}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://forgelineacademy.com/"}, {"@type": "ListItem", "position": 2, "name": "Motor controls training", "item": "https://forgelineacademy.com/motor-control-training/"}]}</script>
   <style>
 :root{--navy:#0b1220;--navy2:#111827;--steel:#94a3b8;--white:#f8fafc;--rok:#ec682b;--border:rgba(148,163,184,.25)}
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--navy);color:var(--white);line-height:1.55}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--navy);color:var(--white);line-height:1.6}
 a{color:var(--rok);text-decoration:none}a:hover{text-decoration:underline}
 .wrap{max-width:880px;margin:0 auto;padding:28px 20px 64px}
 .brand{font-weight:800;letter-spacing:.02em}.brand span{display:block;font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--steel)}
 .nav{display:flex;gap:14px;flex-wrap:wrap;margin:18px 0 28px;font-size:14px}
 .nav a{color:var(--steel)}.nav a:hover{color:var(--white)}
 h1{font-size:clamp(1.75rem,4vw,2.4rem);line-height:1.15;margin:0 0 12px}
-.lead{color:var(--steel);font-size:1.05rem;margin:0 0 22px;max-width:62ch}
+h2{font-size:1.2rem;margin:0 0 8px}
+.lead{color:var(--steel);font-size:1.05rem;margin:0 0 22px;max-width:68ch}
 .card{background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:20px;margin:14px 0}
-.card h2{margin:0 0 8px;font-size:1.15rem}.card p,.card li{color:var(--steel);font-size:.95rem}
-ul{padding-left:1.1rem;margin:8px 0 0}
+.card p,.card li{color:var(--steel);font-size:.98rem}
+ul{padding-left:1.15rem;margin:8px 0 0}
 .cta{display:inline-flex;align-items:center;gap:8px;background:var(--rok);color:#fff!important;font-weight:700;padding:12px 18px;border-radius:10px;text-decoration:none!important;margin:6px 8px 6px 0}
 .cta.secondary{background:transparent;border:1px solid var(--rok);color:var(--rok)!important}
 .note{font-size:13px;color:var(--steel);margin-top:28px}
 footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--border);font-size:13px;color:var(--steel)}
+.meta{font-size:13px;color:var(--steel);margin-bottom:10px}
 </style>
-
-  <script type="application/ld+json" data-gen="seo">{"@context": "https://schema.org", "@type": "Organization", "@id": "https://forgelineacademy.com/#organization", "name": "ForgeLine Academy", "url": "https://forgelineacademy.com/", "logo": "https://forgelineacademy.com/favicon.svg", "telephone": "+1 580 421 5714", "email": "support@forgelineacademy.com", "contactPoint": {"@type": "ContactPoint", "contactType": "customer support", "telephone": "+1 580 421 5714", "email": "support@forgelineacademy.com", "areaServed": "US", "availableLanguage": "en"}}</script>
-  <script type="application/ld+json" data-gen="seo">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://forgelineacademy.com/"}, {"@type": "ListItem", "position": 2, "name": "Motor Control Training", "item": "https://forgelineacademy.com/motor-control-training/"}]}</script>
 </head>
 <body>
   <div class="wrap">
+
     <div class="brand">ForgeLine Academy<span>Industrial training</span></div>
     <nav class="nav" aria-label="Primary">
       <a href="/">Home</a>
-      <a href="/upgrade">Pricing</a>
+      <a href="/catalog/">Catalog</a>
+      <a href="/paths/">Paths</a>
+      <a href="/paths/mechanical/">Mechanical path</a>
+      <a href="/paths/electrical/">Electrical path</a>
+      <a href="/vfd-ground-fault/">VFD ground fault</a>
+      <a href="/vfd-overcurrent/">VFD overcurrent</a>
+      <a href="/motor-megger/">Motor megger</a>
+      <a href="/control-valve-troubleshooting/">Control valves</a>
+      <a href="/4-20ma-loop-troubleshooting/">4-20 mA loops</a>
       <a href="/on-site-training/">On-site training</a>
-      <a href="/plants/">For plants</a>
-      <a href="/services/">Services</a>
-      <a href="/vfd-troubleshooting/">VFD troubleshooting</a>
-      <a href="/motor-control-training/">Motor control</a>
-      <a href="/ie-technician/">I&amp;E technician</a>
     </nav>
-    <h1>Motor control training that matches the plant floor</h1>
-    <p class="lead">From reading ladder and line diagrams to diagnosing starters and control circuits — structured for electricians and maintenance techs.</p>
-    <div><a class="cta" href="/paths">Start the Electrical path free</a><a class="cta secondary" href="/on-site-training/">On-site options</a></div>
-    <div class="card"><h2>Core skills</h2><ul><li>Control power and interlocking</li><li>Across-the-line and reduced-voltage starters</li><li>Troubleshooting with meters safely</li><li>Documenting findings for the next shift</li></ul></div>
-    <p class="note">Training is educational and does not replace your site&apos;s lockout/tagout, permits, or required licenses.</p>
+
+    <h1>Motor controls training: read the ladder, find the open</h1>
+<p class="lead">Motor control circuits are the first thing most plant electricians learn to troubleshoot and the thing they troubleshoot most. ForgeLine's motor controls training covers reading the ladder, the components in the bucket, and a meter-based method for finding why a motor will not start, will not stop, or keeps tripping. These Electrical courses are free.</p>
+
+<div class="card"><h2>Read the control circuit first</h2>
+<p>Every starter has a power circuit (line, contactor, overload, motor) and a control circuit (control transformer, fuses, stop and start buttons, seal-in contact, interlocks, coil). Find both on the print before opening the door. <a href="/courses/electrical-prints-schematics-ladder-diagrams/">Electrical Prints, Schematics &amp; Ladder Diagrams</a> covers wire numbering and cross-referencing so you can follow a signal from a field device to the coil.</p></div>
+
+<div class="card"><h2>Components you need to know cold</h2>
+<ul>
+<li><strong>Contactors and starters:</strong> coil voltage, auxiliary contacts, pitted main contacts and how to inspect them.</li>
+<li><strong>Overload relays:</strong> bimetallic vs electronic, setting to motor FLA and service factor, trip class, and why an overload that "keeps tripping" usually means the motor is overloaded or single-phasing.</li>
+<li><strong>Control transformers and 24 V DC circuits:</strong> sizing, fusing, and grounding the control circuit. <a href="/courses/control-transformers-and-24v-control-circuits/">Control Transformers &amp; 24 V Control Circuits</a>.</li>
+<li><strong>Two-wire vs three-wire control:</strong> maintained contacts that restart after a power loss vs a seal-in circuit that does not.</li>
+<li><strong>Reversing, jogging and interlocks:</strong> mechanical and electrical interlocks that keep forward and reverse from closing together.</li>
+<li><strong>Reduced-voltage starting:</strong> soft starters and when a VFD is the better choice.</li>
+</ul></div>
+
+<div class="card"><h2>A meter-based troubleshooting sequence</h2>
+<ol>
+<li>Confirm the complaint and the state of the starter (pulled in, not pulled in, chattering, tripped).</li>
+<li>With the control circuit energized and following site safety rules, measure control voltage at the transformer secondary and after the control fuse.</li>
+<li>Walk the rung: measure from the common side to each point in the ladder until the voltage disappears. The open device is between the last good point and the first dead one.</li>
+<li>If the coil has voltage but the contactor does not pull in, check the coil. If it pulls in but the motor does not run, move to the power circuit: line voltage, contacts, overload heaters, motor leads.</li>
+<li>Lock out and test the motor before replacing anything expensive.</li>
+</ol></div>
+
+<h2>Courses</h2>
+<ul>
+<li><a href="/courses/industrial-motor-control-circuits/">Industrial Motor Control Circuits</a> (free)</li>
+<li><a href="/courses/motor-starters-contactors-overload-relays/">Motor Starters, Contactors &amp; Overload Relays</a> (free)</li>
+<li><a href="/courses/control-transformers-and-24v-control-circuits/">Control Transformers &amp; 24 V Control Circuits</a> (free)</li>
+<li><a href="/courses/soft-starters-and-reduced-voltage-starting/">Soft Starters &amp; Reduced-Voltage Starting</a> (free)</li>
+<li><a href="/courses/motor-protection-and-overcurrent-devices/">Motor Protection &amp; Overcurrent Devices</a> (free)</li>
+<li><a href="/courses/vfd-fundamentals-parameterization/">VFD Fundamentals &amp; Parameterization</a> (free)</li>
+</ul>
+<p>Related: <a href="/vfd-troubleshooting/">VFD troubleshooting</a>, <a href="/industrial-electrical-training/">industrial electrical training</a>, <a href="/plc-training/">PLC training</a>, <a href="/faq/">FAQ</a>.</p>
+
+
+    <p class="note">Training is educational. It does not replace your site&apos;s lockout/tagout, permits, PPE, or required licenses. Certificates of completion go in the file. They are not a license.</p>
     <footer>
-      <div>&copy; 2026 ForgeLine Academy &middot; <a href="mailto:support@forgelineacademy.com">support@forgelineacademy.com</a></div>
-      <div>Powered by NexusAI Dynamics</div>
+      <div>&copy; 2026 ForgeLine Academy &middot; <a href="mailto:support@forgelineacademy.com">support@forgelineacademy.com</a> &middot; <a href="tel:+15804215714">+1 580 421 5714</a></div>
+      <div>Based in Oklahoma. Travel available nationwide for on-site training and plant support.</div>
     </footer>
+
   </div>
-<section data-gen="seo-related" style="max-width:960px;margin:24px auto;padding:0 20px"><h2>Related courses in the ForgeLine catalog</h2><ul><li><a href="/courses/industrial-motor-control-circuits/">Industrial Motor Control Circuits</a> (Free): Read and troubleshoot industrial motor control circuits from the line diagram to the starter. Covers NEMA and IEC contactors, overload protection, control transformers,…</li><li><a href="/courses/vfd-fundamentals-parameterization/">VFD Fundamentals &amp; Parameterization</a> (Free): Variable frequency drives from the rectifier to the IGBT output. Learn to wire, start up, and parameterize a VFD, and to diagnose the most common drive faults.</li><li><a href="/courses/motor-testing-with-megger-pi/">Motor Testing with Megger &amp; PI</a> (Free): Insulation resistance testing and polarization index for motors and generators. Covers test voltages, interpretation, and trending for predictive maintenance.</li><li><a href="/courses/motor-starters-contactors-overload-relays/">Motor Starters, Contactors &amp; Overload Relays</a> (Free): Deep dive into motor starters, contactors, and overload relays for industrial applications. Covers NEMA vs IEC contactors, selection criteria, overload class selection,…</li><li><a href="/courses/control-transformers-and-24v-control-circuits/">Control Transformers &amp; 24V Control Circuits</a> (Free): Design and troubleshoot 24V control circuits powered by step-down transformers. Covers transformer sizing, fuse selection, inrush, voltage drop, and common control…</li><li><a href="/courses/soft-starters-and-reduced-voltage-starting/">Soft Starters &amp; Reduced Voltage Starting</a> (Free): Reduced voltage starting methods for large motors. Covers autotransformer, star-delta, and solid-state soft starters, starting torque, current limiting, and selecting…</li><li><a href="/courses/motor-protection-and-overcurrent-devices/">Motor Protection &amp; Overcurrent Devices</a> (Free): Motor protection devices including fuses, circuit breakers, MCPs, and electronic motor protection relays. Covers coordination, short-circuit protection, overload…</li></ul><p>See the full <a href="/catalog">course catalog</a> or <a href="/upgrade">pricing</a> (Premium $19.99/month; Plant 5-seat $129/mo; Plant 10-seat $229/mo; 30-day free company trial).</p></section>
 </body>
 </html>

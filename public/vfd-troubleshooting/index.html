@@ -3,62 +3,105 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VFD Troubleshooting Training — ForgeLine Academy</title>
-  <meta name="description" content="Learn practical VFD troubleshooting for industrial plants: faults, parameters, and safe diagnostics." />
+  <title>VFD Troubleshooting Guide for Plant Electricians | ForgeLine Academy</title>
+  <meta name="description" content="Step-by-step VFD troubleshooting for plant electricians: DC bus safety, fault history, overcurrent vs ground fault vs overvoltage, motor and cable tests, parameters and installation." />
   <link rel="canonical" href="https://forgelineacademy.com/vfd-troubleshooting/" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://forgelineacademy.com/vfd-troubleshooting/" />
-  <meta property="og:title" content="VFD Troubleshooting Training — ForgeLine Academy" />
-  <meta property="og:description" content="Learn practical VFD troubleshooting for industrial plants: faults, parameters, and safe diagnostics." />
-  <meta property="og:image" content="https://forgelineacademy.com/hero-control-panel.webp" />
+  <meta property="og:title" content="VFD Troubleshooting Guide for Plant Electricians | ForgeLine Academy" />
+  <meta property="og:description" content="Step-by-step VFD troubleshooting for plant electricians: DC bus safety, fault history, overcurrent vs ground fault vs overvoltage, motor and cable tests, parameters and installation." />
+  <meta property="og:image" content="https://forgelineacademy.com/og.png" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:image" content="https://forgelineacademy.com/hero-control-panel.webp" />
+  <meta name="twitter:image" content="https://forgelineacademy.com/og.png" />
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "@id": "https://forgelineacademy.com/#organization", "name": "ForgeLine Academy", "url": "https://forgelineacademy.com/", "logo": "https://forgelineacademy.com/favicon.svg", "telephone": "+1 580 421 5714", "email": "support@forgelineacademy.com", "contactPoint": {"@type": "ContactPoint", "contactType": "customer support", "telephone": "+1 580 421 5714", "email": "support@forgelineacademy.com", "areaServed": "US", "availableLanguage": "en"}}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://forgelineacademy.com/"}, {"@type": "ListItem", "position": 2, "name": "VFD troubleshooting", "item": "https://forgelineacademy.com/vfd-troubleshooting/"}]}</script>
   <style>
 :root{--navy:#0b1220;--navy2:#111827;--steel:#94a3b8;--white:#f8fafc;--rok:#ec682b;--border:rgba(148,163,184,.25)}
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--navy);color:var(--white);line-height:1.55}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--navy);color:var(--white);line-height:1.6}
 a{color:var(--rok);text-decoration:none}a:hover{text-decoration:underline}
 .wrap{max-width:880px;margin:0 auto;padding:28px 20px 64px}
 .brand{font-weight:800;letter-spacing:.02em}.brand span{display:block;font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--steel)}
 .nav{display:flex;gap:14px;flex-wrap:wrap;margin:18px 0 28px;font-size:14px}
 .nav a{color:var(--steel)}.nav a:hover{color:var(--white)}
 h1{font-size:clamp(1.75rem,4vw,2.4rem);line-height:1.15;margin:0 0 12px}
-.lead{color:var(--steel);font-size:1.05rem;margin:0 0 22px;max-width:62ch}
+h2{font-size:1.2rem;margin:0 0 8px}
+.lead{color:var(--steel);font-size:1.05rem;margin:0 0 22px;max-width:68ch}
 .card{background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:20px;margin:14px 0}
-.card h2{margin:0 0 8px;font-size:1.15rem}.card p,.card li{color:var(--steel);font-size:.95rem}
-ul{padding-left:1.1rem;margin:8px 0 0}
+.card p,.card li{color:var(--steel);font-size:.98rem}
+ul{padding-left:1.15rem;margin:8px 0 0}
 .cta{display:inline-flex;align-items:center;gap:8px;background:var(--rok);color:#fff!important;font-weight:700;padding:12px 18px;border-radius:10px;text-decoration:none!important;margin:6px 8px 6px 0}
 .cta.secondary{background:transparent;border:1px solid var(--rok);color:var(--rok)!important}
 .note{font-size:13px;color:var(--steel);margin-top:28px}
 footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--border);font-size:13px;color:var(--steel)}
+.meta{font-size:13px;color:var(--steel);margin-bottom:10px}
 </style>
-
-  <script type="application/ld+json" data-gen="seo">{"@context": "https://schema.org", "@type": "Organization", "@id": "https://forgelineacademy.com/#organization", "name": "ForgeLine Academy", "url": "https://forgelineacademy.com/", "logo": "https://forgelineacademy.com/favicon.svg", "telephone": "+1 580 421 5714", "email": "support@forgelineacademy.com", "contactPoint": {"@type": "ContactPoint", "contactType": "customer support", "telephone": "+1 580 421 5714", "email": "support@forgelineacademy.com", "areaServed": "US", "availableLanguage": "en"}}</script>
-  <script type="application/ld+json" data-gen="seo">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://forgelineacademy.com/"}, {"@type": "ListItem", "position": 2, "name": "VFD Troubleshooting Training", "item": "https://forgelineacademy.com/vfd-troubleshooting/"}]}</script>
 </head>
 <body>
   <div class="wrap">
+
     <div class="brand">ForgeLine Academy<span>Industrial training</span></div>
     <nav class="nav" aria-label="Primary">
       <a href="/">Home</a>
-      <a href="/upgrade">Pricing</a>
+      <a href="/catalog/">Catalog</a>
+      <a href="/paths/">Paths</a>
+      <a href="/paths/mechanical/">Mechanical path</a>
+      <a href="/paths/electrical/">Electrical path</a>
+      <a href="/vfd-ground-fault/">VFD ground fault</a>
+      <a href="/vfd-overcurrent/">VFD overcurrent</a>
+      <a href="/motor-megger/">Motor megger</a>
+      <a href="/control-valve-troubleshooting/">Control valves</a>
+      <a href="/4-20ma-loop-troubleshooting/">4-20 mA loops</a>
       <a href="/on-site-training/">On-site training</a>
-      <a href="/plants/">For plants</a>
-      <a href="/services/">Services</a>
-      <a href="/vfd-troubleshooting/">VFD troubleshooting</a>
-      <a href="/motor-control-training/">Motor control</a>
-      <a href="/ie-technician/">I&amp;E technician</a>
     </nav>
-    <h1>VFD troubleshooting for plant techs</h1>
-    <p class="lead">Stop calling a contractor for every drive fault. Build a repeatable method for reading faults, checking power and motor circuits, and verifying parameters safely.</p>
-    <div><a class="cta" href="/catalog">Browse Electrical courses</a><a class="cta secondary" href="/request">Request plant support</a></div>
-    <div class="card"><h2>What you will cover</h2><ul><li>Common fault codes and first checks</li><li>Input/output power verification</li><li>Motor and cable issues vs drive issues</li><li>Safe work practices around drives</li></ul></div>
-<div class="card"><h2>Learn online or on-site</h2><p>Start with free Electrical courses, or request a plant class focused on your drive fleet.</p></div>
-    <p class="note">Training is educational and does not replace your site&apos;s lockout/tagout, permits, or required licenses.</p>
+
+    <h1>VFD troubleshooting: a plant-floor order of operations</h1>
+<p class="lead">Most VFD calls start the same way: the drive tripped, production wants it reset, and nobody wrote down the fault. This page is the plant-floor order of operations ForgeLine teaches for troubleshooting variable frequency drives, from the first look at the keypad to the decision to repair, replace, or call the motor shop.</p>
+
+<div class="card"><h2>1. Make it safe before you make it run</h2>
+<p>A VFD stores energy in its DC bus capacitors after the disconnect is open. Lock out the supply, wait the time printed on the drive label (often 5 to 15 minutes), and verify the DC bus is below 50 V with a meter rated for the voltage, measured at the DC+ and DC− terminals. Check for a second source: bypass contactors, a shared DC bus, or a motor that can be back-driven by the load (fans windmilling, conveyors on an incline) will feed voltage back into the drive.</p></div>
+
+<div class="card"><h2>2. Read the fault history, not just the current fault</h2>
+<p>Before anyone presses reset, record the active fault and the last several entries in the fault log, with the output frequency, current, and DC bus voltage at the time of the trip if the drive stores them. A single overcurrent at full speed means something different from five overcurrents during acceleration. Photograph the keypad. That log is the difference between troubleshooting and guessing.</p></div>
+
+<div class="card"><h2>3. Sort the fault into a family</h2>
+<ul>
+<li><strong>Overcurrent:</strong> mechanical bind, an acceleration ramp too short for the load inertia, wrong motor nameplate data, or a short in the motor leads. See <a href="/vfd-overcurrent/">VFD overcurrent troubleshooting</a>.</li>
+<li><strong>Ground fault:</strong> current leaking to ground through wet or damaged insulation in the motor or cable. It is not an overload and resetting it repeatedly can burn the output section. See <a href="/vfd-ground-fault/">VFD ground fault troubleshooting</a>.</li>
+<li><strong>Overvoltage (DC bus):</strong> usually the load regenerating faster than the drive can absorb it, from a deceleration ramp that is too short or an overhauling load. Lengthen decel, enable bus regulation, or add a braking resistor sized for the duty.</li>
+<li><strong>Undervoltage:</strong> sags on the incoming supply, a blown input fuse on one phase, or loose line terminals. Measure all three input phases under load.</li>
+<li><strong>Overtemperature:</strong> blocked heatsinks, failed cooling fans, a hot enclosure, or carrier frequency set higher than the drive's derating allows.</li>
+<li><strong>Motor overload (I²t):</strong> the motor is actually working too hard, or the motor FLA parameter is set wrong.</li>
+</ul></div>
+
+<div class="card"><h2>4. Test the motor and cable separately from the drive</h2>
+<p>Disconnect the motor leads at the drive output. Insulation-resistance test the cable and motor together, then separately, at a test voltage suited to the motor rating (often 500 V or 1000 V DC for 480 V motors). Never megger with the drive connected. Check winding resistance phase to phase for balance. A good drive feeding a bad motor will keep tripping; a good motor on a bad output section will show unbalanced output current. The <a href="/motor-megger/">motor megger and PI guide</a> covers how to log the reading.</p></div>
+
+<div class="card"><h2>5. Check the parameters against the nameplate</h2>
+<p>Motor voltage, FLA, base frequency, base speed, and poles need to match the motor that is actually installed, not the one that was there before the swap. Re-run the autotune if the drive supports it and the load allows. Confirm control mode (V/Hz vs sensorless vector vs closed loop) suits the application.</p></div>
+
+<div class="card"><h2>6. Look at the installation</h2>
+<p>Long motor leads raise reflected-wave voltage at the motor terminals; check whether the run needs an output reactor or dV/dt filter. Confirm shielded VFD cable is grounded at both ends with proper glands, the drive and motor share a solid equipment ground, and control wiring is routed away from motor leads. Electrical noise problems often look like random faults or erratic speed reference.</p></div>
+
+<div class="card"><h2>7. Decide: repair, replace, or escalate</h2>
+<p>If the output section measures shorted (diode test from DC bus to each output phase), the drive needs repair or replacement. If the motor fails insulation testing, it goes to the motor shop. If both test good and the fault repeats, trend current and DC bus voltage over a full cycle of the machine and look for what the process is doing at the moment of the trip.</p></div>
+
+<h2>Courses that go deeper</h2>
+<ul>
+<li><a href="/courses/vfd-fundamentals-parameterization/">VFD Fundamentals &amp; Parameterization</a> (free)</li>
+<li><a href="/courses/vfd-installation-commissioning/">VFD Installation &amp; Commissioning</a> (free)</li>
+<li><a href="/courses/motor-testing-with-megger-pi/">Motor Testing with Megger &amp; PI</a> (free)</li>
+<li><a href="/courses/power-quality-basics/">Power Quality Basics</a> (free)</li>
+<li><a href="/courses/energy-management-and-efficient-drive-systems/">Energy Management &amp; Efficient Drive Systems</a> (Premium)</li>
+</ul>
+<p>Related topics: <a href="/motor-control-training/">motor controls training</a>, <a href="/industrial-electrical-training/">industrial electrical training</a>, <a href="/faq/">FAQ</a>. For drives that keep coming back on the work-order list, see <a href="/services/">plant troubleshooting support</a>.</p>
+
+
+    <p class="note">Training is educational. It does not replace your site&apos;s lockout/tagout, permits, PPE, or required licenses. Certificates of completion go in the file. They are not a license.</p>
     <footer>
-      <div>&copy; 2026 ForgeLine Academy &middot; <a href="mailto:support@forgelineacademy.com">support@forgelineacademy.com</a></div>
-      <div>Powered by NexusAI Dynamics</div>
+      <div>&copy; 2026 ForgeLine Academy &middot; <a href="mailto:support@forgelineacademy.com">support@forgelineacademy.com</a> &middot; <a href="tel:+15804215714">+1 580 421 5714</a></div>
+      <div>Based in Oklahoma. Travel available nationwide for on-site training and plant support.</div>
     </footer>
+
   </div>
-<section data-gen="seo-related" style="max-width:960px;margin:24px auto;padding:0 20px"><h2>Related courses in the ForgeLine catalog</h2><ul><li><a href="/courses/industrial-motor-control-circuits/">Industrial Motor Control Circuits</a> (Free): Read and troubleshoot industrial motor control circuits from the line diagram to the starter. Covers NEMA and IEC contactors, overload protection, control transformers,…</li><li><a href="/courses/3-phase-power-systems-and-troubleshooting/">3-Phase Power Systems &amp; Troubleshooting</a> (Free): Understand 3-phase power distribution in the plant, from the service entrance to the motor terminal box. Covers wye/delta, voltage and current unbalance, and phasing…</li><li><a href="/courses/vfd-fundamentals-parameterization/">VFD Fundamentals &amp; Parameterization</a> (Free): Variable frequency drives from the rectifier to the IGBT output. Learn to wire, start up, and parameterize a VFD, and to diagnose the most common drive faults.</li><li><a href="/courses/conveyor-and-drive-systems/">Conveyor &amp; Drive Systems</a> (Free): Maintain belt, roller, and chain conveyors plus the gear drives and power transmission components behind them. Covers belt tracking, sprocket wear, gearbox inspection,…</li><li><a href="/courses/motor-testing-with-megger-pi/">Motor Testing with Megger &amp; PI</a> (Free): Insulation resistance testing and polarization index for motors and generators. Covers test voltages, interpretation, and trending for predictive maintenance.</li><li><a href="/courses/gearboxes-and-power-transmission/">Gearboxes &amp; Power Transmission</a> (Free): Comprehensive coverage of industrial gearbox types, inspection, failure analysis, and maintenance. Covers helical, bevel, worm, and planetary gearboxes, oil selection,…</li><li><a href="/courses/motor-starters-contactors-overload-relays/">Motor Starters, Contactors &amp; Overload Relays</a> (Free): Deep dive into motor starters, contactors, and overload relays for industrial applications. Covers NEMA vs IEC contactors, selection criteria, overload class selection,…</li><li><a href="/courses/energy-management-and-efficient-drive-systems/">Energy Management &amp; Efficient Drive Systems</a> (Premium): Industrial energy management and drive system optimization. Covers motor efficiency classes (IE1-IE4), VFD energy savings, demand management, power factor correction,…</li><li><a href="/courses/ups-systems-batteries-and-backup-power/">UPS Systems, Batteries &amp; Backup Power</a> (Free): Maintain uninterruptible power supplies and battery systems for critical industrial loads. Covers UPS topologies, battery types, capacity testing, battery room safety,…</li><li><a href="/courses/motor-protection-and-overcurrent-devices/">Motor Protection &amp; Overcurrent Devices</a> (Free): Motor protection devices including fuses, circuit breakers, MCPs, and electronic motor protection relays. Covers coordination, short-circuit protection, overload…</li></ul><p>See the full <a href="/catalog">course catalog</a> or <a href="/upgrade">pricing</a> (Premium $19.99/month; Plant 5-seat $129/mo; Plant 10-seat $229/mo; 30-day free company trial).</p></section>
 </body>
 </html>

@@ -65,31 +65,31 @@ const ROUTE_META: Partial<Record<Route['name'], { path: string; title: string; d
       '78 plant-floor courses for millwrights, industrial electricians and I&E techs. 44 free Mechanical and Electrical courses; Premium unlocks I&E and Engineering.',
   },
   catalog: {
-    path: '/catalog',
+    path: '/catalog/',
     title: 'Course Catalog — 78 Industrial Maintenance Courses | ForgeLine Academy',
     description:
       'Browse all 78 ForgeLine courses: Mechanical, Electrical, I&E and Engineering. 44 free courses for millwrights and industrial electricians.',
   },
   paths: {
-    path: '/paths',
+    path: '/paths/',
     title: 'Learning Paths — Mechanical, Electrical, I&E, Engineering | ForgeLine Academy',
     description:
       'Four ForgeLine learning paths from millwright fundamentals to I&E and engineering. Start free with the Mechanical or Electrical path.',
   },
   pricing: {
-    path: '/upgrade',
+    path: '/upgrade/',
     title: 'Pricing — Premium $19.99/mo & Plant Seats | ForgeLine Academy',
     description:
       'ForgeLine pricing: 44 free courses, Premium $19.99/month, Plant 5-seat $129/mo, Plant 10-seat $229/mo, and a 30-day free company trial.',
   },
   services: {
-    path: '/request',
+    path: '/request/',
     title: 'Request On-Site Training or Plant Support | ForgeLine Academy',
     description:
       'Request on-site industrial maintenance training, plant troubleshooting support, or online plant seats from ForgeLine Academy. Call +1 580 421 5714.',
   },
   book: {
-    path: '/book',
+    path: '/book/',
     title: 'Book a Meeting — Plant Training Planning | ForgeLine Academy',
     description:
       'Book a call with ForgeLine Academy to plan crew training, on-site cohorts, or plant seats for your maintenance team.',

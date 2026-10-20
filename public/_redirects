@@ -35,8 +35,31 @@
 /courses/:slug        /courses/:slug/index.html 200
 /courses/:slug/       /courses/:slug/index.html 200
 
-
 # App course player: /course/<slug-or-id> and /course/<id>/games are SPA routes (reload/share opens the app).
-/course/*             /index.html                  200
+/course/*             /app.html                    200
+/legal/*              /app.html                    200
 
-/*                    /index.html                  200
+# Other client-side app routes (src/lib/routing.ts). Public SPA routes are prerendered files.
+/courses              /app.html                    200
+/dashboard            /app.html                    200
+/certificates         /app.html                    200
+/auth                 /app.html                    200
+/admin                /app.html                    200
+/company              /app.html                    200
+/assessment           /app.html                    200
+/announcements        /app.html                    200
+/privacy              /app.html                    200
+/terms                /app.html                    200
+/courses/             /app.html                    200
+/dashboard/           /app.html                    200
+/certificates/        /app.html                    200
+/auth/                /app.html                    200
+/admin/               /app.html                    200
+/company/             /app.html                    200
+/assessment/          /app.html                    200
+/announcements/       /app.html                    200
+/privacy/             /app.html                    200
+/terms/               /app.html                    200
+/company/*            /app.html                    200
+
+# No blanket /* splat: unknown URLs get public/404.html with a real 404 status.

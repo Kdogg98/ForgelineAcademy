@@ -9,6 +9,7 @@ Disallow: /certificates
 Disallow: /assessment
 Disallow: /announcements
 Disallow: /course/
+Disallow: /app.html
 # Course player duplicates /courses/<slug>/ (which carries the canonical).
 Allow: /courses/
 

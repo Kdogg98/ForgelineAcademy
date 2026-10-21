@@ -163,6 +163,7 @@ FOOT = f"""
     <footer>
       <div>&copy; 2026 {ORG} &middot; <a href="mailto:{EMAIL}">{EMAIL}</a> &middot; <a href="tel:{PHONE_TEL}">{PHONE}</a></div>
       <div>Based in Oklahoma. Travel available nationwide for on-site training and plant support.</div>
+      <div><a href="/privacy">Privacy</a> &middot; <a href="/terms">Terms</a> &middot; <a href="/contact/">Contact</a></div>
     </footer>
 """
 
@@ -1239,7 +1240,7 @@ def render_spa(template: str, page: dict) -> str:
     html = html.replace("</head>", f'    <link rel="canonical" href="{url}" />{ld}\n</head>', 1)
     content = (f'<div id="root"><!--seo-prerender--><div class="seo-prerender" style="max-width:960px;margin:0 auto;padding:24px;color:#e2e8f0;font-family:system-ui,sans-serif">'
                f'{APP_NAV}<h1>{esc(page["h1"])}</h1>{page["body"]}'
-               f'<footer><p>&copy; 2026 {ORG} · <a href="mailto:{EMAIL}">{EMAIL}</a> · <a href="tel:{PHONE_TEL}">{PHONE}</a></p></footer></div><!--/seo-prerender--></div>')
+               f'<footer><p>&copy; 2026 {ORG} · <a href="mailto:{EMAIL}">{EMAIL}</a> · <a href="tel:{PHONE_TEL}">{PHONE}</a></p><p><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact/">Contact</a></p></footer></div><!--/seo-prerender--></div>')
     return html.replace('<div id="root"></div>', content, 1)
 
 

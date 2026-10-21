@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { SITE_CONFIG } from '@/lib/siteConfig';
-import { track } from '@/lib/analytics';
+import { track, trackGenerateLead } from '@/lib/analytics';
 import type { Route } from '@/components/Nav';
 
 interface ServicesProps {
@@ -89,6 +89,7 @@ export function Services({ onNavigate }: ServicesProps) {
       if (insertErr) throw insertErr;
       setSubmitted(true);
       track('plant_lead', { service_type: form.service_type });
+      trackGenerateLead({ service_type: form.service_type });
       setForm({ name: '', company: '', email: '', phone: '', service_type: 'both', message: '' });
       // Fire-and-forget notification (don't block success on email failure)
       supabase.functions.invoke('notify', {

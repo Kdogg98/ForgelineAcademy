@@ -369,6 +369,26 @@ def course_ld(name: str, description: str, url: str, free: bool, course: dict | 
     }}
 
 
+# Google Analytics 4 (gtag.js). Injected into every generated/normalized HTML page so a
+# regenerate never drops it. The SPA sends its own page_view on client-side route changes.
+GA_MEASUREMENT_ID = "G-22N6KP9BVR"
+GA_SNIPPET = f"""  <!-- Google tag (gtag.js) - GA4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id={GA_MEASUREMENT_ID}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){{dataLayer.push(arguments);}}
+    gtag('js', new Date());
+    gtag('config', '{GA_MEASUREMENT_ID}', {{ send_page_view: true, page_location: window.location.href }});
+  </script>"""
+
+
+def ensure_ga(html: str) -> str:
+    """Insert the GA4 snippet right after <head> unless the page already has it (idempotent)."""
+    if GA_MEASUREMENT_ID in html or "<head>" not in html:
+        return html
+    return html.replace("<head>", "<head>\n" + GA_SNIPPET, 1)
+
+
 def html_page(title: str, description: str, canonical: str, h1: str, body_html: str, json_ld: list) -> str:
     ld = "\n".join(
         f'  <script type="application/ld+json">{json.dumps(obj, ensure_ascii=False)}</script>'
@@ -852,7 +872,7 @@ def slash_links(html: str) -> str:
 
 
 def write_html(rel_dir: str, content: str) -> Path:
-    content = slash_links(content)
+    content = ensure_ga(slash_links(content))
     dest = PUBLIC / rel_dir
     dest.mkdir(parents=True, exist_ok=True)
     path = dest / "index.html"
@@ -1047,7 +1067,7 @@ def normalize_handwritten(courses: list[dict]) -> list[str]:
         html = html.replace("</head>", tags + "\n</head>", 1)
         html = re.sub(r'<section data-gen="seo-related".*?</section>', "", html, flags=re.S)
         html = html.replace("</body>", related_courses_block(rel, courses) + "\n</body>", 1)
-        f.write_text(slash_links(html), encoding="utf-8")
+        f.write_text(ensure_ga(slash_links(html)), encoding="utf-8")
         done.append(rel)
     return done
 
@@ -1239,7 +1259,7 @@ def prerender_spa(courses: list[dict]) -> list[str]:
     injected by Vite itself. No post-build step is needed on the host.
     """
     tpl_path = ROOT / "index.html"
-    template = strip_prerender(tpl_path.read_text(encoding="utf-8"))
+    template = ensure_ga(strip_prerender(tpl_path.read_text(encoding="utf-8")))
     written = []
     for page in spa_pages(courses):
         out = render_spa(template, page)
@@ -1365,7 +1385,7 @@ def main() -> None:
         reports.append((str(path.relative_to(ROOT)), wc, T["title"]))
 
     normalize_handwritten(courses)
-    (PUBLIC / "404.html").write_text(not_found_page(), encoding="utf-8")
+    (PUBLIC / "404.html").write_text(ensure_ga(not_found_page()), encoding="utf-8")
     (PUBLIC / "robots.txt").write_text(ROBOTS, encoding="utf-8")
     (PUBLIC / "_redirects").write_text(redirects(courses), encoding="utf-8")
     (PUBLIC / "sitemap.xml").write_text(sitemap_xml(courses), encoding="utf-8")

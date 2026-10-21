@@ -74,6 +74,47 @@ export function track(event: ConversionEvent, props?: Record<string, string | nu
   }
 }
 
-export function trackPageView(page: string) {
-  track('page_view', { page });
+export const GA_MEASUREMENT_ID = 'G-22N6KP9BVR';
+
+// The gtag.js snippet in every HTML entry already sends the initial page_view
+// (send_page_view: true), so the first SPA location is skipped to avoid a double count.
+let lastPageLocation: string | null = null;
+
+export function trackPageView(_page?: string) {
+  try {
+    const href = window.location.href;
+    if (lastPageLocation === null) {
+      lastPageLocation = href;
+      return;
+    }
+    if (href === lastPageLocation) return;
+    lastPageLocation = href;
+    if (typeof window.gtag !== 'function') return;
+    window.gtag('event', 'page_view', {
+      send_to: GA_MEASUREMENT_ID,
+      page_path: window.location.pathname + window.location.search,
+      page_location: href, // full URL incl. query string (UTM params)
+      page_title: document.title,
+    });
+  } catch {
+    // never throw from analytics
+  }
+}
+
+/** GA4 recommended event: account created via email/password (Supabase signUp). */
+export function trackSignUp() {
+  try {
+    if (typeof window.gtag === 'function') window.gtag('event', 'sign_up', { method: 'email' });
+  } catch {
+    // never throw from analytics
+  }
+}
+
+/** GA4 recommended event: /request training form submitted successfully. */
+export function trackGenerateLead(props?: Record<string, string | number>) {
+  try {
+    if (typeof window.gtag === 'function') window.gtag('event', 'generate_lead', props ?? {});
+  } catch {
+    // never throw from analytics
+  }
 }

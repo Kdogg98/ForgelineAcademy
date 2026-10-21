@@ -60,9 +60,12 @@ function AppContent() {
     void loadUserData();
   }, [loadUserData, progressTick]);
 
+  // SPA page_view on every client-side location change (first load is sent by the HTML gtag snippet).
+  // Deferred a tick so pushState/replaceState and SeoHead's document.title have been applied.
   useEffect(() => {
-    trackPageView(route.name);
-  }, [route.name]);
+    const t = window.setTimeout(() => trackPageView(route.name), 0);
+    return () => window.clearTimeout(t);
+  }, [route]);
 
   // Old in-app links landed on /courses/<slug> (the static SEO page path): move the app to /course/<slug>.
   useEffect(() => {

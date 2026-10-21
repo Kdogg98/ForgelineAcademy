@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Hexagon, Mail, Lock, AlertCircle, CheckCircle2, ArrowRight, User, Zap, Wrench } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { track } from '@/lib/analytics';
+import { track, trackSignUp } from '@/lib/analytics';
 import type { Route } from '@/components/Nav';
 
 interface AuthProps {
@@ -32,6 +32,7 @@ export function Auth({ onNavigate, initialMode, initialPath }: AuthProps) {
         if (error) setError(error);
         else {
           track('signup_free', { path: selectedPath });
+          trackSignUp();
           setSuccess('Account created. Starting your free training...');
           setTimeout(() => onNavigate({ name: 'paths', focusPath: selectedPath, showWelcome: true }), 800);
         }

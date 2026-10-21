@@ -118,3 +118,43 @@ export function trackGenerateLead(props?: Record<string, string | number>) {
     // never throw from analytics
   }
 }
+
+/**
+ * GA4 recommended event: purchase. Fired once per Stripe Checkout session when the
+ * user lands back on the success URL. Deduped via sessionStorage + localStorage keyed
+ * by transaction id so reloading the success page does not double count.
+ * Does not touch the existing Google Ads PURCHASE_SEND_TO conversion.
+ */
+export function trackPurchase(params: {
+  transaction_id: string;
+  item_name: string;
+  value?: number;
+  currency?: string;
+}): boolean {
+  try {
+    if (!params.transaction_id) return false;
+    const key = `ga4_purchase_${params.transaction_id}`;
+    try {
+      if (window.sessionStorage.getItem(key) || window.localStorage.getItem(key)) return false;
+    } catch {
+      // storage unavailable: still fire once for this page load
+    }
+    if (typeof window.gtag !== 'function') return false;
+    const payload: Record<string, unknown> = {
+      transaction_id: params.transaction_id,
+      currency: params.currency ?? 'USD',
+      items: [{ item_name: params.item_name }],
+    };
+    if (typeof params.value === 'number' && Number.isFinite(params.value)) payload.value = params.value;
+    window.gtag('event', 'purchase', payload);
+    try {
+      window.sessionStorage.setItem(key, '1');
+      window.localStorage.setItem(key, '1');
+    } catch {
+      // ignore
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}

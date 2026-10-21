@@ -18,7 +18,7 @@ import {
   Wrench,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { track } from '@/lib/analytics';
+import { track, trackPurchase } from '@/lib/analytics';
 import { supabase } from '@/lib/supabase';
 import type { Route } from '@/components/Nav';
 
@@ -58,6 +58,20 @@ export function Pricing({ onNavigate }: PricingProps) {
   const [referralReload, setReferralReload] = useState(0);
 
   const REFERRALS_NEEDED = 3;
+
+  // GA4 purchase: Stripe redirects to /upgrade?checkout=success&session_id=cs_... after a
+  // completed checkout. Fire once per session id (deduped inside trackPurchase). Value is
+  // omitted because promo codes can change the amount actually charged.
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const sessionId = params.get('session_id');
+      if (params.get('checkout') !== 'success' || !sessionId || !sessionId.startsWith('cs_')) return;
+      trackPurchase({ transaction_id: sessionId, item_name: 'Forgeline Academy Premium', currency: 'USD' });
+    } catch {
+      // never throw from analytics
+    }
+  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -168,7 +182,7 @@ export function Pricing({ onNavigate }: PricingProps) {
       const { data, error: fnError } = await supabase.functions.invoke('stripe-promo-checkout', {
         body: {
           price_id: STRIPE_PRICE_ID,
-          success_url: `${origin}/upgrade`,
+          success_url: `${origin}/upgrade?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
           cancel_url: `${origin}/upgrade`,
           mode: 'subscription',
           promo_code: promoCode.trim() || undefined,

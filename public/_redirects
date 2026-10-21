@@ -3,7 +3,7 @@ https://www.forgelineacademy.com/* https://forgelineacademy.com/:splat 301!
 http://www.forgelineacademy.com/*  https://forgelineacademy.com/:splat 301!
 
 # security.txt is a static file; keep it ahead of any rewrites.
-/.well-known/security.txt /.well-known/security.txt 200
+/.well-known/security.txt /security.txt 200
 
 # Static robots.txt and sitemap.xml are served from /public (do not self-rewrite; that 500s on some edges).
 # Specific static HTML must win before the SPA splat. On Netlify/Bolt, files usually win if they exist;
